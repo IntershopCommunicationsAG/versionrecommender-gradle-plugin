@@ -149,9 +149,9 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
         }
         if (versionExtension == VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
             removeVersionFile()
+            versions = null
         }
     }
-
 
     // protected methods
     protected String getFileName(String fileextension) {
@@ -273,6 +273,8 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
         if(! version) {
             throw new IllegalArgumentException("Version for module '${dMap[0]}:${dMap[1]}' must be specified.")
         }
+        dMap.put('version', version)
+
         // adapt extension
         if (!dMap['ext']) {
             dMap.put('ext', getShortTypeName())

@@ -34,16 +34,20 @@ class IvyProvider extends AbstractFileBasedProvider {
 
     @Override
     void fillVersionMap() {
-        if(versions == null) {
-            versions = [:]
-            def ivyconf = new XmlSlurper().parse(getStream())
 
-            ivyconf.dependencies.dependency.each {
-                String descr = "${it.@org.text()}:${it.@name.text()}".toString()
-                String version = "${it.@rev.text()}"
-                versions.put(descr, version)
-                if(transitive) {
-                    calculateDependencies(descr, version)
+        if(versions == null) {
+            InputStream stream = getStream()
+            if(stream) {
+                versions = [:]
+                def ivyconf = new XmlSlurper().parse(getStream())
+
+                ivyconf.dependencies.dependency.each {
+                    String descr = "${it.@org.text()}:${it.@name.text()}".toString()
+                    String version = "${it.@rev.text()}"
+                    versions.put(descr, version)
+                    if (transitive) {
+                        calculateDependencies(descr, version)
+                    }
                 }
             }
         }

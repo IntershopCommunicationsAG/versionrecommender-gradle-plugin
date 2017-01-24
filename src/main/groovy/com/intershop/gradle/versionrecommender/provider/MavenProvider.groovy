@@ -72,8 +72,15 @@ class MavenProvider extends AbstractFileBasedProvider {
 
             modelBuilder.setModelInterpolator(new ProjectPropertiesModelInterpolator(project))
             ModelBuildingResult result = modelBuilder.build(request)
-            for (Dependency d : result.getEffectiveModel().getDependencyManagement().getDependencies()) {
-                if(this.overrideTransitives || ! versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+
+            result.getEffectiveModel().getDependencyManagement()?.getDependencies().each {Dependency d ->
+                if (this.overrideTransitives || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+                }
+            }
+
+            result.getEffectiveModel()?.getDependencies().each {Dependency d ->
+                if (this.overrideTransitives || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
                     versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
                 }
             }

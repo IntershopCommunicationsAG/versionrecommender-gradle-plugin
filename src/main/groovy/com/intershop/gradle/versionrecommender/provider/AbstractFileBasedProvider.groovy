@@ -277,6 +277,12 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
         if (!dMap['ext']) {
             dMap.put('ext', getShortTypeName())
         }
+
+        if(project.getRepositories().size() < 1) {
+            log.info('There are no repositories defined. JCenter will be added.')
+            project.repositories.add(project.getRepositories().jcenter())
+        }
+
         // create a temporary configuration to resolve the file
         Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
 

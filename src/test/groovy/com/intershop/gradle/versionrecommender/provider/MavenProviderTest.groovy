@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.test.util.TestDir
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -45,5 +46,27 @@ class MavenProviderTest extends Specification {
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'
+    }
+
+    def 'Check Maven Provider with dependency configuration'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop', artifactId:'filter', version: '2.0.0') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0'
+                dependency groupId: 'com.intershop', artifactId: 'component2', version: '2.0.0'
+            }
+        }.writeTo(repoDir)
+
+        project.repositories.maven {
+            name 'mvnLocal'
+            url "file://${repoDir.absolutePath}"
+        }
+
+        MavenProvider provider = new MavenProvider('test', project, 'com.intershop:filter:2.0.0')
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '1.0.0'
     }
 }

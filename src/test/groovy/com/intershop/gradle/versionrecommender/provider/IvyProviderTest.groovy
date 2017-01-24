@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.util.TestDir
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -57,5 +58,34 @@ class IvyProviderTest extends Specification {
 
         then:
         provider.getVersion('aopalliance', 'aopalliance') == '1.0'
+    }
+
+    def 'Check IVY Provider with dependency configuration'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+        String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+        String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '2.0.0') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0'
+                dependency org: 'com.intershop', name: 'component2', rev: '2.0.0'
+            }
+        }.writeTo(repoDir)
+
+        project.repositories.ivy {
+            name 'ivyLocal'
+            url "file://${repoDir.absolutePath}"
+            layout ('pattern') {
+                ivy ivyPattern
+                artifact artifactPattern
+                artifact ivyPattern
+            }
+        }
+
+        IvyProvider provider = new IvyProvider('test', project, 'com.intershop:filter:2.0.0')
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '1.0.0'
     }
 }

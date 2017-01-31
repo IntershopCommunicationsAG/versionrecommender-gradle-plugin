@@ -8,7 +8,7 @@ import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
 
-class PropertiesProviderTest extends Specification {
+class PropertiesProviderSpec extends Specification {
 
     /**
      * Project directory for tests

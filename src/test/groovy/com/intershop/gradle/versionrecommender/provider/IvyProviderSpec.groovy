@@ -9,7 +9,7 @@ import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
 
-class IvyProviderTest extends Specification {
+class IvyProviderSpec extends Specification {
 
     /**
      * Project directory for tests

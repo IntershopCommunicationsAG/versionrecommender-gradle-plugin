@@ -32,12 +32,6 @@ enum UpdatePos {
             return 'HOTFIX'
         }
     },
-    METADATA {
-        @Override
-        String toString() {
-            return 'METADATA'
-        }
-    },
     NONE {
         @Override
         String toString() {

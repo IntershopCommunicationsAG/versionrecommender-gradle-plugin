@@ -6,24 +6,106 @@ import com.intershop.release.version.VersionParser
 import com.intershop.release.version.VersionType
 import groovy.util.logging.Slf4j
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 @Slf4j
 class VersionUpdater {
 
     private static final String versionregex = '(\\d+)(\\.\\d+)(\\.\\d+)(\\.\\d+)?'
 
-    private Project project
-
     public String userName
     public String password
+
     public String ivyPattern
+
+    private Project project
+
+    private List<MavenArtifactRepository> mvnHttpRepList
+    private List<MavenArtifactRepository> mvnFileRepList
+    private List<IvyArtifactRepository> ivyHttpRepList
+    private List<IvyArtifactRepository> ivyFileRepList
 
     VersionUpdater(Project project) {
         this.project = project
+
+        List<ArtifactRepository> mvnRepList = project.getRepositories().findAll {it instanceof MavenArtifactRepository}
+        mvnHttpRepList = mvnRepList.findAll { ((MavenArtifactRepository)it).url.scheme.startsWith('http') }
+        mvnFileRepList = mvnRepList.findAll { ((MavenArtifactRepository)it).url.scheme.startsWith('file') }
+        List<ArtifactRepository> ivyRepList = project.getRepositories().findAll {it instanceof IvyArtifactRepository}
+        ivyHttpRepList = ivyRepList.findAll { ((IvyArtifactRepository)it).url?.scheme.startsWith('http') }
+        ivyFileRepList = ivyRepList.findAll { ((IvyArtifactRepository)it).url?.scheme.startsWith('file') }
     }
 
-    String getNewSemanticVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
+    List<String> getVersionList(String group, String module) {
+        List<String> versionList = []
 
+        mvnHttpRepList.any { MavenArtifactRepository repo ->
+            versionList = HTTPProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, module, repo.credentials.username, repo.credentials.password)
+            if(versionList)
+                return true
+        }
+        if(! versionList) {
+            if(ivyPattern) {
+                ivyHttpRepList.any { IvyArtifactRepository repo ->
+                    versionList = HTTPProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, module, repo.credentials.username, repo.credentials.password)
+                    if (versionList)
+                        return true
+                }
+                if (!versionList) {
+                    ivyFileRepList.any { IvyArtifactRepository repo ->
+                        versionList = FileProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, module)
+                        if (versionList)
+                            return true
+                    }
+                }
+            }
+
+            if(! versionList) {
+                mvnFileRepList.any { MavenArtifactRepository repo ->
+                    versionList = FileProvider.getVersionFromMavenMetadata(new File(repo.url), group, module)
+                    if(versionList)
+                        return true
+                }
+            }
+        }
+        return versionList
+    }
+
+    String getUpdateVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
+        //verifyVersion
+        List<String> versionList = getVersionList(group, module)
+        if(versionList) {
+            return calculateUpdateVersion(filterVersion(versionList, version, pos), version)
+        }
+        return null
+    }
+
+    String getUpdateVersion(String group, String module, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {
+        List<String> versionList = getVersionList(group, module)
+        if(versionList) {
+            return calculateUpdateVersion(filterVersion(versionList, version, searchExtPattern, pos, versionExtPattern), version)
+        }
+        return null
+    }
+
+    String getUpdateVersion(String group, String module, String version, String patternForNextVersion, int sortStringPos) {
+        List<String> versionList = getVersionList(group, module)
+        if(versionList) {
+            return calculateUpdateVersion(filterVersion(versionList, version, patternForNextVersion, sortStringPos), version)
+        }
+        return null
+    }
+
+    private static String calculateUpdateVersion(List<String> filteredVersion, String version) {
+        if(filteredVersion) {
+            String updateVersion = filteredVersion.last()
+            if(updateVersion != version) {
+                return updateVersion
+            }
+        }
+        return null
     }
 
     static List<String> filterVersion(List<String> list, String version, UpdatePos pos = UpdatePos.HOTFIX) {
@@ -152,7 +234,7 @@ class VersionUpdater {
         }
     }
 
-    static List<String> filterVersionString(List<String> list, String version, String patternForNextVersion , int sortStringPos) {
+    static List<String> filterVersion(List<String> list, String version, String patternForNextVersion, int sortStringPos) {
         def mv = (version =~ /${patternForNextVersion}/)
         if(mv.count < 1) {
             throw new RuntimeException("Pattern for next version '${patternForNextVersion}' does not match to version '${version}'.")

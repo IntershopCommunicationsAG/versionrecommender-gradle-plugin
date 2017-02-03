@@ -36,6 +36,7 @@ class MavenProviderSpec extends Specification {
     def setup() {
         canonicalName = testName.getMethodName().replaceAll(' ', '-')
         project = ProjectBuilder.builder().withName(canonicalName).withProjectDir(testProjectDir).build()
+        project.repositories.add(project.repositories.jcenter())
     }
 
     def 'Maven provider with bom file'() {

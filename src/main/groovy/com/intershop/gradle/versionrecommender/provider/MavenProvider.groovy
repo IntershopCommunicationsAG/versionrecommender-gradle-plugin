@@ -132,22 +132,15 @@ class MavenProvider extends AbstractFileBasedProvider {
             try {
                 List<ArtifactRepository> repList = project.getRepositories().findAll {it instanceof  MavenArtifactRepository}
 
-                if(repList.size() == 0) {
-                    log.info('There are no Maven repositories defined. JCenter will be added.')
-                    repList.add(project.getRepositories().jcenter())
-                }
-
                 repList.any {ArtifactRepository repo ->
-                    if(repo instanceof MavenArtifactRepository) {
-                        URL url = new URL(((MavenArtifactRepository) repo).getUrl().toString() + "/" + relativeURL)
+                    URL url = new URL(((MavenArtifactRepository) repo).getUrl().toString() + "/" + relativeURL)
 
-                        try {
-                            sms = new StreamModelSource(url.openStream())
-                            return true
-                        } catch (IOException ioex) {
-                            sms = null
-                            log.warn('It was not possible to resolve URL {} ({})', url, ioex.getMessage())
-                        }
+                    try {
+                        sms = new StreamModelSource(url.openStream())
+                        return true
+                    } catch (IOException ioex) {
+                        sms = null
+                        log.warn('It was not possible to resolve URL {} ({})', url, ioex.getMessage())
                     }
                 }
             } catch (MalformedURLException malurlex) {

@@ -5,12 +5,12 @@ import groovy.util.slurpersupport.GPathResult
 class FileProvider {
 
     public static List<String> getVersionFromMavenMetadata(File repo, String group, String module) {
-        File metadata = new File(repo, "/${group.replace('.', '/')}/${module}/maven-metadata.xml")
-        if(metadata.exists()) {
-            GPathResult modelMetaData = new XmlSlurper().parse(metadata)
+        File metadataFile = new File(repo, "/${group.replace('.', '/')}/${module}/maven-metadata.xml")
+        if(metadataFile.exists()) {
+            GPathResult modelMetaData = new XmlSlurper().parse(metadataFile)
             List<String> list = []
-            metadata.versioning.versions.version.each{
-                list.add(it)
+            modelMetaData.versioning.versions.version.each{
+                list.add(it.toString())
             }
             return list
         } else {

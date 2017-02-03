@@ -159,12 +159,6 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
     }
 
     protected void calculateDependencies(String descr, String version) {
-        // check repos
-        if(project.getRepositories().size() == 0) {
-            log.info('There are no repositories defined. JCenter will be added.')
-            project.repositories.add(project.getRepositories().jcenter())
-        }
-
         // create a temporary configuration to resolve the file
         Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create("${descr}:${version}"))
         conf.setTransitive(true)
@@ -270,28 +264,22 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
         Map dMap = new HashMap(inputDependency)
         // adapt version
         String version = getVersionFromFiles()
-        if(! version) {
-            throw new IllegalArgumentException("Version for module '${dMap[0]}:${dMap[1]}' must be specified.")
+        if(version) {
+            dMap.put('version', version)
+
+            // adapt extension
+            if (!dMap['ext']) {
+                dMap.put('ext', getShortTypeName())
+            }
+            // create a temporary configuration to resolve the file
+            Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
+
+            ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
+            log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
+
+            return artifactId?.getFile()
         }
-        dMap.put('version', version)
-
-        // adapt extension
-        if (!dMap['ext']) {
-            dMap.put('ext', getShortTypeName())
-        }
-
-        if(project.getRepositories().size() < 1) {
-            log.info('There are no repositories defined. JCenter will be added.')
-            project.repositories.add(project.getRepositories().jcenter())
-        }
-
-        // create a temporary configuration to resolve the file
-        Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
-
-        ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
-        log.info('Selected recommendation source {}, you requested {}', artifactId.getId(), dMap)
-
-        return artifactId.getFile()
+        return null
     }
 
     private InputStream getStreamFromModule() {

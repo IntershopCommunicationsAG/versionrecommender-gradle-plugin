@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
 import org.gradle.api.Named
@@ -13,7 +14,7 @@ interface VersionProvider extends Named {
     // Update methods
     void setUpdatePos(String updatePos)
 
-    void update(String versionStr, String moduleFilter)
+    void update(UpdateConfiguration updateConfig)
 
     void storeVersionFile()
 

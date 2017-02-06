@@ -22,6 +22,7 @@ class FileProvider {
         int i = pattern.indexOf('[revision]')
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', group.replaceAll('/','.')).replaceAll('\\[module]', module)
         File versionDir = new File(repo, path)
+
         if(versionDir.exists()) {
             List<String> list = []
             versionDir.eachDir {

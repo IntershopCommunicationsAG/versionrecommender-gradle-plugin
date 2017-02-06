@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import com.intershop.gradle.versionrecommender.util.SimpleVersionProperties
 import com.intershop.gradle.versionrecommender.util.VersionExtension
@@ -57,31 +58,26 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void update(String versionStr = '', String moduleFilter = '') {
+    void update(UpdateConfiguration updateConfig) {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
             SimpleVersionProperties svp = getProperties()
+            boolean propertiesChanged = false
 
-            if(versionStr) {
-                if(moduleFilter) {
-                    if(moduleFilter.contains('*')) {
-                        Pattern p = Pattern.compile(moduleFilter.replaceAll("\\*", ".*?"))
-                        svp.keys().each {String key ->
-                            if(p.matcher(key).matches()) {
-                                svp.setProperty(key, versionStr)
-                            }
-                        }
-                    }
-                } else {
-                    svp.keys().each { String key ->
-                        svp.setProperty(key, versionStr)
-                    }
+            svp.keySet().each {
+                String[] groupModul = it.toString().split(':')
+                String oldVersion = svp.getProperty(it.toString(), '')
+
+                String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
+                if(updateVersion && updateVersion != oldVersion) {
+                    svp.setProperty(it.toString(), updateVersion)
+                    propertiesChanged = true
                 }
-
-            } else {
-                // update version
-                // write update version
             }
-            writeVersionProperties(svp, workingDir)
+            if(propertiesChanged) {
+                writeVersionProperties(svp, workingDir)
+            } else {
+                log.warn('No update changes on properties {}', inputFile.getAbsolutePath())
+            }
         }
     }
 

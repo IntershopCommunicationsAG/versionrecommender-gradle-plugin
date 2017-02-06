@@ -1,5 +1,7 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
+import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import com.intershop.release.version.ParserException
@@ -100,17 +102,22 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
     }
 
     @Override
-    void update(String versionStr = '', String moduleFilter = '') {
+    void update(UpdateConfiguration updateConfig) {
         if(inputType == FileInputType.DEPENDENCYMAP) {
-            if(moduleFilter) {
-                log.warn('moduleFilter is not supported for provider {}', "${getShortTypeName().toLowerCase()}${getName().capitalize()}")
-            }
-            if(versionStr) {
-                writeVersionToFile(versionStr, workingDir)
+            UpdateConfigurationItem ucItem = updateConfig.getConfigItem(inputDependency.get('group').toString() ,inputDependency.get('name').toString())
+            if(ucItem.getVersion()) {
+                writeVersionToFile(ucItem.getVersion(), workingDir)
             } else {
-                // update version
-                // write update version
+                String updateVersion = updateConfig.getUpdate(inputDependency.get('group').toString(),
+                        inputDependency.get('name').toString(),
+                        inputDependency.get('version').toString())
+                if(updateVersion) {
+                    versions = null
+                    writeVersionToFile(updateVersion, workingDir)
+                }
             }
+        } else {
+            log.warn('The input type {} is not support for update task.', inputType.toString())
         }
     }
 
@@ -145,6 +152,7 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
             if (version) {
                 version += "-${versionExtension}"
                 writeVersionToFile(version, workingDir)
+                versions = null
             }
         }
         if (versionExtension == VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
@@ -341,6 +349,7 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
     }
 
     private void writeVersionToFile(String version, File dir) {
+
         File versionFile = new File(dir, getFileName('version'))
         if(versionFile.exists())
             FileChannel.open(versionFile.toPath()).truncate(0).close()

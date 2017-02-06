@@ -3,6 +3,7 @@ package com.intershop.gradle.versionrecommender.update
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.test.util.TestDir
+import com.intershop.gradle.versionrecommender.util.UpdatePos
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -350,5 +351,27 @@ class VersionUpdaterSpec extends Specification {
 
         then:
         uv == '1.0.1'
+    }
+
+    def 'getUpdateVersion with jetty version from Maven with semantic versions from jcenter'() {
+        when:
+        project.repositories.add(project.repositories.jcenter())
+
+        VersionUpdater vu = new VersionUpdater(project)
+        String uv = vu.getUpdateVersion('org.eclipse.jetty','jetty-server','9.3.11.v20160721', '\\.v\\d+', UpdatePos.MINOR)
+
+        then:
+        uv == '9.4.1.v20170120'
+    }
+
+    def 'getUpdateVersion with google version from Maven with semantic versions from jcenter'() {
+        when:
+        project.repositories.add(project.repositories.jcenter())
+
+        VersionUpdater vu = new VersionUpdater(project)
+        String uv = vu.getUpdateVersion('com.google.apis','google-api-services-appsactivity','v1-rev29-1.20.0', '^(v1-rev)(\\d+)(-1\\.20\\.0)$', 2)
+
+        then:
+        uv == 'v1-rev31-1.20.0'
     }
 }

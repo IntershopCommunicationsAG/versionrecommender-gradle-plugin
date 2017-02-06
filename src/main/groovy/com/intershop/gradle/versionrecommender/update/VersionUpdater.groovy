@@ -74,7 +74,6 @@ class VersionUpdater {
     }
 
     String getUpdateVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
-        //verifyVersion
         List<String> versionList = getVersionList(group, module)
         if(versionList) {
             return calculateUpdateVersion(filterVersion(versionList, version, pos), version)
@@ -82,10 +81,10 @@ class VersionUpdater {
         return null
     }
 
-    String getUpdateVersion(String group, String module, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {
+    String getUpdateVersion(String group, String module, String version, String searchPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionPattern =  searchPattern) {
         List<String> versionList = getVersionList(group, module)
         if(versionList) {
-            return calculateUpdateVersion(filterVersion(versionList, version, searchExtPattern, pos, versionExtPattern), version)
+            return calculateUpdateVersion(filterVersion(versionList, version,  searchPattern, pos, versionPattern), version)
         }
         return null
     }
@@ -156,6 +155,7 @@ class VersionUpdater {
                             } .sort()
 
             List<Version> filteredList2 = filteredList.findAll { it >= nextVersion  }
+
             if(filteredList2.isEmpty()) {
                 return filteredList.collect { it.toStringFor(digits)}
             }

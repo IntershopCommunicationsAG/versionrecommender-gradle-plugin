@@ -68,6 +68,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 String oldVersion = svp.getProperty(it.toString(), '')
 
                 String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
+
                 if(updateVersion && updateVersion != oldVersion) {
                     svp.setProperty(it.toString(), updateVersion)
                     propertiesChanged = true

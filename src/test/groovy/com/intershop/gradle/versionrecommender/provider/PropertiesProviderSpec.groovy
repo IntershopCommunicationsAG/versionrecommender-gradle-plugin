@@ -1,6 +1,8 @@
 package com.intershop.gradle.versionrecommender.provider
 
 import com.intershop.gradle.test.util.TestDir
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
+import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -117,5 +119,42 @@ class PropertiesProviderSpec extends Specification {
 
         then:
         provider.getVersion('com.intershop.platform', 'platformcomp') == '1.2.3-LOCAL'
+    }
+
+    def 'Properties provider version update'() {
+        when:
+        String propertiesContent = """
+        # external properties
+        org.apache.commons:commons-lang3 = 3.3
+        org.eclipse.jetty:jetty-server = 9.3.11.v20160721
+        org.apache.logging.log4j:log4j-core = 2.4
+        """.stripIndent()
+
+        File confFile = new File(project.projectDir, 'version.properties')
+        confFile.setText(propertiesContent)
+
+        PropertiesProvider provider = new PropertiesProvider('test', project, confFile)
+        project.repositories.add(project.repositories.jcenter())
+
+        then:
+        provider.getVersion('org.apache.commons', 'commons-lang3') == '3.3'
+        provider.getVersion('org.eclipse.jetty', 'jetty-server') == '9.3.11.v20160721'
+        provider.getVersion('org.apache.logging.log4j', 'log4j-core') == '2.4'
+
+        when:
+        UpdateConfiguration uc = new UpdateConfiguration(project)
+
+        UpdateConfigurationItem uci_1 = new UpdateConfigurationItem('org.eclipse.jetty', '')
+        uci_1.searchPattern = '\\.v\\d+'
+        uc.addConfigurationItem(uci_1)
+        UpdateConfigurationItem uci_2 = new UpdateConfigurationItem()
+        uc.addConfigurationItem(uci_2)
+
+        provider.update(uc)
+
+        then:
+        provider.getVersion('org.apache.commons', 'commons-lang3') == '3.3.2'
+        provider.getVersion('org.eclipse.jetty', 'jetty-server') == '9.3.16.v20170120'
+        provider.getVersion('org.apache.logging.log4j', 'log4j-core') == '2.4.1'
     }
 }

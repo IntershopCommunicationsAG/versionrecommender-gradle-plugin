@@ -70,6 +70,7 @@ class VersionUpdater {
                 }
             }
         }
+
         return versionList
     }
 
@@ -157,12 +158,60 @@ class VersionUpdater {
             List<Version> filteredList2 = filteredList.findAll { it >= nextVersion  }
 
             if(filteredList2.isEmpty()) {
-                return filteredList.collect { it.toStringFor(digits)}
+                return filteredList.collect { getStringFromVersion(it, digits) }
             }
-            return filteredList2.collect { it.toStringFor(digits)}
+            return filteredList2.collect { getStringFromVersion(it, digits) }
         } else {
             throw new RuntimeException("Version '${version}' is not a semantic version.")
         }
+    }
+
+    static String getStringFromVersion(Version v, int digits) {
+        if(v.getNormalVersion().versionType == VersionType.fourDigits){
+            if(digits == 3) {
+                if(v.getHotfixVersion() == 0) {
+                    return v.toStringFor(3)
+                }
+            }
+            if(digits == 2) {
+                if(v.getHotfixVersion() == 0) {
+                    if(v.getPatchVersion() == 0) {
+                        return v.toStringFor(2)
+                    } else {
+                        return v.toStringFor(3)
+                    }
+                }
+            }
+            if(digits == 1) {
+                if(v.getHotfixVersion() == 0) {
+                    if(v.getPatchVersion() == 0) {
+                        if(v.getMinorVersion() == 0) {
+                            return v.toStringFor(1)
+                        } else {
+                            return v.toStringFor(2)
+                        }
+                    } else {
+                        return v.toStringFor(3)
+                    }
+                }
+            }
+        } else {
+            if(digits == 2) {
+                if(v.getPatchVersion() == 0) {
+                    return v.toStringFor(2)
+                }
+            }
+            if(digits == 1) {
+                if(v.getPatchVersion() == 0) {
+                    if(v.getMinorVersion()) {
+                        return v.toStringFor(1)
+                    } else {
+                        return v.toStringFor(2)
+                    }
+                }
+            }
+        }
+        return v.toString()
     }
 
     static List<String> filterVersion(List<String> list, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {

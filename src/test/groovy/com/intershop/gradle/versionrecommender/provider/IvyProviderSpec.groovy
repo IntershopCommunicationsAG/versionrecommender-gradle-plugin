@@ -4,6 +4,7 @@ import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.util.TestDir
 import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
+import com.intershop.gradle.versionrecommender.util.UpdatePos
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -203,5 +204,12 @@ class IvyProviderSpec extends Specification {
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.1'
+
+        when:
+        uci.updatePos = UpdatePos.MAJOR
+        provider.update(uc)
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '2.0.0'
     }
 }

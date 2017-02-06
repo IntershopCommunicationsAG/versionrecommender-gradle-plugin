@@ -75,6 +75,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
             }
             if(propertiesChanged) {
                 writeVersionProperties(svp, workingDir)
+                versions = null
             } else {
                 log.warn('No update changes on properties {}', inputFile.getAbsolutePath())
             }
@@ -101,6 +102,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
             }
             writeVersionProperties(svp, workingDir)
+            versions = null
         }
     }
 

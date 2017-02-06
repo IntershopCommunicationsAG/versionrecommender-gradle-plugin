@@ -2,7 +2,11 @@ package com.intershop.gradle.versionrecommender.provider
 
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.test.util.TestDir
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
+import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
+import com.intershop.gradle.versionrecommender.util.UpdatePos
 import com.intershop.gradle.versionrecommender.util.VersionExtension
+import groovy.xml.MarkupBuilder
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -115,5 +119,80 @@ class MavenProviderSpec extends Specification {
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
         provider.getVersion('com.intershop', 'component2') == '2.0.0'
+    }
+
+    def 'Maven provider with updated version from local repo'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop', artifactId:'filter', version: '1.0.0') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0'
+                dependency groupId: 'com.intershop', artifactId: 'component2', version: '1.0.0'
+            }
+        }.writeTo(repoDir)
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop', artifactId:'filter', version: '1.0.1') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.1'
+                dependency groupId: 'com.intershop', artifactId: 'component2', version: '1.0.1'
+            }
+        }.writeTo(repoDir)
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop', artifactId:'filter', version: '2.0.0') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '2.0.0'
+                dependency groupId: 'com.intershop', artifactId: 'component2', version: '2.0.0'
+            }
+        }.writeTo(repoDir)
+
+        File metadata = new File(repoDir, 'com/intershop/filter/maven-metadata.xml')
+
+        MarkupBuilder xmlMetadata = new MarkupBuilder(metadata.newWriter())
+        xmlMetadata.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
+        xmlMetadata.metadata {
+            groupId { mkp.yield('com.intershop')}
+            artifactId { mkp.yield('filter')}
+            version { mkp.yield('2.0.0')}
+            versioning {
+                latest { mkp.yield('2.0.0')}
+                release { mkp.yield('2.0.0')}
+                versions {
+                    version { mkp.yield('1.0.0')}
+                    version { mkp.yield('1.0.1')}
+                    version { mkp.yield('2.0.0')}
+                }
+                lastUpdated { mkp.yield('20160923190059')}
+            }
+        }
+
+        project.repositories {
+            maven {
+                name 'mvnLocal'
+                url "file://${repoDir.absolutePath}"
+            }
+        }
+
+        MavenProvider provider = new MavenProvider('test', project, 'com.intershop:filter:1.0.0')
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '1.0.0'
+
+        when:
+        UpdateConfiguration uc = new UpdateConfiguration(project)
+
+        UpdateConfigurationItem uci = new UpdateConfigurationItem('com.intershop', 'filter')
+        uc.addConfigurationItem(uci)
+        provider.update(uc)
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '1.0.1'
+
+        when:
+        uci.updatePos = UpdatePos.MAJOR
+        provider.update(uc)
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '2.0.0'
     }
 }

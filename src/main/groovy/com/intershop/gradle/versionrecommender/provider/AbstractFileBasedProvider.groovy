@@ -11,7 +11,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 
-import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -112,8 +111,8 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
                         inputDependency.get('name').toString(),
                         inputDependency.get('version').toString())
                 if(updateVersion) {
-                    versions = null
                     writeVersionToFile(updateVersion, workingDir)
+                    versions = null
                 }
             }
         } else {
@@ -349,12 +348,8 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
     }
 
     private void writeVersionToFile(String version, File dir) {
-
         File versionFile = new File(dir, getFileName('version'))
-        if(versionFile.exists())
-            FileChannel.open(versionFile.toPath()).truncate(0).close()
-
-        versionFile << version
+        versionFile.setText(version)
     }
 
     private void removeVersionFile() {

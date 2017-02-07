@@ -41,25 +41,23 @@ class UpdateConfirmationSpec extends Specification {
         when:
         UpdateConfiguration uc = new UpdateConfiguration(project)
 
-        //uc.addConfigurationItem(new UpdateConfigurationItem())
-
-        UpdateConfigurationItem uci1 = new UpdateConfigurationItem('com.intershop.*', '')
+        UpdateConfigurationItem uci1 = new UpdateConfigurationItem('filter', 'com.intershop.*', '')
         uci1.updatePos = UpdatePos.MINOR
         uc.addConfigurationItem(uci1)
 
-        UpdateConfigurationItem uci2 = new UpdateConfigurationItem('com.intershop.platform', 'core')
+        UpdateConfigurationItem uci2 = new UpdateConfigurationItem('core', 'com.intershop.platform', 'core')
         uci2.updatePos = UpdatePos.MAJOR
         uc.addConfigurationItem(uci2)
 
-        UpdateConfigurationItem uci3 = new UpdateConfigurationItem('com.intershop.platform', 'runtime')
+        UpdateConfigurationItem uci3 = new UpdateConfigurationItem('runtime', 'com.intershop.platform', 'runtime')
         uci3.updatePos = UpdatePos.MINOR
         uc.addConfigurationItem(uci3)
 
-        UpdateConfigurationItem uci4 = new UpdateConfigurationItem('com.intershop.platform', '')
+        UpdateConfigurationItem uci4 = new UpdateConfigurationItem('platform', 'com.intershop.platform', '')
         uci4.updatePos = UpdatePos.HOTFIX
         uc.addConfigurationItem(uci4)
 
-        UpdateConfigurationItem uci5 = new UpdateConfigurationItem('org.jetty', '')
+        UpdateConfigurationItem uci5 = new UpdateConfigurationItem('jetty', 'org.jetty', '')
         uci5.searchPattern = '\\.v\\d+'
         uc.addConfigurationItem(uci5)
 

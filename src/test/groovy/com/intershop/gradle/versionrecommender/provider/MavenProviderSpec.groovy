@@ -181,7 +181,7 @@ class MavenProviderSpec extends Specification {
         when:
         UpdateConfiguration uc = new UpdateConfiguration(project)
 
-        UpdateConfigurationItem uci = new UpdateConfigurationItem('com.intershop', 'filter')
+        UpdateConfigurationItem uci = new UpdateConfigurationItem('filter', 'com.intershop', 'filter')
         uc.addConfigurationItem(uci)
         provider.update(uc)
 

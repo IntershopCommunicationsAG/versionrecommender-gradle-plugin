@@ -22,26 +22,31 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     PropertiesProvider(final String name, final Project project, final File inputFile) {
         super(name, project, inputFile)
         versionList = [:]
+        updateExceptions = []
     }
 
     PropertiesProvider(final String name, final Project project, final Object dependencyNotation) {
         super(name, project, dependencyNotation)
         versionList = [:]
+        updateExceptions = []
     }
 
     PropertiesProvider(final String name, final Project project, final URL inputURL) {
         super(name, project, inputURL)
         versionList = [:]
+        updateExceptions = []
     }
 
     PropertiesProvider(final String name, final Project project, final URI inputURI) {
         super(name, project, inputURI)
         versionList = [:]
+        updateExceptions = []
     }
 
     PropertiesProvider(final String name, final Project project, final String input, final FileInputType type) {
         super(name, project, input, type)
         versionList = [:]
+        updateExceptions = []
     }
 
     @Override
@@ -50,7 +55,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     Map<String, String> versionList
-    Map<String, String> updateExceptions
+    List<String> updateExceptions
 
     @Override
     boolean isAdaptable() {
@@ -64,14 +69,16 @@ class PropertiesProvider extends AbstractFileBasedProvider {
             boolean propertiesChanged = false
 
             svp.keySet().each {
-                String[] groupModul = it.toString().split(':')
-                String oldVersion = svp.getProperty(it.toString(), '')
+                if(! checkUpdateException(it.toString())) {
+                    String[] groupModul = it.toString().split(':')
+                    String oldVersion = svp.getProperty(it.toString(), '')
 
-                String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
+                    String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
 
-                if(updateVersion && updateVersion != oldVersion) {
-                    svp.setProperty(it.toString(), updateVersion)
-                    propertiesChanged = true
+                    if (updateVersion && updateVersion != oldVersion) {
+                        svp.setProperty(it.toString(), updateVersion)
+                        propertiesChanged = true
+                    }
                 }
             }
             if(propertiesChanged) {
@@ -81,6 +88,15 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 log.warn('No update changes on properties {}', inputFile.getAbsolutePath())
             }
         }
+    }
+
+    private boolean checkUpdateException(String orgModule) {
+        boolean rv = false
+        updateExceptions.any {String exc ->
+            rv = (exc ==~ /${exc.replaceAll("\\*", ".*?")}/)
+            return rv
+        }
+        return rv
     }
 
     @Override

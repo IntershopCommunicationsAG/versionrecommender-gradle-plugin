@@ -168,47 +168,42 @@ class VersionUpdater {
 
     static String getStringFromVersion(Version v, int digits) {
         if(v.getNormalVersion().versionType == VersionType.fourDigits){
-            if(digits == 3) {
-                if(v.getHotfixVersion() == 0) {
-                    return v.toStringFor(3)
-                }
-            }
-            if(digits == 2) {
-                if(v.getHotfixVersion() == 0) {
-                    if(v.getPatchVersion() == 0) {
-                        return v.toStringFor(2)
-                    } else {
+            switch (digits) {
+                case 3:
+                    if(v.getHotfixVersion() == 0)
+                        return v.toStringFor(3)
+                    break
+                case 2:
+                    if(v.getHotfixVersion() == 0) {
+                        if(v.getPatchVersion() == 0)
+                            return v.toStringFor(2)
                         return v.toStringFor(3)
                     }
-                }
-            }
-            if(digits == 1) {
-                if(v.getHotfixVersion() == 0) {
-                    if(v.getPatchVersion() == 0) {
-                        if(v.getMinorVersion() == 0) {
-                            return v.toStringFor(1)
-                        } else {
+                    break
+                case 1:
+                    if(v.getHotfixVersion() == 0) {
+                        if (v.getPatchVersion() == 0) {
+                            if (v.getMinorVersion() == 0)
+                                return v.toStringFor(1)
                             return v.toStringFor(2)
                         }
-                    } else {
                         return v.toStringFor(3)
                     }
-                }
+                    break
             }
         } else {
-            if(digits == 2) {
-                if(v.getPatchVersion() == 0) {
-                    return v.toStringFor(2)
-                }
-            }
-            if(digits == 1) {
-                if(v.getPatchVersion() == 0) {
-                    if(v.getMinorVersion()) {
-                        return v.toStringFor(1)
-                    } else {
+            switch (digits) {
+                case 2:
+                    if(v.getPatchVersion() == 0)
+                        return v.toStringFor(2)
+                    break
+                case 1:
+                    if(v.getPatchVersion() == 0) {
+                        if(v.getMinorVersion() == 0)
+                            return v.toStringFor(1)
                         return v.toStringFor(2)
                     }
-                }
+                    break
             }
         }
         return v.toString()

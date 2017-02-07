@@ -51,7 +51,7 @@ class UpdateConfiguration {
                     ((it.module && searchModule =~ /${it.module.replaceAll('\\*', '.*?')}/) || (! it.module))
         }
         if(item == null) {
-            item = new UpdateConfigurationItem()
+            item = new UpdateConfigurationItem('empty')
         }
         return item
     }

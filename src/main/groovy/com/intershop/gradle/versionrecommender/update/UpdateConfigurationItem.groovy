@@ -1,18 +1,22 @@
 package com.intershop.gradle.versionrecommender.update
 
 import com.intershop.gradle.versionrecommender.util.UpdatePos
+import org.gradle.api.Named
 
-class UpdateConfigurationItem implements Comparable{
+class UpdateConfigurationItem implements Comparable, Named {
 
-    UpdateConfigurationItem() {
+    UpdateConfigurationItem(String name) {
+        this.name = name
         this.org = ''
         this.module = ''
     }
 
-    UpdateConfigurationItem(String org, String module) {
+    UpdateConfigurationItem(String name, String org, String module) {
         this.org = org
         this.module = module
     }
+
+    String name
 
     String module = ''
 

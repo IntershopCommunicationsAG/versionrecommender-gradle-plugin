@@ -1,48 +1,34 @@
 package com.intershop.gradle.versionrecommender.extension
 
-import com.intershop.gradle.versionrecommender.provider.IvyProvider
-import com.intershop.gradle.versionrecommender.provider.MavenProvider
-
-import com.intershop.gradle.versionrecommender.provider.PropertiesProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 
 class VersionRecommenderExtension {
 
-    final static String EXTENSIONNAME = 'versionRecommender'
+    final static String EXTENSIONNAME = 'versionRecommendation'
 
     private Project project
 
-    final NamedDomainObjectContainer<IvyProvider> ivy
+    final NamedDomainObjectContainer<RecommendationProvider> provider
 
-    final NamedDomainObjectContainer<MavenProvider> maven
+    final String[] defaultUpdateConfigurations
 
-    final NamedDomainObjectContainer<PropertiesProvider> versionprops
+    final UpdateConfigExtension updateConfiguration
 
     VersionRecommenderExtension(Project project) {
         this.project = project
+        provider = project.container(RecommendationProvider)
 
-        ivy = project.container(IvyProvider)
-        maven = project.container(MavenProvider)
-        versionprops = project.container(PropertiesProvider)
+        updateConfiguration = new UpdateConfigExtension(project)
+        defaultUpdateConfigurations = []
     }
 
-    String[] filterOrder = []
-
-    void ivy(Closure c) {
-        ivy.configure(c)
+    void updateConfiguration(final Closure c) {
+        project.configure(updateConfiguration, c)
     }
 
-    void maven(Closure c) {
-        maven.configure(c)
-    }
-
-    void versionprops(Closure c) {
-        versionprops.configure(c)
-    }
-
-    void versionconfig(Closure c) {
-        versionconfig.configure(c)
+    void provider(Closure c) {
+        provider.configure(c)
     }
 
     static String getVersion(String group, String name) {

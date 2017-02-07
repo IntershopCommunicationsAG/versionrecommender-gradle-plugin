@@ -15,12 +15,20 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             group = 'com.intershop'
             version = '1.0.0'
             
-            versionRecommender {
-                providers {
-                    ivy('test1) {
-                        org = 'test.org'
-                        module = 'test'
-                        version = '1.0.0'
+            versionRecommendation {
+                provider {
+                    test1 {
+                        type = 'ivy'
+                        dependency = 'com.intershop:filter:1.0.0'
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+                    updateConfigItem {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
                     }
                 }
             }

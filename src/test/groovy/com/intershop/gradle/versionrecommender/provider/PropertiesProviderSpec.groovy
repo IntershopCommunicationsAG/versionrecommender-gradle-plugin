@@ -144,10 +144,10 @@ class PropertiesProviderSpec extends Specification {
         when:
         UpdateConfiguration uc = new UpdateConfiguration(project)
 
-        UpdateConfigurationItem uci_1 = new UpdateConfigurationItem('org.eclipse.jetty', '')
+        UpdateConfigurationItem uci_1 = new UpdateConfigurationItem('jetty', 'org.eclipse.jetty', '')
         uci_1.searchPattern = '\\.v\\d+'
         uc.addConfigurationItem(uci_1)
-        UpdateConfigurationItem uci_2 = new UpdateConfigurationItem()
+        UpdateConfigurationItem uci_2 = new UpdateConfigurationItem('default')
         uc.addConfigurationItem(uci_2)
 
         provider.update(uc)

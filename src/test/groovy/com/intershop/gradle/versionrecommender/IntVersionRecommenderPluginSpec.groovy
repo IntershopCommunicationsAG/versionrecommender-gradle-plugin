@@ -1,9 +1,13 @@
 package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
-
+import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 
 class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
+
+    final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+    final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
+
 
     def 'test simple configuration'() {
         given:
@@ -23,7 +27,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                     }
                 }
                 updateConfiguration {
-                    ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+                    ivyPattern = '${ivyPattern}'
                     updateConfigItem {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
@@ -32,6 +36,21 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                     }
                 }
             }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
         """.stripIndent()
 
         File settingsfile = file('settings.gradle')
@@ -39,15 +58,61 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             // define root proejct name
             rootProject.name = 'testProject'
         """.stripIndent()
-        writeJavaTestClass("com.intershop.test")
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('tasks')
+                .withArguments('copyResult') //, '--profile')
                 .build()
 
         then:
-        println result.output
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
 
+    }
+
+    private String writeIvyRepo(File dir) {
+        File repoDir = new File(dir, 'repo')
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '1.0.0') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.0'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.0')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.0')
+        }.writeTo(repoDir)
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '1.0.1') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.1'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.1'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.1')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.1')
+        }.writeTo(repoDir)
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '2.0.0') {
+                dependency org: 'com.intershop', name: 'component1', rev: '2.0.0'
+                dependency org: 'com.intershop', name: 'component2', rev: '2.0.0'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '2.0.0')
+            module(org: 'com.intershop', name: 'component2', rev: '2.0.0')
+        }.writeTo(repoDir)
+
+
+        String repostr = """
+            repositories {
+                ivy {
+                    name 'ivyLocal'
+                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                    layout('pattern') {
+                        ivy "${ivyPattern}"
+                        artifact "${artifactPattern}"
+                        artifact "${ivyPattern}"
+                    }
+                }
+            }""".stripIndent()
+
+        return repostr
     }
 }

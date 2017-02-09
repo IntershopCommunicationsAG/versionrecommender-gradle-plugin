@@ -26,9 +26,6 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
 
     protected VersionExtension versionExtension = VersionExtension.NONE
 
-    boolean transitive
-    boolean overrideTransitives
-
     AbstractFileBasedProvider(final String name, final Project project, final File inputFile) {
         super(name, project)
 
@@ -134,11 +131,6 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
                 writeVersionToFile(versionStr, workingDir)
             }
         }
-    }
-
-    @Override
-    void overrideTransitives(boolean override){
-        this.overrideTransitives = override
     }
 
     @Override

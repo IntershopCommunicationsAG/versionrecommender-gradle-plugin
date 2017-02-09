@@ -99,7 +99,7 @@ class PropertiesProviderSpec extends Specification {
         provider.setVersionList(['org.hibernate:hibernate-validator':'5.3.0.Final',
                                  'org.tmatesoft.svnkit:svnkit':'1.8.14'])
 
-        provider.setTransitive(true)
+        provider.useTransitives(true)
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'

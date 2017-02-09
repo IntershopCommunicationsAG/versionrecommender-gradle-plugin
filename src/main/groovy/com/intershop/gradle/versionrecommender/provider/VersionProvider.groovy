@@ -28,6 +28,8 @@ interface VersionProvider extends Named {
 
     boolean isAdaptable()
 
+    void useTransitives(boolean transitive)
+
     void overrideTransitives(boolean override)
 
     String getVersion(String org, String name) throws Exception

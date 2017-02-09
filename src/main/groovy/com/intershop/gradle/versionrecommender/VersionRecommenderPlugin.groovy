@@ -22,6 +22,14 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         applyRecommendation(project)
     }
 
+    private void addVersionTasks(Project project) {
+        extension.provider.each {RecommendationProvider rp ->
+            // tasks for add extensions
+            // - SNAPSHOT
+            // - LOCAL
+        }
+    }
+
     private void applyRecommendation(Project project) {
         project.getConfigurations().all { Configuration conf ->
             conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->

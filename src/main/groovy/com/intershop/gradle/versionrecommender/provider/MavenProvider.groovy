@@ -88,7 +88,7 @@ class MavenProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void setTransitive(boolean transitive) {
+    void useTransitives(boolean transitive) {
         log.warn('Maven BOM provider {} does not support this method (transitive)', name)
     }
 

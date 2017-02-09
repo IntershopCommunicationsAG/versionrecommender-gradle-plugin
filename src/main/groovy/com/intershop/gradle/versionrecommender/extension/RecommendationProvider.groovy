@@ -39,6 +39,14 @@ class RecommendationProvider implements Named {
     Map<String, String> versionList = null
     List<String> updateExceptions = null
 
+    boolean transitiv = false
+
+    boolean overrideTransitives = false
+
+    File workingDir = new File(project.getRootProject().getBuildDir(), VersionRecommenderExtension.EXTENSIONNAME)
+
+    File configDir = project.getRootProject().getProjectDir()
+
     String getVersion(String org, String name) {
         if(versionProvider == null) {
             initVersionProvider()
@@ -79,5 +87,6 @@ class RecommendationProvider implements Named {
                 versionProvider.setUpdateExceptions(getUpdateExceptions())
                 break
         }
+
     }
 }

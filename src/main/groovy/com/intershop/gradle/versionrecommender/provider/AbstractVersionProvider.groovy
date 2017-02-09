@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.util.UpdatePos
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
@@ -21,10 +22,13 @@ abstract class AbstractVersionProvider implements VersionProvider {
     String name
     Project project
 
+    protected boolean transitive
+    protected boolean overrideTransitives
+
     AbstractVersionProvider(String name, Project project) {
         this.updatePos = UpdatePos.NONE
 
-        setWorkingDir(new File(project.getRootProject().getBuildDir(), 'versionrecommender'))
+        setWorkingDir(new File(project.getRootProject().getBuildDir(), VersionRecommenderExtension.EXTENSIONNAME))
         setConfigDir(project.getRootProject().getProjectDir())
 
         this.name = name
@@ -71,5 +75,15 @@ abstract class AbstractVersionProvider implements VersionProvider {
             return versions.get("${org}:${name}".toString())
 
         return null
+    }
+
+    @Override
+    void overrideTransitives(boolean override){
+        this.overrideTransitives = override
+    }
+
+    @Override
+    void useTransitives(boolean transitive){
+        this.transitive = transitive
     }
 }

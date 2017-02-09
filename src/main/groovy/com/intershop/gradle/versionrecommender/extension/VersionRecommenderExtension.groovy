@@ -17,7 +17,7 @@ class VersionRecommenderExtension {
 
     VersionRecommenderExtension(Project project) {
         this.project = project
-        provider = project.container(RecommendationProvider)
+        provider = project.container(RecommendationProvider, new RecommendationProviderFactory(project))
 
         updateConfiguration = new UpdateConfigExtension(project)
         defaultUpdateConfigurations = []
@@ -31,7 +31,5 @@ class VersionRecommenderExtension {
         provider.configure(c)
     }
 
-    static String getVersion(String group, String name) {
-        return ''
-    }
+    boolean forceRecommenderVersion = false
 }

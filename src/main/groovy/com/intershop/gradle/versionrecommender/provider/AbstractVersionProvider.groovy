@@ -67,6 +67,9 @@ abstract class AbstractVersionProvider implements VersionProvider {
     @Override
     String getVersion(String org, String name) {
         fillVersionMap()
-        return versions.get("${org}:${name}".toString())
+        if(versions != null)
+            return versions.get("${org}:${name}".toString())
+
+        return null
     }
 }

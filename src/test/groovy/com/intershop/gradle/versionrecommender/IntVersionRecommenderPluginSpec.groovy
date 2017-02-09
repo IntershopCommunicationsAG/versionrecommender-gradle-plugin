@@ -43,6 +43,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         
             dependencies {
                 testConfig 'com.intershop:component1@ivy'
+                testConfig 'org.apache.tomcat:tomcat-catalina:8.5.5'
             }
             
             task copyResult(type: Copy) {
@@ -51,6 +52,10 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             }
 
             ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
         """.stripIndent()
 
         File settingsfile = file('settings.gradle')
@@ -66,8 +71,284 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
-
+        (new File(testProjectDir, 'result/tomcat-catalina-8.5.5.jar')).exists()
     }
+
+    def 'test with force recommendation version'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                provider {
+                    test1 {
+                        type = 'ivy'
+                        dependency = 'com.intershop:filter:1.0.0'
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItem {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+                testConfig 'org.apache.tomcat:tomcat-catalina:8.5.5@ivy'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/ivy-9.1.0.xml')).exists()
+    }
+
+    def 'test with two filters'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                provider {
+                    test1 {
+                        type = 'ivy'
+                        dependency = 'com.intershop:filter:1.0.0'
+                    }
+                    test2 {
+                        type = 'ivy'
+                        dependency = 'com.intershop:altfilter:1.0.0'
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItem {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+                testConfig 'com.intershop:component3@ivy'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/ivy-3.2.0.xml')).exists()
+    }
+
+    def 'test with two filters different order'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                provider {
+                    a {
+                        type = 'ivy'
+                        dependency = 'com.intershop:altfilter:1.0.0'
+                    }
+                    b {
+                        type = 'ivy'
+                        dependency = 'com.intershop:filter:1.0.0'
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItem {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+                testConfig 'com.intershop:component3@ivy'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-3.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/ivy-3.2.0.xml')).exists()
+    }
+
+    def 'test with two filters, one without unspecified version'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                provider {
+                    a {
+                        type = 'ivy'
+                        dependency = 'com.intershop:altfilter'
+                    }
+                    b {
+                        type = 'ivy'
+                        dependency = 'com.intershop:filter:1.0.0'
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItem {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+    }
+
+
 
     private String writeIvyRepo(File dir) {
         File repoDir = new File(dir, 'repo')
@@ -76,9 +357,24 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             module(org: 'com.intershop', name:'filter', rev: '1.0.0') {
                 dependency org: 'com.intershop', name: 'component1', rev: '1.0.0'
                 dependency org: 'com.intershop', name: 'component2', rev: '1.0.0'
+                dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.0'
             }
             module(org: 'com.intershop', name: 'component1', rev: '1.0.0')
             module(org: 'com.intershop', name: 'component2', rev: '1.0.0')
+            module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.0')
+        }.writeTo(repoDir)
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'altfilter', rev: '1.0.0') {
+                dependency org: 'com.intershop', name: 'component1', rev: '3.0.0'
+                dependency org: 'com.intershop', name: 'component2', rev: '3.1.0'
+                dependency org: 'com.intershop', name: 'component3', rev: '3.2.0'
+                dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '10.1.0'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '3.0.0')
+            module(org: 'com.intershop', name: 'component2', rev: '3.1.0')
+            module(org: 'com.intershop', name: 'component3', rev: '3.2.0')
+            module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '10.1.0')
         }.writeTo(repoDir)
 
         new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {

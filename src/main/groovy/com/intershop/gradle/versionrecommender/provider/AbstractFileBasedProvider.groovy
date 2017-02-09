@@ -294,7 +294,7 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
         try {
             rStream = getFileFromModule().newInputStream()
         } catch (Exception ex) {
-            log.error('It was not possible to create stream from module input ({}).', ex.getMessage())
+            log.error('It was not possible to create stream from module {} ({}).', inputDependency, ex.getMessage())
             rStream = null
         }
         return rStream

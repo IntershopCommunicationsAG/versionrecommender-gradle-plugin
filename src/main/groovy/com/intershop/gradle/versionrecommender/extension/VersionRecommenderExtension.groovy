@@ -1,7 +1,7 @@
 package com.intershop.gradle.versionrecommender.extension
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.util.ConfigureUtil
 
 class VersionRecommenderExtension {
 
@@ -9,7 +9,7 @@ class VersionRecommenderExtension {
 
     private Project project
 
-    final NamedDomainObjectContainer<RecommendationProvider> provider
+    final RecommendationProviderContainer provider
 
     final String[] defaultUpdateConfigurations
 
@@ -17,7 +17,7 @@ class VersionRecommenderExtension {
 
     VersionRecommenderExtension(Project project) {
         this.project = project
-        provider = project.container(RecommendationProvider, new RecommendationProviderFactory(project))
+        provider = new RecommendationProviderContainer(project)
 
         updateConfiguration = new UpdateConfigExtension(project)
         defaultUpdateConfigurations = []
@@ -28,7 +28,7 @@ class VersionRecommenderExtension {
     }
 
     void provider(Closure c) {
-        provider.configure(c)
+        ConfigureUtil.configure(c, provider)
     }
 
     boolean forceRecommenderVersion = false

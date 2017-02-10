@@ -21,10 +21,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             
             versionRecommendation {
                 provider {
-                    test1 {
-                        type = 'ivy'
-                        dependency = 'com.intershop:filter:1.0.0'
-                    }
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
@@ -66,7 +63,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult') //, '--profile')
+                .withArguments('copyResult', '-s') //, '--profile')
                 .build()
 
         then:
@@ -87,10 +84,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             versionRecommendation {
                 forceRecommenderVersion = true
                 provider {
-                    test1 {
-                        type = 'ivy'
-                        dependency = 'com.intershop:filter:1.0.0'
-                    }
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
@@ -153,14 +147,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             versionRecommendation {
                 forceRecommenderVersion = true
                 provider {
-                    test1 {
-                        type = 'ivy'
-                        dependency = 'com.intershop:filter:1.0.0'
-                    }
-                    test2 {
-                        type = 'ivy'
-                        dependency = 'com.intershop:altfilter:1.0.0'
-                    }
+                    ivy('filter1',  'com.intershop:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop:altfilter:1.0.0') {}
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
@@ -223,14 +211,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             versionRecommendation {
                 forceRecommenderVersion = true
                 provider {
-                    a {
-                        type = 'ivy'
-                        dependency = 'com.intershop:altfilter:1.0.0'
-                    }
-                    b {
-                        type = 'ivy'
-                        dependency = 'com.intershop:filter:1.0.0'
-                    }
+                    ivy('filter2',  'com.intershop:altfilter:1.0.0') {}
+                    ivy('filter1',  'com.intershop:filter:1.0.0') {}
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
@@ -293,14 +275,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             versionRecommendation {
                 forceRecommenderVersion = true
                 provider {
-                    a {
-                        type = 'ivy'
-                        dependency = 'com.intershop:altfilter'
-                    }
-                    b {
-                        type = 'ivy'
-                        dependency = 'com.intershop:filter:1.0.0'
-                    }
+                    ivy('filter2',  'com.intershop:altfilter') {}
+                    ivy('filter1',  'com.intershop:filter:1.0.0') {}
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'

@@ -34,12 +34,7 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         project.getConfigurations().all { Configuration conf ->
             conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->
                 if(! details.requested.version || extension.forceRecommenderVersion) {
-                    String rv = ''
-
-                    extension.provider.any { RecommendationProvider rp ->
-                        rv = rp.getVersion(details.requested.group, details.requested.name)
-                        return rv
-                    }
+                    String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
 
                     if(details.requested.version && !(rv))
                         rv = details.requested.version

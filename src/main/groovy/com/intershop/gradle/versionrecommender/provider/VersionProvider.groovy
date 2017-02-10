@@ -16,7 +16,7 @@ interface VersionProvider extends Named {
 
     void update(UpdateConfiguration updateConfig)
 
-    void storeVersionFile()
+    void storeVersionFile() throws java.io.IOException
 
     // Working Dir
     void setWorkingDir(File workingDir)

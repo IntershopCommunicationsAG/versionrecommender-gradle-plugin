@@ -9,6 +9,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.net.URL;
@@ -36,7 +37,8 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
     }
 
     public <T extends RecommendationProvider> T add(T provider, Closure closure) {
-        project.configure(provider, closure);
+        ConfigureUtil.configure(closure, provider);
+
         assertCanAdd(provider.getName());
         addLastAction.execute(provider);
 
@@ -45,56 +47,56 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
         return provider;
     }
 
-    RecommendationProvider ivy(String name, File file, Closure closure) {
-        return add(new RecommendationProvider(name, new IvyProvider(name, project, file)), closure);
+    IvyProvider ivy(String name, File file, Closure closure) {
+        return add(new IvyProvider(name, project, file), closure);
     }
 
-    RecommendationProvider ivy(String name, URL url, Closure closure) {
-        return add(new RecommendationProvider(name, new IvyProvider(name, project, url)), closure);
+    IvyProvider ivy(String name, URL url, Closure closure) {
+        return add(new IvyProvider(name, project, url), closure);
     }
 
-    RecommendationProvider ivy(String name, String dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new IvyProvider(name, project, dependency, FileInputType.DEPENDENCYMAP)), closure);
+    IvyProvider ivy(String name, String dependency, Closure closure) {
+        return add(new IvyProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
     }
 
-    RecommendationProvider ivy(String name, Map dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new IvyProvider(name, project, dependency)), closure);
+    IvyProvider ivy(String name, Map dependency, Closure closure) {
+        return add(new IvyProvider(name, project, dependency), closure);
     }
 
-    RecommendationProvider mavenBom(String name, File file, Closure closure) {
-        return add(new RecommendationProvider(name, new MavenProvider(name, project, file)), closure);
+    MavenProvider mavenBom(String name, File file, Closure closure) {
+        return add(new MavenProvider(name, project, file), closure);
     }
 
-    RecommendationProvider mavenBom(String name, URL url, Closure closure) {
-        return add(new RecommendationProvider(name, new MavenProvider(name, project, url)), closure);
+    MavenProvider mavenBom(String name, URL url, Closure closure) {
+        return add(new MavenProvider(name, project, url), closure);
     }
 
-    RecommendationProvider mavenBom(String name, String dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new MavenProvider(name, project, dependency, FileInputType.DEPENDENCYMAP)), closure);
+    MavenProvider mavenBom(String name, String dependency, Closure closure) {
+        return add(new MavenProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
     }
 
-    RecommendationProvider mavenBom(String name, Map dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new MavenProvider(name, project, dependency)), closure);
+    MavenProvider mavenBom(String name, Map dependency, Closure closure) {
+        return add(new MavenProvider(name, project, dependency), closure);
     }
 
-    RecommendationProvider properties(String name, File file, Closure closure) {
-        return add(new RecommendationProvider(name, new PropertiesProvider(name, project, file)), closure);
+    PropertiesProvider properties(String name, File file, Closure closure) {
+        return add(new PropertiesProvider(name, project, file), closure);
     }
 
-    RecommendationProvider properties(String name, URL url, Closure closure) {
-        return add(new RecommendationProvider(name, new PropertiesProvider(name, project, url)), closure);
+    PropertiesProvider properties(String name, URL url, Closure closure) {
+        return add(new PropertiesProvider(name, project, url), closure);
     }
 
-    RecommendationProvider properties(String name, String dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new PropertiesProvider(name, project, dependency, FileInputType.DEPENDENCYMAP)), closure);
+    PropertiesProvider properties(String name, String dependency, Closure closure) {
+        return add(new PropertiesProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
     }
 
-    RecommendationProvider properties(String name, Map dependency, Closure closure) {
-        return add(new RecommendationProvider(name, new PropertiesProvider(name, project, dependency)), closure);
+    PropertiesProvider properties(String name, Map dependency, Closure closure) {
+        return add(new PropertiesProvider(name, project, dependency), closure);
     }
 
-    RecommendationProvider properties(String name, Closure closure) {
-        return add(new RecommendationProvider(name, new PropertiesProvider(name, project, null, FileInputType.FILE)), closure);
+    PropertiesProvider properties(String name, Closure closure) {
+        return add(new PropertiesProvider(name, project, null, FileInputType.FILE), closure);
     }
 
     public String getVersion(String group, String name) {

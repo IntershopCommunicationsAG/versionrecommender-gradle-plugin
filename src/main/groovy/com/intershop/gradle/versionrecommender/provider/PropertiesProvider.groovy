@@ -142,7 +142,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
         if(versions == null) {
             versions = [:]
             InputStream propsStream = getStream()
-            if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
+            if(inputType == FileInputType.FILE && inputFile?.getParentFile() == configDir) {
                 File workingFile = new File(workingDir, inputFile.getName())
                 if(workingFile.exists()) {
                     propsStream = workingFile.newInputStream()

@@ -74,13 +74,13 @@ class MavenProvider extends AbstractFileBasedProvider {
             ModelBuildingResult result = modelBuilder.build(request)
 
             result.getEffectiveModel().getDependencyManagement()?.getDependencies().each {Dependency d ->
-                if (this.overrideTransitives || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
                     versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
                 }
             }
 
             result.getEffectiveModel()?.getDependencies().each {Dependency d ->
-                if (this.overrideTransitives || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
                     versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
                 }
             }
@@ -151,6 +151,7 @@ class MavenProvider extends AbstractFileBasedProvider {
             return sms
         }
 
+        @SuppressWarnings( "deprecation" )
         @Override
         ModelSource resolveModel(Parent parent) throws UnresolvableModelException {
             return this.resolveModel(parent.groupId, parent.getArtifactId(), parent.getVersion())

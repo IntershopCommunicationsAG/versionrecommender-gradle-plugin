@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.extension.RecommendationProvider
 import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.FileInputType
@@ -15,7 +16,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @CompileStatic
-abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
+abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
     protected File inputFile
     protected URL inputURL
@@ -73,19 +74,21 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
 
     AbstractFileBasedProvider(final String name, final Project project, final String input, final FileInputType type) {
         super(name, project)
-        switch (type) {
-            case FileInputType.FILE:
-                this.inputFile = new File(input)
-                break
-            case FileInputType.DEPENDENCYMAP:
-                this.inputDependency = getDependencyMap(input)
-                break
-            case FileInputType.URL:
-                inputURL = new URL(input)
-                break
-            case FileInputType.URI:
-                inputURI = URI.create(input)
-                break
+        if(input) {
+            switch (type) {
+                case FileInputType.FILE:
+                    this.inputFile = new File(input)
+                    break
+                case FileInputType.DEPENDENCYMAP:
+                    this.inputDependency = getDependencyMap(input)
+                    break
+                case FileInputType.URL:
+                    inputURL = new URL(input)
+                    break
+                case FileInputType.URI:
+                    inputURI = URI.create(input)
+                    break
+            }
         }
         this.inputType = type
     }
@@ -167,7 +170,7 @@ abstract class AbstractFileBasedProvider extends AbstractVersionProvider {
                 String tmpVersion = versions.get(tmpModule)
                 if(tmpVersion && tmpVersion != child.moduleVersion) {
                     log.warn('There are two versions for {} - {} and {}', tmpModule, tmpVersion, child.moduleVersion)
-                    if(overrideTransitives) {
+                    if(override) {
                         try {
                             Version oldVersion = Version.valueOf(tmpVersion)
                             Version newVersion = Version.valueOf(child.moduleVersion)

@@ -337,7 +337,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             versionRecommendation {
                 provider {
                     properties('list') {
-                        versionList = [
+                        versionMap = [
                             'com.intershop.test:testcomp1': '10.0.0',
                             'com.intershop.testglob:*': '11.0.0',
                         ]

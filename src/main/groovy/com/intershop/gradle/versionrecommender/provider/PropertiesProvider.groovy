@@ -15,37 +15,14 @@ import java.util.regex.Pattern
 @CompileStatic
 class PropertiesProvider extends AbstractFileBasedProvider {
 
-    //cache for patterns
-    private Map<Pattern, String> globs = null
     private File propertiesFile
 
-    PropertiesProvider(final String name, final Project project, final File inputFile) {
-        super(name, project, inputFile)
-        versionList = [:]
-        updateExceptions = []
+    PropertiesProvider(final String name, final Project project) {
+        super(name, project)
     }
 
-    PropertiesProvider(final String name, final Project project, final Object dependencyNotation) {
-        super(name, project, dependencyNotation)
-        versionList = [:]
-        updateExceptions = []
-    }
-
-    PropertiesProvider(final String name, final Project project, final URL inputURL) {
-        super(name, project, inputURL)
-        versionList = [:]
-        updateExceptions = []
-    }
-
-    PropertiesProvider(final String name, final Project project, final URI inputURI) {
-        super(name, project, inputURI)
-        versionList = [:]
-        updateExceptions = []
-    }
-
-    PropertiesProvider(final String name, final Project project, final String input, final FileInputType type) {
-        super(name, project, input, type)
-        versionList = [:]
+    PropertiesProvider(final String name, final Project project, final Object input) {
+        super(name, project, input)
         updateExceptions = []
     }
 
@@ -54,7 +31,6 @@ class PropertiesProvider extends AbstractFileBasedProvider {
         return 'properties'
     }
 
-    Map<String, String> versionList
     List<String> updateExceptions
 
     @Override
@@ -139,59 +115,26 @@ class PropertiesProvider extends AbstractFileBasedProvider {
 
     @Override
     void fillVersionMap() {
-        if(versions == null) {
-            versions = [:]
-            InputStream propsStream = getStream()
-            if(inputType == FileInputType.FILE && inputFile?.getParentFile() == configDir) {
-                File workingFile = new File(workingDir, inputFile.getName())
-                if(workingFile.exists()) {
-                    propsStream = workingFile.newInputStream()
-                }
+        InputStream propsStream = getStream()
+        if(inputType == FileInputType.FILE && inputFile?.getParentFile() == configDir) {
+            File workingFile = new File(workingDir, inputFile.getName())
+            if(workingFile.exists()) {
+                propsStream = workingFile.newInputStream()
             }
-            if (propsStream) {
-                SimpleVersionProperties svp = new SimpleVersionProperties()
-                svp.load(new InputStreamReader(propsStream))
-                svp.propertyNames().each { String k ->
+        }
+        if (propsStream) {
+            SimpleVersionProperties svp = new SimpleVersionProperties()
+            svp.load(new InputStreamReader(propsStream))
+            svp.propertyNames().each { String k ->
+                if(k.contains('*')) {
+                    globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), svp.getProperty(k))
+                } else {
                     versions.put(k, svp.getProperty(k))
-                    if (transitive && !k.contains('*')) {
-                        calculateDependencies(k, svp.getProperty(k))
-                    }
                 }
-            }
-            getVersionList().each { String k, String v ->
-                versions.put(k, v)
                 if (transitive && !k.contains('*')) {
-                    calculateDependencies(k, v)
+                    calculateDependencies(k, svp.getProperty(k))
                 }
             }
         }
-    }
-
-    @Override
-    String getVersion(String org, String name) {
-        String ver = super.getVersion(org, name)
-        if(ver) {
-            return ver
-        }
-
-        String key =  "${org}:${name}"
-        if(globs == null) {
-            globs = new HashMap<Pattern, String>()
-            versionList.each { String k, String v ->
-                if (k.contains('*')) {
-                    globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
-                }
-            }
-        }
-
-        String rv = null
-        globs.any {Pattern p, String gv ->
-            if(p.matcher(key).matches()) {
-                rv = gv
-                return true
-            }
-        }
-
-        return rv
     }
 }

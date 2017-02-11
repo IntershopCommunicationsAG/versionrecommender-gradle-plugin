@@ -5,8 +5,6 @@ import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import com.intershop.gradle.versionrecommender.util.VersionExtension
-import com.intershop.release.version.ParserException
-import com.intershop.release.version.Version
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -20,77 +18,47 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
     protected File inputFile
     protected URL inputURL
-    protected URI inputURI
     protected Map inputDependency
+    protected Object input
 
     protected FileInputType inputType
 
     protected VersionExtension versionExtension = VersionExtension.NONE
 
-    AbstractFileBasedProvider(final String name, final Project project, final File inputFile) {
+    AbstractFileBasedProvider(final String name, final Project project)  {
         super(name, project)
-
-        if (inputFile == null)
-            throw new IllegalArgumentException("Input file may not be null")
-
-        this.inputFile = inputFile
-        this.inputType = FileInputType.FILE
+        this.input = null
+        inputType = FileInputType.NONE
     }
 
-    AbstractFileBasedProvider(final String name, final Project project, final Object dependencyNotation) {
-        super(name, project)
+    AbstractFileBasedProvider(final String name, final Project project, final Object input) {
+        this(name, project)
 
-        if (dependencyNotation == null)
-            throw new IllegalArgumentException("Module may not be null")
-
-        if (dependencyNotation && Map.class.isAssignableFrom(dependencyNotation.getClass())) {
-            this.inputDependency = (Map) dependencyNotation
-        } else {
-            this.inputDependency = getDependencyMap("${dependencyNotation}".toString())
-        }
-
-        this.inputType = FileInputType.DEPENDENCYMAP
-    }
-
-    AbstractFileBasedProvider(final String name, final Project project, final URL inputURL) {
-        super(name, project)
-
-        if (inputURL == null)
-            throw new IllegalArgumentException("Input URL may not be null")
-
-        this.inputURL = inputURL
-        this.inputType = FileInputType.URL
-    }
-
-    AbstractFileBasedProvider(final String name, final Project project, final URI inputURI) {
-        super(name, project)
-
-        if (inputURI == null)
-            throw new IllegalArgumentException("Input URL may not be null")
-
-        this.inputURI = inputURI
-        this.inputType = FileInputType.URI
-    }
-
-    AbstractFileBasedProvider(final String name, final Project project, final String input, final FileInputType type) {
-        super(name, project)
+        this.input = input
         if(input) {
-            switch (type) {
-                case FileInputType.FILE:
-                    this.inputFile = new File(input)
+            switch(input) {
+                case File:
+                    inputFile = (File) input
+                    inputType = FileInputType.FILE
                     break
-                case FileInputType.DEPENDENCYMAP:
-                    this.inputDependency = getDependencyMap(input)
+                case URL:
+                    inputURL = (URL) input
+                    inputType = FileInputType.URL
                     break
-                case FileInputType.URL:
-                    inputURL = new URL(input)
+                case String:
+                    inputDependency = getDependencyMap("${input}".toString())
+                    inputType = FileInputType.DEPENDENCYMAP
                     break
-                case FileInputType.URI:
-                    inputURI = URI.create(input)
+                default:
+                    if(Map.class.isAssignableFrom(input.getClass())) {
+                        inputDependency = (Map) input
+                        inputType = FileInputType.DEPENDENCYMAP
+                    } else {
+                        throw new IllegalArgumentException("Input is not a parameter for a provider.")
+                    }
                     break
             }
         }
-        this.inputType = type
     }
 
     abstract String getShortTypeName()
@@ -160,72 +128,44 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         return ".${getShortTypeName().toLowerCase()}${getName().capitalize()}.${fileextension}"
     }
 
-    protected void calculateDependencies(String descr, String version) {
-        // create a temporary configuration to resolve the file
-        Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create("${descr}:${version}"))
-        conf.setTransitive(true)
-        conf.getResolvedConfiguration().firstLevelModuleDependencies.each { dependency ->
-            dependency.children.each { child ->
-                String tmpModule = "${child.moduleGroup}:${child.moduleName}".toString()
-                String tmpVersion = versions.get(tmpModule)
-                if(tmpVersion && tmpVersion != child.moduleVersion) {
-                    log.warn('There are two versions for {} - {} and {}', tmpModule, tmpVersion, child.moduleVersion)
-                    if(override) {
-                        try {
-                            Version oldVersion = Version.valueOf(tmpVersion)
-                            Version newVersion = Version.valueOf(child.moduleVersion)
-                            if(oldVersion < newVersion) {
-                                versions.put(tmpModule, child.moduleVersion)
-                            }
-                        } catch(ParserException pex) {
-                            if(tmpVersion < child.moduleVersion) {
-                                versions.put(tmpModule, child.moduleVersion)
-                            }
-                        }
-                    }
-                }
-                if(! tmpVersion) {
-                    versions.put(tmpModule, child.moduleVersion)
-                }
-                calculateDependencies("${child.moduleGroup}:${child.moduleName}".toString(), child.moduleVersion)
-            }
-        }
-    }
-
     protected InputStream getStream() {
         InputStream stream = null
-        switch (inputType) {
-            case FileInputType.FILE:
-                stream = getStreamFromFile()
-                break
-            case FileInputType.DEPENDENCYMAP:
-                stream = getStreamFromModule()
-                break
-            case FileInputType.URL:
-                stream = getStreamFromURL()
-                break
-            case FileInputType.URI:
-                stream = getStreamFromURI()
-                break
+        try {
+            switch (inputType) {
+                case FileInputType.FILE:
+                    stream = inputFile.newInputStream()
+                    break
+                case FileInputType.DEPENDENCYMAP:
+                    stream = getFileFromModule().newInputStream()
+                    break
+                case FileInputType.URL:
+                    stream = inputURL.openStream()
+                    break
+            }
+        } catch (Exception ex) {
+            log.error('It was not possible to create stream from {} input ({}).', input, ex.getMessage())
+            stream = null
         }
         return stream
     }
 
     protected File getFile() {
         File file = null
-        switch (inputType) {
-            case FileInputType.FILE:
-                file = inputFile
-                break
-            case FileInputType.DEPENDENCYMAP:
-                file = getFileFromModule()
-                break
-            case FileInputType.URL:
-                file = getTemporaryFile(getStreamFromURL())
-                break
-            case FileInputType.URI:
-                file = getTemporaryFile(getStreamFromURI())
-                break
+        try {
+            switch (inputType) {
+                case FileInputType.FILE:
+                    file = inputFile
+                    break
+                case FileInputType.DEPENDENCYMAP:
+                    file = getFileFromModule()
+                    break
+                case FileInputType.URL:
+                    file = getTemporaryFile(inputURL.openStream())
+                    break
+            }
+        } catch (Exception ex) {
+            log.error('It was not possible to create file from {} input ({}).', input, ex.getMessage())
+            file = null
         }
         return file
     }
@@ -282,50 +222,6 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
             return artifactId?.getFile()
         }
         return null
-    }
-
-    private InputStream getStreamFromModule() {
-        InputStream rStream
-        try {
-            rStream = getFileFromModule().newInputStream()
-        } catch (Exception ex) {
-            log.error('It was not possible to create stream from module {} ({}).', inputDependency, ex.getMessage())
-            rStream = null
-        }
-        return rStream
-    }
-
-    private InputStream getStreamFromURL() {
-        InputStream rStream
-        try {
-            rStream = inputURL.openStream()
-        } catch (Exception ex) {
-            log.error('It was not possible to create stream from url input ({}).', ex.getMessage())
-            rStream = null
-        }
-        return rStream
-    }
-
-    private InputStream getStreamFromURI() {
-        InputStream rStream
-        try {
-            rStream = inputURI.toURL().openStream()
-        } catch (Exception ex) {
-            log.error('It was not possible to create stream from url input ({}).', ex.getMessage())
-            rStream = null
-        }
-        return rStream
-    }
-
-    private InputStream getStreamFromFile() {
-        InputStream rStream
-        try {
-            rStream = inputFile.newInputStream()
-        } catch (Exception ex) {
-            log.error('It was not possible to create stream from file input ({}).', ex.getMessage())
-            rStream = null
-        }
-        return rStream
     }
 
     // extended version handling for temporary changes

@@ -55,7 +55,7 @@ class PropertiesProviderSpec extends Specification {
         when:
         PropertiesProvider provider = new PropertiesProvider('test', project, new File('empty.properties'))
 
-        provider.setVersionList(['com.intershop.platform:platformcomp':'1.2.3',
+        provider.setVersionMap(['com.intershop.platform:platformcomp':'1.2.3',
                                 'com.intershop.business:businesscomp':'2.4.5'])
 
         then:
@@ -69,7 +69,7 @@ class PropertiesProviderSpec extends Specification {
 
         PropertiesProvider provider = new PropertiesProvider('test', project, file)
 
-        provider.setVersionList(['com.intershop.content:contentcomp':'1.1.1',
+        provider.setVersionMap(['com.intershop.content:contentcomp':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
 
         then:
@@ -84,7 +84,7 @@ class PropertiesProviderSpec extends Specification {
 
         PropertiesProvider provider = new PropertiesProvider('test', project, file)
 
-        provider.setVersionList(['com.intershop.content:*':'1.1.1',
+        provider.setVersionMap(['com.intershop.content:*':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
 
         then:
@@ -96,7 +96,7 @@ class PropertiesProviderSpec extends Specification {
         when:
         PropertiesProvider provider = new PropertiesProvider('test', project, new File('empty.properties'))
 
-        provider.setVersionList(['org.hibernate:hibernate-validator':'5.3.0.Final',
+        provider.setVersionMap(['org.hibernate:hibernate-validator':'5.3.0.Final',
                                  'org.tmatesoft.svnkit:svnkit':'1.8.14'])
 
         provider.useTransitives(true)

@@ -3,17 +3,12 @@ package com.intershop.gradle.versionrecommender.extension;
 import com.intershop.gradle.versionrecommender.provider.IvyProvider;
 import com.intershop.gradle.versionrecommender.provider.MavenProvider;
 import com.intershop.gradle.versionrecommender.provider.PropertiesProvider;
-import com.intershop.gradle.versionrecommender.util.FileInputType;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.util.ConfigureUtil;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Map;
 
 public class RecommendationProviderContainer extends DefaultNamedDomainObjectList<RecommendationProvider> {
 
@@ -47,56 +42,20 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
         return provider;
     }
 
-    IvyProvider ivy(String name, File file, Closure closure) {
-        return add(new IvyProvider(name, project, file), closure);
+    IvyProvider ivy(String name, Object input, Closure closure) {
+        return add(new IvyProvider(name, project, input), closure);
     }
 
-    IvyProvider ivy(String name, URL url, Closure closure) {
-        return add(new IvyProvider(name, project, url), closure);
+    MavenProvider pom(String name, Object input, Closure closure) {
+        return add(new MavenProvider(name, project, input), closure);
     }
 
-    IvyProvider ivy(String name, String dependency, Closure closure) {
-        return add(new IvyProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
-    }
-
-    IvyProvider ivy(String name, Map dependency, Closure closure) {
-        return add(new IvyProvider(name, project, dependency), closure);
-    }
-
-    MavenProvider mavenBom(String name, File file, Closure closure) {
-        return add(new MavenProvider(name, project, file), closure);
-    }
-
-    MavenProvider mavenBom(String name, URL url, Closure closure) {
-        return add(new MavenProvider(name, project, url), closure);
-    }
-
-    MavenProvider mavenBom(String name, String dependency, Closure closure) {
-        return add(new MavenProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
-    }
-
-    MavenProvider mavenBom(String name, Map dependency, Closure closure) {
-        return add(new MavenProvider(name, project, dependency), closure);
-    }
-
-    PropertiesProvider properties(String name, File file, Closure closure) {
-        return add(new PropertiesProvider(name, project, file), closure);
-    }
-
-    PropertiesProvider properties(String name, URL url, Closure closure) {
-        return add(new PropertiesProvider(name, project, url), closure);
-    }
-
-    PropertiesProvider properties(String name, String dependency, Closure closure) {
-        return add(new PropertiesProvider(name, project, dependency, FileInputType.DEPENDENCYMAP), closure);
-    }
-
-    PropertiesProvider properties(String name, Map dependency, Closure closure) {
-        return add(new PropertiesProvider(name, project, dependency), closure);
+    PropertiesProvider properties(String name, Object input, Closure closure) {
+        return add(new PropertiesProvider(name, project, input), closure);
     }
 
     PropertiesProvider properties(String name, Closure closure) {
-        return add(new PropertiesProvider(name, project, null, FileInputType.FILE), closure);
+        return add(new PropertiesProvider(name, project), closure);
     }
 
     public String getVersion(String group, String name) {

@@ -1,6 +1,5 @@
 package com.intershop.gradle.versionrecommender.provider
 
-import com.intershop.gradle.versionrecommender.util.FileInputType
 import groovy.util.logging.Slf4j
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -23,24 +22,8 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 @Slf4j
 class MavenProvider extends AbstractFileBasedProvider {
 
-    MavenProvider(final String name, final Project project, final File inputFile) {
-        super(name, project, inputFile)
-    }
-
-    MavenProvider(final String name, final Project project, final Object dependencyNotation) {
-        super(name, project, dependencyNotation)
-    }
-
-    MavenProvider(final String name, final Project project, final URL inputURL) {
-        super(name, project, inputURL)
-    }
-
-    MavenProvider(final String name, final Project project, final URI inputURI) {
-        super(name, project, inputURI)
-    }
-
-    MavenProvider(final String name, final Project project, final String input, final FileInputType type) {
-        super(name, project, input, type)
+    MavenProvider(final String name, final Project project, final Object input) {
+        super(name, project, input)
     }
 
     @Override
@@ -50,39 +33,35 @@ class MavenProvider extends AbstractFileBasedProvider {
 
     @Override
     void fillVersionMap() {
-        if(versions == null) {
-            versions = [:]
+        DefaultModelBuildingRequest request = new DefaultModelBuildingRequest()
+        request.setSystemProperties(System.getProperties())
 
-            DefaultModelBuildingRequest request = new DefaultModelBuildingRequest()
-            request.setSystemProperties(System.getProperties())
-
-            Properties props = new Properties()
-            project.getProperties().entrySet().each {
-                if(it.key && it.value) {
-                    props.put(it.key, it.value)
-                }
+        Properties props = new Properties()
+        project.getProperties().entrySet().each {
+            if(it.key && it.value) {
+                props.put(it.key, it.value)
             }
+        }
 
-            request.setUserProperties(props)
+        request.setUserProperties(props)
 
-            request.setPomFile(this.getFile())
-            request.setModelResolver(new GradleModelResolver(this.project))
+        request.setPomFile(this.getFile())
+        request.setModelResolver(new GradleModelResolver(this.project))
 
-            DefaultModelBuilder modelBuilder = new DefaultModelBuilderFactory().newInstance()
+        DefaultModelBuilder modelBuilder = new DefaultModelBuilderFactory().newInstance()
 
-            modelBuilder.setModelInterpolator(new ProjectPropertiesModelInterpolator(project))
-            ModelBuildingResult result = modelBuilder.build(request)
+        modelBuilder.setModelInterpolator(new ProjectPropertiesModelInterpolator(project))
+        ModelBuildingResult result = modelBuilder.build(request)
 
-            result.getEffectiveModel().getDependencyManagement()?.getDependencies().each {Dependency d ->
-                if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
-                }
+        result.getEffectiveModel().getDependencyManagement()?.getDependencies().each {Dependency d ->
+            if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
             }
+        }
 
-            result.getEffectiveModel()?.getDependencies().each {Dependency d ->
-                if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
-                }
+        result.getEffectiveModel()?.getDependencies().each {Dependency d ->
+            if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
             }
         }
     }

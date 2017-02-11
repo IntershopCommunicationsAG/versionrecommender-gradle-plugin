@@ -20,12 +20,6 @@ enum FileInputType {
             return 'url'
         }
     },
-    URI {
-        @Override
-        String toString() {
-            return 'uri'
-        }
-    },
     DEPENDENCYMAP  {
         @Override
         String toString() {

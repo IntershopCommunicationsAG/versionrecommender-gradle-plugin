@@ -2,6 +2,7 @@ package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
@@ -25,7 +26,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -69,6 +70,57 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
         (new File(testProjectDir, 'result/tomcat-catalina-8.5.5.jar')).exists()
+
+        when:
+        def resultTasks = getPreparedGradleRunner()
+                .withArguments('tasks', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultTasks.output.contains('setLocalFilter')
+        resultTasks.output.contains('setSnapshotFilter')
+        resultTasks.output.contains('resetFilter')
+        resultTasks.output.contains('updateFilter')
+
+        when:
+        def resultSetLocal = getPreparedGradleRunner()
+                .withArguments('setLocalFilter', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultSetLocal.task(':setLocalFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterSetLocal = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0-LOCAL.xml')).exists()
+
+        when:
+        def resultReset = getPreparedGradleRunner()
+                .withArguments('resetFilter', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultReset.task(':resetFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterReset = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('updateFilter', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultReset.task(':updateFilter').outcome == SUCCESS
     }
 
     def 'test with force recommendation version'() {
@@ -394,6 +446,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
     private String writeIvyRepo(File dir) {
         File repoDir = new File(dir, 'repo')
+        File localRepoDir = new File(dir, 'localRepo')
 
         new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
             module(org: 'com.intershop', name:'filter', rev: '1.0.0') {
@@ -439,6 +492,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             module(org: 'com.intershop.testglob', name: 'testglob10', rev: '11.0.0')
         }.writeTo(repoDir)
 
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name: 'filter', rev: '1.0.0-LOCAL') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0-LOCAL'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.0-LOCAL'
+                dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.0'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.0-LOCAL')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.0-LOCAL')
+        }.writeTo(localRepoDir)
 
         String repostr = """
             repositories {
@@ -451,6 +513,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                         artifact "${ivyPattern}"
                     }
                 }
+                ivy {
+                    name 'ivyLocalLocal'
+                    url "file://${localRepoDir.absolutePath.replace('\\', '/')}"
+                    layout('pattern') {
+                        ivy "${ivyPattern}"
+                        artifact "${artifactPattern}"
+                        artifact "${ivyPattern}"
+                    }
+                }                
             }""".stripIndent()
 
         return repostr

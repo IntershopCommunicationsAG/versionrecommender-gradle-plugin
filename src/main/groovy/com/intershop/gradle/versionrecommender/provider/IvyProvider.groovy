@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.util.FileInputType
 import groovy.util.logging.Slf4j
 import org.gradle.api.Project
 
@@ -28,6 +29,9 @@ class IvyProvider extends AbstractFileBasedProvider {
                 if (transitive) {
                     calculateDependencies(descr, version)
                 }
+            }
+            if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
+                versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
             }
         }
     }

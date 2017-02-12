@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.provider
 
+import com.intershop.gradle.versionrecommender.util.FileInputType
 import groovy.util.logging.Slf4j
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -63,6 +64,9 @@ class MavenProvider extends AbstractFileBasedProvider {
             if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
                 versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
             }
+        }
+        if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
+            versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
         }
     }
 

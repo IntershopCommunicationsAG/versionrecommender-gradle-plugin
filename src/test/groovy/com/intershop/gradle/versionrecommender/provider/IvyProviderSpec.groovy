@@ -211,5 +211,11 @@ class IvyProviderSpec extends Specification {
 
         then:
         provider.getVersion('com.intershop', 'component1') == '2.0.0'
+
+        when:
+        provider.store()
+
+        then:
+        provider.getVersion('com.intershop', 'component1') == '2.0.0'
     }
 }

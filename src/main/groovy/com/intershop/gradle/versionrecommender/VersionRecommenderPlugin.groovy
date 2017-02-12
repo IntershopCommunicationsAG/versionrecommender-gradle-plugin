@@ -1,8 +1,7 @@
 package com.intershop.gradle.versionrecommender
 
-import com.intershop.gradle.versionrecommender.extension.RecommendationProvider
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
-import com.intershop.gradle.versionrecommender.provider.VersionProvider
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import com.intershop.gradle.versionrecommender.util.NoVersionException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -12,7 +11,7 @@ import org.gradle.api.artifacts.DependencyResolveDetails
 class VersionRecommenderPlugin implements Plugin<Project> {
 
     private VersionRecommenderExtension extension
-    Map<String, VersionProvider> providerMap = [:]
+    private UpdateConfiguration updateConfig
 
     @Override
     void apply(final Project project) {
@@ -20,14 +19,6 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         extension = project.extensions.findByType(VersionRecommenderExtension) ?: project.extensions.create(VersionRecommenderExtension.EXTENSIONNAME, VersionRecommenderExtension, project)
 
         applyRecommendation(project)
-    }
-
-    private void addVersionTasks(Project project) {
-        extension.provider.each {RecommendationProvider rp ->
-            // tasks for add extensions
-            // - SNAPSHOT
-            // - LOCAL
-        }
     }
 
     private void applyRecommendation(Project project) {

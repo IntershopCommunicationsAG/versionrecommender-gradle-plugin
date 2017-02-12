@@ -106,6 +106,17 @@ abstract class RecommendationProvider implements VersionProvider {
 
     abstract void fillVersionMap()
 
+    abstract boolean isVersionRequired()
+
+    String getVersionPropertyName() {
+        return "${this.getName()}Version"
+    }
+
+    String getVersionFromProperty() {
+        String versionProperty = project.findProperty(getVersionPropertyName()) ?: ''
+        return versionProperty
+    }
+
     @Override
     String getVersion(String org, String name) {
         String version = ''
@@ -145,6 +156,10 @@ abstract class RecommendationProvider implements VersionProvider {
         }
 
         return version
+    }
+
+    String getTaskName(String prefix) {
+        return "${prefix}${getName().capitalize()}"
     }
 
     protected void calculateDependencies(String descr, String version) {

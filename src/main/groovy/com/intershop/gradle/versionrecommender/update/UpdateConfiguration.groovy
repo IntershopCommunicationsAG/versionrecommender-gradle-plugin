@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.update
 
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 
 class UpdateConfiguration {
@@ -25,6 +26,10 @@ class UpdateConfiguration {
 
     void addConfigurationItem(List<UpdateConfigurationItem> items) {
         configItems.addAll(items)
+    }
+
+    void addConfigurationItem(NamedDomainObjectContainer<UpdateConfigurationItem> items) {
+        configItems.addAll(items.asList())
     }
 
     List<UpdateConfigurationItem> getConfigurationItems() {

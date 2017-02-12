@@ -8,16 +8,16 @@ class UpdateConfigExtension {
 
     private Project project
 
-    UpdateConfigExtension(Project project) {
-        this.project = project
-        updateConfigItem = project.container(UpdateConfigurationItem)
-    }
-
     String ivyPattern
 
-    final NamedDomainObjectContainer<UpdateConfigurationItem> updateConfigItem
+    final NamedDomainObjectContainer<UpdateConfigurationItem> updateConfigItemContainer
 
-    void updateConfigItem(Closure c) {
-        updateConfigItem.configure(c)
+    UpdateConfigExtension(Project project) {
+        this.project = project
+        updateConfigItemContainer = project.container(UpdateConfigurationItem)
+    }
+
+    void updateConfigItemContainer(Closure c) {
+        updateConfigItemContainer.configure(c)
     }
 }

@@ -6,6 +6,7 @@ import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -20,6 +21,7 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     protected URL inputURL
     protected Map inputDependency
     protected Object input
+    protected boolean versionRequired
 
     protected FileInputType inputType
 
@@ -29,6 +31,7 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         super(name, project)
         this.input = null
         inputType = FileInputType.NONE
+        versionRequired = false
     }
 
     AbstractFileBasedProvider(final String name, final Project project, final Object input) {
@@ -47,11 +50,13 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
                     break
                 case String:
                     inputDependency = getDependencyMap("${input}".toString())
+                    versionRequired = ! (inputDependency.get('version'))
                     inputType = FileInputType.DEPENDENCYMAP
                     break
                 default:
                     if(Map.class.isAssignableFrom(input.getClass())) {
                         inputDependency = (Map) input
+                        versionRequired = ! (inputDependency.get('version'))
                         inputType = FileInputType.DEPENDENCYMAP
                     } else {
                         throw new IllegalArgumentException("Input is not a parameter for a provider.")
@@ -71,36 +76,50 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     @Override
     void update(UpdateConfiguration updateConfig) {
         if(inputType == FileInputType.DEPENDENCYMAP) {
-            UpdateConfigurationItem ucItem = updateConfig.getConfigItem(inputDependency.get('group').toString() ,inputDependency.get('name').toString())
+            String g = inputDependency.get('group').toString()
+            String n = inputDependency.get('name').toString()
+            String v = inputDependency.get('version').toString()
+
+            UpdateConfigurationItem ucItem = updateConfig.getConfigItem(g, n)
             if(ucItem.getVersion()) {
                 writeVersionToFile(ucItem.getVersion(), workingDir)
-            } else {
-                String updateVersion = updateConfig.getUpdate(inputDependency.get('group').toString(),
-                        inputDependency.get('name').toString(),
-                        inputDependency.get('version').toString())
+            } else if(getVersionFromProperty()) {
+                writeVersionToFile(getVersionFromProperty(), workingDir)
+            } else if(v) {
+                String updateVersion = updateConfig.getUpdate(g, n, v)
                 if(updateVersion) {
                     writeVersionToFile(updateVersion, workingDir)
                     versions = null
                 }
             }
         } else {
-            log.warn('The input type {} is not support for update task.', inputType.toString())
+            log.warn('The input type {} is not support for automatic updates.', inputType.toString())
         }
     }
 
     @Override
-    void storeVersionFile() throws IOException {
+    void store() throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
-            String versionStr = null
+            String versionStr = getVersionFromFile(workingDir)
+            String propertyVersion = getVersionFromProperty()
 
-            File adaptedVersionFile = new File(workingDir, getFileName('version'))
-            if(adaptedVersionFile.exists()) {
-                versionStr = getVersionFromFile(workingDir)
+            if(propertyVersion) {
+                checkVersion(propertyVersion)
+                writeVersionToFile(propertyVersion, configDir)
+            } else if(versionStr) {
+                checkVersion(versionStr)
+                writeVersionToFile(versionStr, configDir)
             }
 
-            if(versionStr) {
-                writeVersionToFile(versionStr, workingDir)
-            }
+            removeVersionFile()
+        }
+    }
+
+    private void checkVersion(String version) {
+        if(version.endsWith(VersionExtension.LOCAL.toString())) {
+            throw new GradleException("Don't store the LOCAL version for ${getName()} to the project configuration!")
+        } else if(version.endsWith(VersionExtension.SNAPSHOT.toString())){
+            log.warn('A SNAPSHOT version is stored to the project configuration for {}!', getName())
         }
     }
 
@@ -109,18 +128,31 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         this.versionExtension = versionExtension
 
         if (versionExtension != VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
-            String version = getVersionFromFile(configDir) ?: inputDependency.get('version')
+            String version = getVersionFromProperty() ?: getVersionFromFile(configDir)
+            version =  version ?: inputDependency.get('version')
 
             if (version) {
                 version += "-${versionExtension}"
                 writeVersionToFile(version, workingDir)
                 versions = null
+            } else {
+                throw new GradleException("There is no version for ${inputDependency.get('group')}:${inputDependency.get('name')} specified. Please check your version recommender configuration.")
             }
         }
         if (versionExtension == VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
             removeVersionFile()
             versions = null
         }
+    }
+
+    boolean isVersionRequired() {
+        if(versionRequired) {
+            String rv = getVersionFromFile(configDir)
+            if(! rv) {
+                return true
+            }
+        }
+        return false
     }
 
     // protected methods
@@ -181,7 +213,6 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         return null
     }
 
-    // private methods
     private static Map getDependencyMap(String depStr) {
         Map returnValue = new HashMap()
         String[] dext = depStr.split('@')
@@ -224,7 +255,6 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         return null
     }
 
-    // extended version handling for temporary changes
     private String getVersionFromFiles() {
         String rVersion = null
 
@@ -241,12 +271,21 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     private void writeVersionToFile(String version, File dir) {
         File versionFile = new File(dir, getFileName('version'))
         versionFile.setText(version)
+        log.info('Version {} is stored to {} for {}.', version, versionFile.absolutePath, getName())
     }
 
     private void removeVersionFile() {
         File adaptedVersionFile = new File(workingDir, getFileName('version'))
-        if(adaptedVersionFile.exists())
-            adaptedVersionFile.delete()
+
+        if(adaptedVersionFile.exists()) {
+            try {
+                log.info('Version file {} will be removed for {}.', adaptedVersionFile.absolutePath, getName())
+                adaptedVersionFile.delete()
+                log.info('Version file {} was removed for {}.', adaptedVersionFile.absolutePath, getName())
+            } catch (Exception ex) {
+                throw new GradleException("It was not possible to remove file ${adaptedVersionFile.absolutePath} for ${getName()}")
+            }
+        }
     }
 
     private String getVersionFromFile(File dir) {

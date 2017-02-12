@@ -6,9 +6,9 @@ import com.intershop.gradle.versionrecommender.util.SimpleVersionProperties
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
-import java.nio.channels.FileChannel
 import java.util.regex.Pattern
 
 @Slf4j
@@ -76,41 +76,35 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void storeVersionFile() throws IOException {
+    void store() throws IOException {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
             File workingFile = new File(workingDir, inputFile.getName())
             if(workingFile.exists()) {
                 SimpleVersionProperties svp = new SimpleVersionProperties()
                 svp.load(workingFile.newInputStream())
+                checkVersion(svp)
                 writeVersionProperties(svp, configDir)
             }
+            removePropertiesFile()
         }
     }
 
     @Override
     void setVersionExtension(final VersionExtension versionExtension) {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
-            SimpleVersionProperties svp = getProperties()
-            svp.keys().each {String key ->
-                svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
+            if(versionExtension != VersionExtension.NONE) {
+                SimpleVersionProperties svp = getProperties()
+                svp.keys().each { String key ->
+                    svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
+                }
+                writeVersionProperties(svp, workingDir)
+                log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)
+                versions = null
+            } else {
+                removePropertiesFile()
+                versions = null
             }
-            writeVersionProperties(svp, workingDir)
-            versions = null
         }
-    }
-
-    private SimpleVersionProperties getProperties() {
-        SimpleVersionProperties svp = new SimpleVersionProperties()
-        svp.load(new InputStreamReader(getStream()))
-        return svp
-    }
-
-    private void writeVersionProperties(SimpleVersionProperties props, File dir) {
-        File adaptedVersionFile = new File(dir, inputFile.getName())
-        if(adaptedVersionFile.exists())
-            FileChannel.open(adaptedVersionFile.toPath()).truncate(0).close()
-
-        props.store(adaptedVersionFile)
     }
 
     @Override
@@ -136,5 +130,46 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 }
             }
         }
+        if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
+            versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
+        }
     }
+
+    private void removePropertiesFile() {
+        File adaptedVersionFile = new File(workingDir, inputFile.getName())
+
+        if(adaptedVersionFile.exists()) {
+            try {
+                log.info('Properties file {} will be removed for {}.', adaptedVersionFile.absolutePath, getName())
+                adaptedVersionFile.delete()
+                log.info('Properties file {} was removed for {}.', adaptedVersionFile.absolutePath, getName())
+            } catch (Exception ex) {
+                throw new GradleException("It was not possible to remove file ${adaptedVersionFile.absolutePath} for ${getName()}")
+            }
+        }
+    }
+
+    private void checkVersion(SimpleVersionProperties svp) {
+        svp.values().each {
+            if(it.toString().endsWith(VersionExtension.LOCAL.toString())) {
+                throw new GradleException("Don't store the LOCAL version for ${getName()} to the project configuration!")
+            } else if(it.toString().endsWith(VersionExtension.SNAPSHOT.toString())){
+                log.warn('A SNAPSHOT version is stored to the project configuration for {}!', getName())
+            }
+        }
+    }
+
+    private void writeVersionProperties(SimpleVersionProperties props, File dir) {
+        File adaptedVersionFile = new File(dir, inputFile.getName())
+        props.store(adaptedVersionFile)
+        log.info('File {} was written for {}.', adaptedVersionFile.absolutePath, getName())
+    }
+
+    private SimpleVersionProperties getProperties() {
+        SimpleVersionProperties svp = new SimpleVersionProperties()
+        svp.load(new InputStreamReader(getStream()))
+        return svp
+    }
+
+
 }

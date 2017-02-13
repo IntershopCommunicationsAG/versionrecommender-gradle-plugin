@@ -54,4 +54,8 @@ class SimpleVersionPropertiesSpec extends Specification {
         then:
         compareFile.text == newFile.text
     }
+
+    def 'test with more spaces between key, equals and value'() {
+
+    }
 }

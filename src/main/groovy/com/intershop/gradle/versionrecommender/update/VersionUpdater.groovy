@@ -1,6 +1,7 @@
 package com.intershop.gradle.versionrecommender.update
 
 import com.intershop.gradle.versionrecommender.util.UpdatePos
+import com.intershop.release.version.ParserException
 import com.intershop.release.version.Version
 import com.intershop.release.version.VersionParser
 import com.intershop.release.version.VersionType
@@ -84,7 +85,7 @@ class VersionUpdater {
     String getUpdateVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
         List<String> versionList = getVersionList(group, module)
         if(versionList) {
-            return calculateUpdateVersion(filterVersion(versionList, version, pos), version)
+            return calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
         }
         return null
     }
@@ -127,50 +128,59 @@ class VersionUpdater {
             staticMetaData = versionPart[1]
         }
 
-        if(digits) {
-            Version versionObj = VersionParser.parseVersion(version, digits != 4 ? VersionType.threeDigits : VersionType.fourDigits)
-            Version nextVersion = null
-            String filter = ''
-            String[] versionDigit = versionPart[0].split('\\.')
-            switch (pos) {
-                case UpdatePos.MAJOR:
-                    nextVersion = versionObj.incrementMajorVersion(staticMetaData)
-                    filter = "\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
-                    break
-                case UpdatePos.MINOR:
-                    nextVersion = versionObj.incrementMinorVersion(staticMetaData)
-                    filter = "${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
-                    break
-                case UpdatePos.PATCH:
-                    nextVersion = versionObj.incrementPatchVersion(staticMetaData)
-                    filter = "${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
-                    break
-                case UpdatePos.HOTFIX:
-                    nextVersion = digits == 4 ? versionObj.incrementHotfixVersion(staticMetaData) : versionObj.incrementPatchVersion(staticMetaData)
-                    filter = "${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'}"
-                    break
-            }
-            if(versionPart.length > 2 || staticMetaData) {
-                filter += "-${staticMetaData}"
-            } else {
-                filter += "(-\\w+)?"
-            }
+        try {
+            if (digits) {
+                Version versionObj = VersionParser.parseVersion(version, digits != 4 ? VersionType.threeDigits : VersionType.fourDigits)
+                Version nextVersion = null
+                String filter = ''
+                String[] versionDigit = versionPart[0].split('\\.')
+                switch (pos) {
+                    case UpdatePos.MAJOR:
+                        nextVersion = versionObj.incrementMajorVersion(staticMetaData)
+                        filter = "\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        break
+                    case UpdatePos.MINOR:
+                        nextVersion = versionObj.incrementMinorVersion(staticMetaData)
+                        filter = "${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        break
+                    case UpdatePos.PATCH:
+                        nextVersion = versionObj.incrementPatchVersion(staticMetaData)
+                        filter = "${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        break
+                    case UpdatePos.HOTFIX:
+                        nextVersion = digits == 4 ? versionObj.incrementHotfixVersion(staticMetaData) : versionObj.incrementPatchVersion(staticMetaData)
+                        filter = "${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'}"
+                        break
+                }
+                if (versionPart.length > 2 || staticMetaData) {
+                    filter += "-${staticMetaData}"
+                } else {
+                    filter += "(-\\w+)?"
+                }
 
-            List<Version> filteredList = list.findAll{
-                it =~ /${filter}/ }.collect {
-                    VersionParser.parseVersion(it, digits != 4 ? VersionType.threeDigits : VersionType.fourDigits)
-                        }.findAll { it > versionObj
-                            } .sort()
+                List<Version> filteredList = list.findAll {
+                    it =~ /${filter}/
+                }.collect {
+                    try {
+                        VersionParser.parseVersion(it, digits != 4 ? VersionType.threeDigits : VersionType.fourDigits)
+                    } catch (ParserException ex) {
+                        log.warn('Version {} can not be parsed as semantic version.', it)
+                    }
+                }.findAll {
+                    it > versionObj
+                }.sort()
 
-            List<Version> filteredList2 = filteredList.findAll { it >= nextVersion  }
+                List<Version> filteredList2 = filteredList.findAll { it >= nextVersion }
 
-            if(filteredList2.isEmpty()) {
-                return filteredList.collect { getStringFromVersion(it, digits) }
+                if (filteredList2.isEmpty()) {
+                    return filteredList.collect { getStringFromVersion(it, digits) }
+                }
+                return filteredList2.collect { getStringFromVersion(it, digits) }
             }
-            return filteredList2.collect { getStringFromVersion(it, digits) }
-        } else {
-            throw new RuntimeException("Version '${version}' is not a semantic version.")
+        } catch (Exception ex) {
+            log.warn('Version is not a valid version {} and list {} can not be filtered.', version, list)
         }
+        return []
     }
 
     static String getStringFromVersion(Version v, int digits) {

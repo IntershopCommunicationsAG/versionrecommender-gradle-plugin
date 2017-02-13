@@ -148,7 +148,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -212,7 +212,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -276,7 +276,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -340,7 +340,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -405,7 +405,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 }
                 updateConfiguration {
                     ivyPattern = '${ivyPattern}'
-                    updateConfigItem {
+                    updateConfigItemContainer {
                         testUpdate1 {
                             module = 'org.eclipse.jetty'
                             searchPattern = '\\\\.v\\\\d+'
@@ -450,6 +450,55 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         (new File(testProjectDir, 'result/ivy-10.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-11.0.0.xml')).exists()
+    }
+
+    def 'test complex properties update'() {
+        given:
+        copyResources('updatetest/test.version', 'properties.version')
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    properties('complex', project.file('properties.version')) {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItemContainer {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.google.inject:guice'
+            }
+                     
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('updateComplex', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultUpdate.task(':updateComplex').outcome == SUCCESS
     }
 
     private String writeIvyRepo(File dir) {

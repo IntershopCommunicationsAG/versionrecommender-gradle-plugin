@@ -7,38 +7,28 @@ class UpdateConfiguration {
 
     private VersionUpdater updater
 
-    private List<UpdateConfigurationItem> configItems
+    String ivyPattern
+
+    final NamedDomainObjectContainer<UpdateConfigurationItem> updateConfigItemContainer
 
     UpdateConfiguration(Project project) {
         updater = new VersionUpdater(project)
-        configItems = []
+        updateConfigItemContainer = project.container(UpdateConfigurationItem)
     }
 
-    UpdateConfiguration(Project project, String ivyPattern) {
-        updater = new VersionUpdater(project)
-        updater.ivyPattern = ivyPattern
-        configItems = []
+    void updateConfigItemContainer(Closure c) {
+        updateConfigItemContainer.configure(c)
     }
 
     void addConfigurationItem(UpdateConfigurationItem item) {
-        configItems.add(item)
-    }
-
-    void addConfigurationItem(List<UpdateConfigurationItem> items) {
-        configItems.addAll(items)
-    }
-
-    void addConfigurationItem(NamedDomainObjectContainer<UpdateConfigurationItem> items) {
-        configItems.addAll(items.asList())
-    }
-
-    List<UpdateConfigurationItem> getConfigurationItems() {
-        return configItems
+        updateConfigItemContainer.add(item)
     }
 
     String getUpdate(String group, String name, String version) {
         String returnValue = null
+
         UpdateConfigurationItem config = getConfigItem(group, name)
+        updater.ivyPattern = ivyPattern
 
         if(config.searchPattern) {
             returnValue = updater.getUpdateVersion(group, name, version, config.searchPattern, config.updatePos, config.getVersionPattern())
@@ -51,7 +41,7 @@ class UpdateConfiguration {
     }
 
     UpdateConfigurationItem getConfigItem(String searchOrg, String searchModule) {
-        UpdateConfigurationItem item = configItems.sort().find {
+        UpdateConfigurationItem item = updateConfigItemContainer.sort().find {
             ((it.org && searchOrg =~ /${it.org.replaceAll('\\.', '\\\\.').replaceAll('\\*', '.*?')}/) || (! it.org)) &&
                     ((it.module && searchModule =~ /${it.module.replaceAll('\\*', '.*?')}/) || (! it.module))
         }

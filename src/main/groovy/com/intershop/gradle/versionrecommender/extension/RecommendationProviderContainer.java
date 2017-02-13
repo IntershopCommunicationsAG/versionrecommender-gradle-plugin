@@ -6,7 +6,6 @@ import com.intershop.gradle.versionrecommender.provider.PropertiesProvider;
 import com.intershop.gradle.versionrecommender.tasks.ResetVersion;
 import com.intershop.gradle.versionrecommender.tasks.SetLocalVersion;
 import com.intershop.gradle.versionrecommender.tasks.UpdateVersion;
-import com.intershop.gradle.versionrecommender.update.UpdateConfiguration;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
@@ -17,11 +16,10 @@ import org.gradle.util.ConfigureUtil;
 public class RecommendationProviderContainer extends DefaultNamedDomainObjectList<RecommendationProvider> {
 
     private Project project;
-    private UpdateConfiguration updateConfig;
 
     private final Action<? super RecommendationProvider> addLastAction = new Action<RecommendationProvider>() {
         public void execute(RecommendationProvider r) {
-            RecommendationProviderContainer.super.add(r);
+        RecommendationProviderContainer.super.add(r);
         }
     };
 
@@ -42,15 +40,17 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
         assertCanAdd(provider.getName());
         addLastAction.execute(provider);
 
-        SetLocalVersion localTask = project.getTasks().create(provider.getTaskName("setLocal"), SetLocalVersion.class);
-        localTask.setProvider(provider);
-        SetLocalVersion snapshotTask = project.getTasks().create(provider.getTaskName("setSnapshot"), SetLocalVersion.class);
-        localTask.setProvider(provider);
-        ResetVersion resetTask = project.getTasks().create(provider.getTaskName("reset"), ResetVersion.class);
-        resetTask.setProvider(provider);
-        UpdateVersion updateTask = project.getTasks().create(provider.getTaskName("update"), UpdateVersion.class);
-        updateTask.setProvider(provider);
+        if(provider.isAdaptable()) {
+            SetLocalVersion localTask = project.getTasks().create(provider.getTaskName("setLocal"), SetLocalVersion.class);
+            localTask.setProvider(provider);
+            SetLocalVersion snapshotTask = project.getTasks().create(provider.getTaskName("setSnapshot"), SetLocalVersion.class);
+            localTask.setProvider(provider);
+            ResetVersion resetTask = project.getTasks().create(provider.getTaskName("reset"), ResetVersion.class);
+            resetTask.setProvider(provider);
 
+            UpdateVersion updateTask = project.getTasks().create(provider.getTaskName("update"), UpdateVersion.class);
+            updateTask.setProvider(provider);
+        }
         return provider;
     }
 

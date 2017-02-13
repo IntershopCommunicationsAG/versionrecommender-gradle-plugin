@@ -12,6 +12,7 @@ class UpdateConfigurationItem implements Comparable, Named {
     }
 
     UpdateConfigurationItem(String name, String org, String module) {
+        this.name = name
         this.org = org
         this.module = module
     }

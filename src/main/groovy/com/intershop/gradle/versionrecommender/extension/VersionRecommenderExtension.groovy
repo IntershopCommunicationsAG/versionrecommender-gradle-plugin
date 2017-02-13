@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.extension
 
+import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
@@ -13,13 +14,13 @@ class VersionRecommenderExtension {
 
     final String[] defaultUpdateConfigurations
 
-    final UpdateConfigExtension updateConfiguration
+    final UpdateConfiguration updateConfiguration
 
     VersionRecommenderExtension(Project project) {
         this.project = project
         provider = new RecommendationProviderContainer(project)
 
-        updateConfiguration = new UpdateConfigExtension(project)
+        updateConfiguration = new UpdateConfiguration(project)
         defaultUpdateConfigurations = []
     }
 

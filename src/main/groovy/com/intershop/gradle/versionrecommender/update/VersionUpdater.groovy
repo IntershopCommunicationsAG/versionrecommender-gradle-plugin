@@ -29,17 +29,24 @@ class VersionUpdater {
 
     VersionUpdater(Project project) {
         this.project = project
+    }
 
-        List<ArtifactRepository> mvnRepList = project.getRepositories().findAll {it instanceof MavenArtifactRepository}
-        mvnHttpRepList = mvnRepList.findAll { ((MavenArtifactRepository)it).url.scheme.startsWith('http') }
-        mvnFileRepList = mvnRepList.findAll { ((MavenArtifactRepository)it).url.scheme.startsWith('file') }
-        List<ArtifactRepository> ivyRepList = project.getRepositories().findAll {it instanceof IvyArtifactRepository}
-        ivyHttpRepList = ivyRepList.findAll { ((IvyArtifactRepository)it).url?.scheme.startsWith('http') }
-        ivyFileRepList = ivyRepList.findAll { ((IvyArtifactRepository)it).url?.scheme.startsWith('file') }
+    private initLists() {
+        if(mvnHttpRepList == null || mvnFileRepList == null) {
+            List<ArtifactRepository> mvnRepList = project.getRepositories().findAll { it instanceof MavenArtifactRepository }
+            mvnHttpRepList = mvnRepList.findAll { ((MavenArtifactRepository) it).url.scheme.startsWith('http') }
+            mvnFileRepList = mvnRepList.findAll { ((MavenArtifactRepository) it).url.scheme.startsWith('file') }
+        }
+        if(ivyHttpRepList == null || ivyFileRepList == null) {
+            List<ArtifactRepository> ivyRepList = project.getRepositories().findAll { it instanceof IvyArtifactRepository }
+            ivyHttpRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url?.scheme.startsWith('http') }
+            ivyFileRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url?.scheme.startsWith('file') }
+        }
     }
 
     List<String> getVersionList(String group, String module) {
         List<String> versionList = []
+        initLists()
 
         mvnHttpRepList.any { MavenArtifactRepository repo ->
             versionList = HTTPProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, module, repo.credentials.username, repo.credentials.password)

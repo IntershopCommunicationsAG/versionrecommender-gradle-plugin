@@ -120,7 +120,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 .build()
 
         then:
-        resultReset.task(':updateFilter').outcome == SUCCESS
+        resultUpdate.task(':updateFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterUpdate = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.1.xml')).exists()
     }
 
     def 'test with force recommendation version'() {

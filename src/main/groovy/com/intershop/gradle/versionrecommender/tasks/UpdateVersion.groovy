@@ -15,7 +15,7 @@ class UpdateVersion extends DefaultTask {
         if(provider.isVersionRequired() && ! (provider.getVersionFromProperty())) {
             throw new GradleException("It is necessary to specify a version property with -P${provider.getVersionPropertyName()} = <version>.")
         }
-        VersionRecommenderExtension extension = project.project.extensions.findByType(VersionRecommenderExtension)
-        println extension.updateConfiguration.ivyPattern
+        VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
+        provider.update(ext.updateConfiguration)
     }
 }

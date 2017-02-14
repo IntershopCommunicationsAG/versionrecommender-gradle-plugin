@@ -136,54 +136,52 @@ class SimpleVersionProperties extends Properties {
                         s2 = line.substring(0, line.length() - 1)
                         int k = 0
                         for(k = 0; k < s1.length(); k++)
-                            if (" \t\r\n\f".indexOf(s1.charAt(k)) == -1)
+                            if (" \t\r\n\f".indexOf(s1.charAt(k).toString()) == -1)
                                 break
 
                         s1 = s1.substring(k, s1.length())
                     }
 
                     int i = line.length()
-                    int j = -1
+                    int j = 0
 
-                    line.any {ch ->
-                        ++j
-                        if(" \t\r\n\f".indexOf(ch) == -1)
-                            return true
+                    for(j = 0; j < i; j++)
+                        if (" \t\r\n\f".indexOf(line.charAt(j).toString()) == -1)
+                            break
+
+                    int l
+                    for(l = j; l < i; l++) {
+                        char c1 = line.charAt(l)
+                        if (c1 == '\\') {
+                            l++
+                            continue
+                        }
+                        if ("= \t\r\n\f".indexOf(c1.toString()) != -1)
+                            break
                     }
 
-                    int l = j - 1
-                    line.substring(j).any {ch ->
-                        l += ch == '\\' ? 1 : 0
-                        ++l
-                        if("= \t\r\n\f".indexOf(ch) != -1)
-                            return true
+                    int i1
+                    for(i1 = l; i1 < i; i1++) {
+                        if (" \t\r\n\f".indexOf(line.charAt(i1).toString()) == -1)
+                            break
                     }
 
-                    int i1 = l
-                    line.substring(l).any { ch ->
-                        ++i1
-                        if (" \t\r\n\f".indexOf(ch) != -1)
-                            return true
-                    }
+                    if ((i1 < i) && (CHAR_EQUAL_SIGN == line.charAt(i1)))
+                        i1++
 
-                    if ((i1 < i) && (CHAR_EQUAL_SIGN == line.charAt(i1))) {
-                        ++i1
-                    }
 
-                    int k = i1
-                    line.substring(i1).any { ch ->
-                        ++k
-                        if (" \t\r\n\f".indexOf(ch) != -1)
-                            return true
+                    for(; i1 < i; i1++) {
+                        if (" \t\r\n\f".indexOf(line.charAt(i1).toString()) == -1)
+                            break
                     }
 
                     // Get key/value pair.
                     String key = line.substring(j, l)
-                    String value = l >= i ? "" : line.substring(k, i)
+                    String value = l >= i ? "" : line.substring(i1, i)
 
                     key = loadConvert(key)
                     value = loadConvert(value)
-                    if (super.containsKey(key)) {
+                    if(super.containsKey(key)) {
                         for(int sl = 0; sl < lines.size(); sl++) {
                             Line pline = lines.get(sl)
                             if (pline instanceof PropertyLine) {

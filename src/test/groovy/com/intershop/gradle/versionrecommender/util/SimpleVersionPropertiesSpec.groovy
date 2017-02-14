@@ -56,6 +56,20 @@ class SimpleVersionPropertiesSpec extends Specification {
     }
 
     def 'test with more spaces between key, equals and value'() {
+        when:
+        String testProps = """
+        com.test:version1                  =            1.2.3
+        com.test:version2=2.3.4
+        # com.test:version3 = 1.0.0
+        """.stripIndent()
+        File newFile = new File(testProjectDir, 'writetest.properties')
+        newFile.setText(testProps)
+        SimpleVersionProperties svp = new SimpleVersionProperties()
+        svp.load(new FileReader(newFile))
 
+        then:
+        svp.getProperty('com.test:version1') == '1.2.3'
+        svp.getProperty('com.test:version2') == '2.3.4'
+        svp.getProperty('com.test:version3') == null
     }
 }

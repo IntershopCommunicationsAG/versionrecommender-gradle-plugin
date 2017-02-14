@@ -6,6 +6,7 @@ import com.intershop.gradle.versionrecommender.update.UpdateConfigurationItem
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -15,6 +16,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @CompileStatic
+@Slf4j
 abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
     protected File inputFile

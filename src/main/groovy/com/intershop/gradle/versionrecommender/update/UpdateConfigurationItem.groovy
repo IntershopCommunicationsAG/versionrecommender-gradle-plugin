@@ -1,8 +1,10 @@
 package com.intershop.gradle.versionrecommender.update
 
 import com.intershop.gradle.versionrecommender.util.UpdatePos
+import groovy.transform.CompileStatic
 import org.gradle.api.Named
 
+@CompileStatic
 class UpdateConfigurationItem implements Comparable, Named {
 
     UpdateConfigurationItem(String name) {
@@ -70,7 +72,7 @@ class UpdateConfigurationItem implements Comparable, Named {
                 return 0
             }
         } else {
-            if(other.org) {
+            if(((UpdateConfigurationItem)other).org) {
                 return ((UpdateConfigurationItem)other).org.compareTo(this.org)
             } else {
                 return -1 * this.org.compareTo(((UpdateConfigurationItem)other).org)

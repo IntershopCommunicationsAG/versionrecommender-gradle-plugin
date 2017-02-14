@@ -1,6 +1,7 @@
 package com.intershop.gradle.versionrecommender.provider
 
 import com.intershop.gradle.versionrecommender.util.FileInputType
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -20,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
+@CompileStatic
 @Slf4j
 class MavenProvider extends AbstractFileBasedProvider {
 

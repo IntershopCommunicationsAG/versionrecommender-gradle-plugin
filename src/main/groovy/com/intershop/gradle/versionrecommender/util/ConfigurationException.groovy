@@ -1,5 +1,8 @@
 package com.intershop.gradle.versionrecommender.util
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class ConfigurationException extends RuntimeException {
 
     private static final long serialVersionUID = 1L

@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.update
 
+import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
 
 class FileProvider {
@@ -18,6 +19,7 @@ class FileProvider {
         }
     }
 
+    @CompileStatic
     public static List<String> getVersionsFromIvyListing(File repo, String pattern, String group, String module) {
         int i = pattern.indexOf('[revision]')
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', group.replaceAll('/','.')).replaceAll('\\[module]', module)

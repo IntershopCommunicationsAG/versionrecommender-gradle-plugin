@@ -9,17 +9,23 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 @CompileStatic
-class UpdateVersion extends DefaultTask {
+class StoreUpdate extends DefaultTask {
 
     @Input
-    RecommendationProvider provider
+    List<RecommendationProvider> providers = []
 
     @TaskAction
-    void runUpdate() {
-        if(provider.isVersionRequired() && ! (provider.getVersionFromProperty())) {
-            throw new GradleException("It is necessary to specify a version property with -P${provider.getVersionPropertyName()} = <version>.")
-        }
+    void storeChanges() {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
-        provider.update(ext.updateConfiguration)
+
+        providers.each {RecommendationProvider p ->
+            if(ext.defaultUpdateConfigurations.contains(p.getName())) {
+                try {
+                    p.store()
+                }catch (IOException ex) {
+                    throw new GradleException("It was not possible to store changes of '${p.getName()}' (${ex.getMessage()})!")
+                }
+            }
+        }
     }
 }

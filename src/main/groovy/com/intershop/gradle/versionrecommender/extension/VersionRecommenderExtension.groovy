@@ -1,9 +1,11 @@
 package com.intershop.gradle.versionrecommender.extension
 
 import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
+@CompileStatic
 class VersionRecommenderExtension {
 
     final static String EXTENSIONNAME = 'versionRecommendation'

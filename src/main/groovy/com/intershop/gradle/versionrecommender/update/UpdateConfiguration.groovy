@@ -1,13 +1,17 @@
 package com.intershop.gradle.versionrecommender.update
 
+import groovy.transform.CompileStatic
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 
+@CompileStatic
 class UpdateConfiguration {
 
     private VersionUpdater updater
 
     String ivyPattern
+
+    List<String> defaultUpdateProvider = []
 
     final NamedDomainObjectContainer<UpdateConfigurationItem> updateConfigItemContainer
 
@@ -33,7 +37,7 @@ class UpdateConfiguration {
         if(config.searchPattern) {
             returnValue = updater.getUpdateVersion(group, name, version, config.searchPattern, config.updatePos, config.getVersionPattern())
         } else if(config.patternForNextVersion) {
-            returnValue = updater.getUpdateVersion(group, name, version, config.patternForNextVersion, config.sortStringPos, config.getVersionPattern())
+            returnValue = updater.getUpdateVersion(group, name, version, config.patternForNextVersion, config.sortStringPos)
         } else {
             returnValue = updater.getUpdateVersion(group, name, version, config.updatePos)
         }

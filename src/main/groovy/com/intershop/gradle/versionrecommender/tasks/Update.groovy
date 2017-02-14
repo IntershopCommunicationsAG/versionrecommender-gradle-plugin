@@ -9,17 +9,22 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 @CompileStatic
-class UpdateVersion extends DefaultTask {
+class Update extends DefaultTask {
 
     @Input
-    RecommendationProvider provider
+    List<RecommendationProvider> providers = []
 
     @TaskAction
     void runUpdate() {
-        if(provider.isVersionRequired() && ! (provider.getVersionFromProperty())) {
-            throw new GradleException("It is necessary to specify a version property with -P${provider.getVersionPropertyName()} = <version>.")
-        }
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
-        provider.update(ext.updateConfiguration)
+
+        providers.each {RecommendationProvider p ->
+            if(ext.defaultUpdateConfigurations.contains(p.getName())) {
+                if(p.isVersionRequired() && ! (p.getVersionFromProperty())) {
+                    throw new GradleException("It is necessary to specify a version property with -P${p.getVersionPropertyName()} = <version>.")
+                }
+                p.update(ext.updateConfiguration)
+            }
+        }
     }
 }

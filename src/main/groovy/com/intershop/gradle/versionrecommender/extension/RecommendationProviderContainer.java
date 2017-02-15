@@ -3,9 +3,7 @@ package com.intershop.gradle.versionrecommender.extension;
 import com.intershop.gradle.versionrecommender.provider.IvyProvider;
 import com.intershop.gradle.versionrecommender.provider.MavenProvider;
 import com.intershop.gradle.versionrecommender.provider.PropertiesProvider;
-import com.intershop.gradle.versionrecommender.tasks.ResetVersion;
-import com.intershop.gradle.versionrecommender.tasks.SetLocalVersion;
-import com.intershop.gradle.versionrecommender.tasks.UpdateVersion;
+import com.intershop.gradle.versionrecommender.tasks.*;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
@@ -50,6 +48,14 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
 
             UpdateVersion updateTask = project.getTasks().create(provider.getTaskName("update"), UpdateVersion.class);
             updateTask.setProvider(provider);
+
+            StoreUpdateVersion storeUpdateVersionTask = project.getTasks().create(provider.getTaskName("store"), StoreUpdateVersion.class);
+            storeUpdateVersionTask.setProvider(provider);
+
+            Update defaultUpdateTask = project.getTasks().maybeCreate("update", Update.class);
+            defaultUpdateTask.getProviders().add(provider);
+            StoreUpdate defaultStoreTask = project.getTasks().maybeCreate("store", StoreUpdate.class);
+            defaultStoreTask.getProviders().add(provider);
         }
         return provider;
     }

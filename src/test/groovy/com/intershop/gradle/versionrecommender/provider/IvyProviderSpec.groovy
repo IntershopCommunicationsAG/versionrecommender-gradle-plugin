@@ -196,7 +196,8 @@ class IvyProviderSpec extends Specification {
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
 
         when:
-        UpdateConfiguration uc = new UpdateConfiguration(project, ivyPattern)
+        UpdateConfiguration uc = new UpdateConfiguration(project)
+        uc.ivyPattern = ivyPattern
 
         UpdateConfigurationItem uci = new UpdateConfigurationItem('filter', 'com.intershop', 'filter')
         uc.addConfigurationItem(uci)

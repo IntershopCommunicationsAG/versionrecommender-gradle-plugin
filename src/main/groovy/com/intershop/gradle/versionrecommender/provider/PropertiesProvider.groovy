@@ -76,17 +76,23 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void store() throws IOException {
+    File store() throws IOException {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
+
+            File adaptedFile = null
+
             File workingFile = new File(workingDir, inputFile.getName())
             if(workingFile.exists()) {
                 SimpleVersionProperties svp = new SimpleVersionProperties()
                 svp.load(workingFile.newInputStream())
                 checkVersion(svp)
-                writeVersionProperties(svp, configDir)
+                adaptedFile = writeVersionProperties(svp, configDir)
             }
             removePropertiesFile()
+
+            return adaptedFile
         }
+        return null
     }
 
     @Override
@@ -159,10 +165,11 @@ class PropertiesProvider extends AbstractFileBasedProvider {
         }
     }
 
-    private void writeVersionProperties(SimpleVersionProperties props, File dir) {
+    private File writeVersionProperties(SimpleVersionProperties props, File dir) {
         File adaptedVersionFile = new File(dir, inputFile.getName())
         props.store(adaptedVersionFile)
         log.info('File {} was written for {}.', adaptedVersionFile.absolutePath, getName())
+        return adaptedVersionFile
     }
 
     private SimpleVersionProperties getProperties() {

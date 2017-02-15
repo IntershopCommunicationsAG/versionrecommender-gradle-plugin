@@ -100,21 +100,26 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     }
 
     @Override
-    void store() throws IOException {
+    File store() throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
             String versionStr = getVersionFromFile(workingDir)
             String propertyVersion = getVersionFromProperty()
 
+            File versionFile = null
+
             if(propertyVersion) {
                 checkVersion(propertyVersion)
-                writeVersionToFile(propertyVersion, configDir)
+                versionFile = writeVersionToFile(propertyVersion, configDir)
             } else if(versionStr) {
                 checkVersion(versionStr)
-                writeVersionToFile(versionStr, configDir)
+                versionFile = writeVersionToFile(versionStr, configDir)
             }
 
             removeVersionFile()
+
+            return versionFile
         }
+        return null
     }
 
     private void checkVersion(String version) {
@@ -270,10 +275,11 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         return rVersion
     }
 
-    private void writeVersionToFile(String version, File dir) {
+    private File writeVersionToFile(String version, File dir) {
         File versionFile = new File(dir, getFileName('version'))
         versionFile.setText(version)
         log.info('Version {} is stored to {} for {}.', version, versionFile.absolutePath, getName())
+        return versionFile
     }
 
     private void removeVersionFile() {

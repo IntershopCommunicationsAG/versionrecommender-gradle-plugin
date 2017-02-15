@@ -25,4 +25,14 @@ class StoreUpdateVersion extends DefaultTask {
             throw new GradleException('It was not possible to store changes!')
         }
     }
+
+    @Override
+    String getDescription() {
+        return "Store changes from working dir for ${provider.getName()}"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation for ${provider.getName()}"
+    }
 }

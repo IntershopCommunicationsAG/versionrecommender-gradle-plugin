@@ -30,4 +30,14 @@ class StoreUpdate extends DefaultTask {
             }
         }
     }
+
+    @Override
+    String getDescription() {
+        return "Store changes from working dir to configuration"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation"
+    }
 }

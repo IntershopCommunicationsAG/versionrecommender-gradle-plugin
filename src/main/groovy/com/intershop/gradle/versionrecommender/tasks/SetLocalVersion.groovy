@@ -21,4 +21,14 @@ class SetLocalVersion extends DefaultTask {
         }
         provider.setVersionExtension(VersionExtension.LOCAL)
     }
+
+    @Override
+    String getDescription() {
+        return "Extend filter configuration for ${provider.getName()} with LOCAL"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation for ${provider.getName()}"
+    }
 }

@@ -27,4 +27,14 @@ class Update extends DefaultTask {
             }
         }
     }
+
+    @Override
+    String getDescription() {
+        return "Update Dependencies for configured default filters"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation"
+    }
 }

@@ -22,4 +22,14 @@ class UpdateVersion extends DefaultTask {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
         provider.update(ext.updateConfiguration)
     }
+
+    @Override
+    String getDescription() {
+        return "Update Dependencies for ${provider.getName()}"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation for ${provider.getName()}"
+    }
 }

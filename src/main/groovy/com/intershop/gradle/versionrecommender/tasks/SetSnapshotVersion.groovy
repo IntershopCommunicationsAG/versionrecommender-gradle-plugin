@@ -21,4 +21,14 @@ class SetSnapshotVersion extends DefaultTask {
         }
         provider.setVersionExtension(VersionExtension.SNAPSHOT)
     }
+
+    @Override
+    String getDescription() {
+        return "Extend filter configuration for ${provider.getName()} with SNAPSHOT"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation for ${provider.getName()}"
+    }
 }

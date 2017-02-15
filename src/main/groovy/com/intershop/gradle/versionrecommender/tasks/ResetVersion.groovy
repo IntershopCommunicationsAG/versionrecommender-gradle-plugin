@@ -17,5 +17,15 @@ class ResetVersion extends DefaultTask {
     void resetVersion() {
         provider.setVersionExtension(VersionExtension.NONE)
     }
+
+    @Override
+    String getDescription() {
+        return "Reset filter configuration for ${provider.getName()}"
+    }
+
+    @Override
+    String getGroup() {
+        return "Version Recommendation for ${provider.getName()}"
+    }
 }
 

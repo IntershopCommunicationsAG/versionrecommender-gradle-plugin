@@ -698,6 +698,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         result.task(':copyResult').outcome == SUCCESS
         result.task(':project1a:copyResult').outcome == SUCCESS
         result.task(':project2b:copyResult').outcome == SUCCESS
+
+        when:
+        def resultTasks = getPreparedGradleRunner()
+                .withArguments('tasks', '--all', '-i') //, '--profile')
+                .build()
+
+        then:
+        resultTasks.output.contains('resetFilter')
+        !resultTasks.output.contains('project2b:resetFilter')
     }
 
     private String writeIvyRepo(File dir) {

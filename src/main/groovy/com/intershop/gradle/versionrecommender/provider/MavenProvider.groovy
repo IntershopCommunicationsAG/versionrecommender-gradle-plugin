@@ -33,7 +33,9 @@ class MavenProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void fillVersionMap() {
+    synchronized void fillVersionMap() {
+        log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
+
         DefaultModelBuildingRequest request = new DefaultModelBuildingRequest()
         request.setSystemProperties(System.getProperties())
 

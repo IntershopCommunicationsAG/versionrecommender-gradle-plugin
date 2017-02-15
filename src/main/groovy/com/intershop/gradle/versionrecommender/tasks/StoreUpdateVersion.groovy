@@ -20,7 +20,7 @@ class StoreUpdateVersion extends DefaultTask {
     @TaskAction
     void storeUpdateVersion(){
         try {
-            versionFile = provider.store()
+            versionFile = provider.store(getVersionFile())
         }catch (IOException ex) {
             throw new GradleException('It was not possible to store changes!')
         }

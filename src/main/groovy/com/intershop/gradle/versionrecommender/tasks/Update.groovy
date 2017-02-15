@@ -19,7 +19,7 @@ class Update extends DefaultTask {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
 
         providers.each {RecommendationProvider p ->
-            if(ext.defaultUpdateConfigurations.contains(p.getName())) {
+            if(ext.updateConfiguration.defaultUpdateProvider.contains(p.getName())) {
                 if(p.isVersionRequired() && ! (p.getVersionFromProperty())) {
                     throw new GradleException("It is necessary to specify a version property with -P${p.getVersionPropertyName()} = <version>.")
                 }

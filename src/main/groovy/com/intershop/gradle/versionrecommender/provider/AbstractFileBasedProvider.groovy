@@ -84,13 +84,13 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
             UpdateConfigurationItem ucItem = updateConfig.getConfigItem(g, n)
             if(ucItem.getVersion()) {
-                writeVersionToFile(ucItem.getVersion(), workingDir)
+                writeVersionToFile(ucItem.getVersion(), new File(getWorkingDir(), getFileName('version')))
             } else if(getVersionFromProperty()) {
-                writeVersionToFile(getVersionFromProperty(), workingDir)
+                writeVersionToFile(getVersionFromProperty(), new File(getWorkingDir(), getFileName('version')))
             } else if(v) {
                 String updateVersion = updateConfig.getUpdate(g, n, v)
                 if(updateVersion) {
-                    writeVersionToFile(updateVersion, workingDir)
+                    writeVersionToFile(updateVersion, new File(getWorkingDir(), getFileName('version')))
                     versions = null
                 }
             }
@@ -100,19 +100,19 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     }
 
     @Override
-    File store() throws IOException {
+    File store(File outputFile) throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
-            String versionStr = getVersionFromFile(workingDir)
+            String versionStr = getVersionFromFile(new File(getWorkingDir(), getFileName('version')))
             String propertyVersion = getVersionFromProperty()
 
             File versionFile = null
 
             if(propertyVersion) {
                 checkVersion(propertyVersion)
-                versionFile = writeVersionToFile(propertyVersion, configDir)
+                versionFile = writeVersionToFile(propertyVersion, outputFile)
             } else if(versionStr) {
                 checkVersion(versionStr)
-                versionFile = writeVersionToFile(versionStr, configDir)
+                versionFile = writeVersionToFile(versionStr, outputFile)
             }
 
             removeVersionFile()
@@ -120,6 +120,11 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
             return versionFile
         }
         return null
+    }
+
+    @Override
+    File getVersionFile() {
+        return new File(getConfigDir(), getFileName('version'));
     }
 
     private void checkVersion(String version) {
@@ -135,12 +140,12 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         this.versionExtension = versionExtension
 
         if (versionExtension != VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
-            String version = getVersionFromProperty() ?: getVersionFromFile(configDir)
+            String version = getVersionFromProperty() ?: getVersionFromFile(getVersionFile())
             version =  version ?: inputDependency.get('version')
 
             if (version) {
                 version += "-${versionExtension}"
-                writeVersionToFile(version, workingDir)
+                writeVersionToFile(version, new File(getWorkingDir(), getFileName('version')))
                 versions = null
             } else {
                 throw new GradleException("There is no version for ${inputDependency.get('group')}:${inputDependency.get('name')} specified. Please check your version recommender configuration.")
@@ -267,16 +272,15 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
         File adaptedVersionFile = new File(workingDir, getFileName('version'))
         if(adaptedVersionFile.exists()) {
-            rVersion = getVersionFromFile(workingDir)
+            rVersion = getVersionFromFile(adaptedVersionFile)
         }
         if(! rVersion) {
-            rVersion = getVersionFromFile(configDir) ?: inputDependency.get('version')
+            rVersion = getVersionFromFile(getVersionFile()) ?: inputDependency.get('version')
         }
         return rVersion
     }
 
-    private File writeVersionToFile(String version, File dir) {
-        File versionFile = new File(dir, getFileName('version'))
+    private File writeVersionToFile(String version, File versionFile) {
         versionFile.setText(version)
         log.info('Version {} is stored to {} for {}.', version, versionFile.absolutePath, getName())
         return versionFile
@@ -296,9 +300,11 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         }
     }
 
-    private String getVersionFromFile(File dir) {
+    private String getVersionFromFile(File versionFile) {
+        if(! versionFile.getParentFile().exists()) {
+            versionFile.getParentFile().mkdirs()
+        }
         String rVersion = null
-        File versionFile = new File(dir, getFileName('version'))
         if(versionFile.exists()) {
             rVersion = versionFile.getText().trim().replaceAll('\\s', '')
         }

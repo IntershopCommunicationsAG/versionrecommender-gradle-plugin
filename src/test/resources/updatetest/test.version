@@ -101,7 +101,7 @@ com.netflix.servo:servo-core = 0.9.4
 # compile joda-time:joda-time:2.9.1
 
 # TODO Remove compile org.codehaus.jackson
-org.codehaus.jackson:jackson-core-asl 0 1.8.2
+org.codehaus.jackson:jackson-core-asl = 1.8.2
 org.codehaus.jackson:jackson-jaxrs = 1.8.2
 org.codehaus.jackson:jackson-mapper-asl =  1.8.2
 org.codehaus.jackson:jackson-xc = 1.8.2

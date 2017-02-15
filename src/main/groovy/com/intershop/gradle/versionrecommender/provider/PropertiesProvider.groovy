@@ -58,7 +58,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 }
             }
             if(propertiesChanged) {
-                writeVersionProperties(svp, workingDir)
+                writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
                 versions = null
             } else {
                 log.warn('No update changes on properties {}', inputFile.getAbsolutePath())
@@ -76,7 +76,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    File store() throws IOException {
+    File store(File outputFile) throws IOException {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
 
             File adaptedFile = null
@@ -86,13 +86,17 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 SimpleVersionProperties svp = new SimpleVersionProperties()
                 svp.load(workingFile.newInputStream())
                 checkVersion(svp)
-                adaptedFile = writeVersionProperties(svp, configDir)
+                adaptedFile = writeVersionProperties(svp, getVersionFile())
             }
             removePropertiesFile()
 
             return adaptedFile
         }
         return null
+    }
+
+    File getVersionFile() {
+        return new File(getConfigDir(), inputFile.getName())
     }
 
     @Override
@@ -103,7 +107,10 @@ class PropertiesProvider extends AbstractFileBasedProvider {
                 svp.keys().each { String key ->
                     svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
                 }
-                writeVersionProperties(svp, workingDir)
+
+                println inputFile
+
+                writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
                 log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)
                 versions = null
             } else {
@@ -114,7 +121,7 @@ class PropertiesProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void fillVersionMap() {
+    synchronized void fillVersionMap() {
         InputStream propsStream = getStream()
         if(inputType == FileInputType.FILE && inputFile?.getParentFile() == configDir) {
             File workingFile = new File(workingDir, inputFile.getName())
@@ -123,6 +130,8 @@ class PropertiesProvider extends AbstractFileBasedProvider {
             }
         }
         if (propsStream) {
+            log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
+
             SimpleVersionProperties svp = new SimpleVersionProperties()
             svp.load(new InputStreamReader(propsStream))
             svp.propertyNames().each { String k ->
@@ -165,11 +174,10 @@ class PropertiesProvider extends AbstractFileBasedProvider {
         }
     }
 
-    private File writeVersionProperties(SimpleVersionProperties props, File dir) {
-        File adaptedVersionFile = new File(dir, inputFile.getName())
-        props.store(adaptedVersionFile)
-        log.info('File {} was written for {}.', adaptedVersionFile.absolutePath, getName())
-        return adaptedVersionFile
+    private File writeVersionProperties(SimpleVersionProperties props, File versionFile) {
+        props.store(versionFile)
+        log.info('File {} was written for {}.', versionFile.absolutePath, getName())
+        return versionFile
     }
 
     private SimpleVersionProperties getProperties() {

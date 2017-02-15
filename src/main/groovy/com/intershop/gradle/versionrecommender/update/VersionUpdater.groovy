@@ -84,6 +84,7 @@ class VersionUpdater {
 
     String getUpdateVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
         List<String> versionList = getVersionList(group, module)
+
         if(versionList) {
             return calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
         }
@@ -137,21 +138,22 @@ class VersionUpdater {
                 switch (pos) {
                     case UpdatePos.MAJOR:
                         nextVersion = versionObj.incrementMajorVersion(staticMetaData)
-                        filter = "\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        filter = "^\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
                         break
                     case UpdatePos.MINOR:
                         nextVersion = versionObj.incrementMinorVersion(staticMetaData)
-                        filter = "${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        filter = "^${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
                         break
                     case UpdatePos.PATCH:
                         nextVersion = versionObj.incrementPatchVersion(staticMetaData)
-                        filter = "${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
+                        filter = "^${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'}"
                         break
                     case UpdatePos.HOTFIX:
                         nextVersion = digits == 4 ? versionObj.incrementHotfixVersion(staticMetaData) : versionObj.incrementPatchVersion(staticMetaData)
-                        filter = "${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'}"
+                        filter = "^${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'}"
                         break
                 }
+
                 if (versionPart.length > 2 || staticMetaData) {
                     filter += "-${staticMetaData}"
                 } else {
@@ -249,19 +251,19 @@ class VersionUpdater {
             switch (pos) {
                 case UpdatePos.MAJOR:
                     nextVersion = versionObj.incrementMajorVersion()
-                    filter = "(\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
+                    filter = "^(\\d+(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
                     break
                 case UpdatePos.MINOR:
                     nextVersion = versionObj.incrementMinorVersion()
-                    filter = "(${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
+                    filter = "^(${versionDigit[0]}(\\.\\d+)?(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
                     break
                 case UpdatePos.PATCH:
                     nextVersion = versionObj.incrementPatchVersion()
-                    filter = "(${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
+                    filter = "^(${versionDigit[0]}.${versionDigit[1]}(\\.\\d+)?${digits != 4 ? '' : '(\\.\\d+)?'})"
                     break
                 case UpdatePos.HOTFIX:
                     nextVersion = digits == 4 ? versionObj.incrementHotfixVersion() : versionObj.incrementPatchVersion()
-                    filter = "(${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'})"
+                    filter = "^(${versionDigit[0]}.${versionDigit[1]}${digits == 4 ? "\\.${versionDigit[2]}(\\.\\d+)?" : '(\\.\\d+)?'})"
                     break
             }
             filter += "${searchExtPattern}"

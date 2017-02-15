@@ -17,11 +17,12 @@ class IvyProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void fillVersionMap() {
+    synchronized void fillVersionMap() {
         InputStream stream = getStream()
         if(stream) {
-            def ivyconf = new XmlSlurper().parse(stream)
+            log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
 
+            def ivyconf = new XmlSlurper().parse(stream)
             ivyconf.dependencies.dependency.each {
                 String descr = "${it.@org.text()}:${it.@name.text()}".toString()
                 String version = "${it.@rev.text()}"

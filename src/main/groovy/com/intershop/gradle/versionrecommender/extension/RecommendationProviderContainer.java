@@ -38,11 +38,13 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
         assertCanAdd(provider.getName());
         addLastAction.execute(provider);
 
-        if(provider.isAdaptable()) {
+        if(provider.isAdaptable() && project == project.getRootProject()) {
             SetLocalVersion localTask = project.getTasks().create(provider.getTaskName("setLocal"), SetLocalVersion.class);
             localTask.setProvider(provider);
+
             SetLocalVersion snapshotTask = project.getTasks().create(provider.getTaskName("setSnapshot"), SetLocalVersion.class);
-            localTask.setProvider(provider);
+            snapshotTask.setProvider(provider);
+
             ResetVersion resetTask = project.getTasks().create(provider.getTaskName("reset"), ResetVersion.class);
             resetTask.setProvider(provider);
 
@@ -51,12 +53,16 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
 
             StoreUpdateVersion storeUpdateVersionTask = project.getTasks().create(provider.getTaskName("store"), StoreUpdateVersion.class);
             storeUpdateVersionTask.setProvider(provider);
+            storeUpdateVersionTask.setVersionFile(provider.getVersionFile());
 
             Update defaultUpdateTask = project.getTasks().maybeCreate("update", Update.class);
             defaultUpdateTask.getProviders().add(provider);
+
             StoreUpdate defaultStoreTask = project.getTasks().maybeCreate("store", StoreUpdate.class);
             defaultStoreTask.getProviders().add(provider);
+            defaultStoreTask.getVersionFiles().put(provider.getName(), provider.getVersionFile());
         }
+
         return provider;
     }
 

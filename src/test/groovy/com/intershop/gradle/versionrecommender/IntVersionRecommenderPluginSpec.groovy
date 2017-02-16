@@ -532,12 +532,14 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             }
         
             dependencies {
-                testConfig 'com.intershop:component1'
-                testConfig 'com.intershop.other:component1'
-                testConfig 'com.intershop.another:component1'
-                testConfig 'com.intershop.woupdate:component1'
+                testConfig 'com.intershop:component1@ivy'
             }
                      
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
             ${writeIvyRepo(testProjectDir)}
 
             repositories {
@@ -607,6 +609,38 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultAltSet2.task(':setLocalFilter5').outcome == SUCCESS
         updateFileFilter5.exists()
         updateFileFilter5.text == '1.0.0-LOCAL'
+
+        when:
+        def resultResetAll= getPreparedGradleRunner()
+                .withArguments('reset', '-s') //, '--profile')
+                .build()
+        File recFilter = new File(testProjectDir, 'build/versionRecommendation')
+
+        then:
+        resultResetAll.task(':reset').outcome == SUCCESS
+        recFilter.listFiles().size() == 0
+
+        when:
+        def resultSet = getPreparedGradleRunner()
+                .withArguments('setFilter5', '-Pfilter5Version=1.0.0', '-s') //, '--profile')
+                .build()
+
+        File updateFileFilter5set = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
+
+        then:
+        resultSet.task(':setFilter5').outcome == SUCCESS
+        updateFileFilter5set.exists()
+        updateFileFilter5set.text == '1.0.0'
+
+        when:
+        def resultAlt = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+        File copyResult = new File(testProjectDir, 'result/ivy-3.0.0.xml')
+
+        then:
+        resultAlt.task(':copyResult').outcome == SUCCESS
+        copyResult.exists()
     }
 
     def 'test simple configuration for multiproject'() {

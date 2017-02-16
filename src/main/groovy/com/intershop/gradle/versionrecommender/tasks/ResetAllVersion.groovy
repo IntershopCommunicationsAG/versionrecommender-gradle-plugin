@@ -19,7 +19,7 @@ class ResetAllVersion extends DefaultTask {
             workingdirs.add(p.getWorkingDir())
         }
         workingdirs.each {File wd ->
-            project.logger.warn('All files in {} will be removed.', wd.absolutePath)
+            project.logger.quiet('All files in {} are removed.', wd.absolutePath)
             wd.deleteDir()
             wd.mkdir()
         }

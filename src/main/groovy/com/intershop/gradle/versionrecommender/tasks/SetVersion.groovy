@@ -28,6 +28,6 @@ class SetVersion extends DefaultTask {
 
     @Override
     String getGroup() {
-        return "Version Recommendation for ${provider.getName()}"
+        return "${provider.getName()} - Version Recommendation"
     }
 }

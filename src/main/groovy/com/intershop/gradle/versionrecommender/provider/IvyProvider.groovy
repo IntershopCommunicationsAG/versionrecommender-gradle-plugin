@@ -34,6 +34,8 @@ class IvyProvider extends AbstractFileBasedProvider {
             if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
                 versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
             }
+        } else {
+            project.logger.quiet('It is not possible to identify versions for {}. Please check your configuration.', getName())
         }
     }
 }

@@ -86,8 +86,14 @@ class VersionUpdater {
         List<String> versionList = getVersionList(group, module)
 
         if(versionList) {
-            return calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
+            project.logger.quiet('{}:{} with {}', group, module, versionList)
+            String uv = calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
+            if(uv) {
+                project.logger.quiet('{}:{} has been updated updated from {} to {}', group, module, version, uv)
+                return uv
+            }
         }
+        project.logger.quiet('{}:{} was not updated. The version is still {}', group, module, version)
         return null
     }
 
@@ -166,7 +172,7 @@ class VersionUpdater {
                     try {
                         VersionParser.parseVersion(it, digits != 4 ? VersionType.threeDigits : VersionType.fourDigits)
                     } catch (ParserException ex) {
-                        log.warn('Version {} can not be parsed as semantic version.', it)
+                        log.info('Version {} can not be parsed as semantic version.', it)
                     }
                 }.findAll {
                     it > versionObj
@@ -180,7 +186,7 @@ class VersionUpdater {
                 return filteredList2.collect { getStringFromVersion(it, digits) }
             }
         } catch (Exception ex) {
-            log.warn('Version is not a valid version {} and list {} can not be filtered.', version, list)
+            log.info('Version {} is not a valid semantic version and list {} can not be filtered.', version, list)
         }
         return []
     }

@@ -66,16 +66,6 @@ abstract class RecommendationProvider implements VersionProvider {
     }
 
     @Override
-    void setUpdatePos(String updatePos) {
-        try {
-            this.updatePos = UpdatePos.valueOf(updatePos.toUpperCase())
-        } catch (Exception ex) {
-            log.warn('Update position was set to NONE, because the {} is not a valid value.', updatePos)
-            this.updatePos = UpdatePos.NONE
-        }
-    }
-
-    @Override
     void setVersionExtension(VersionExtension versionExtension) {
         this.versionExtension = versionExtension
     }

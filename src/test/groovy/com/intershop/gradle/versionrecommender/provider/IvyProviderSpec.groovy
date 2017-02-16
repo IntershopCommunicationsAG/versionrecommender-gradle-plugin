@@ -207,7 +207,7 @@ class IvyProviderSpec extends Specification {
         provider.getVersion('com.intershop', 'component1') == '1.0.1'
 
         when:
-        uci.updatePos = UpdatePos.MAJOR
+        uci.update = UpdatePos.MAJOR.toString()
         provider.update(uc)
 
         then:

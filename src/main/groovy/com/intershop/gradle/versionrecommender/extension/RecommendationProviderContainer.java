@@ -51,6 +51,9 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             UpdateVersion updateTask = project.getTasks().create(provider.getTaskName("update"), UpdateVersion.class);
             updateTask.setProvider(provider);
 
+            SetVersion setVersionTask = project.getTasks().create(provider.getTaskName("set"), SetVersion.class);
+            setVersionTask.setProvider(provider);
+
             StoreUpdateVersion storeUpdateVersionTask = project.getTasks().create(provider.getTaskName("store"), StoreUpdateVersion.class);
             storeUpdateVersionTask.setProvider(provider);
             storeUpdateVersionTask.setVersionFile(provider.getVersionFile());
@@ -61,6 +64,9 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             StoreUpdate defaultStoreTask = project.getTasks().maybeCreate("store", StoreUpdate.class);
             defaultStoreTask.getProviders().add(provider);
             defaultStoreTask.getVersionFiles().put(provider.getName(), provider.getVersionFile());
+
+            ResetAllVersion resetAll = project.getTasks().maybeCreate("reset", ResetAllVersion.class);
+            resetAll.getProviders().add(provider);
         }
 
         return provider;

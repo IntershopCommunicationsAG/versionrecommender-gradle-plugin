@@ -100,6 +100,15 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
     }
 
     @Override
+    void setVersion() throws IOException {
+        if(inputType == FileInputType.DEPENDENCYMAP) {
+            String propertyVersion = getVersionFromProperty()
+            File newVersionFile = new File(getWorkingDir(), getFileName('version'))
+            writeVersionToFile(propertyVersion, newVersionFile)
+        }
+    }
+
+    @Override
     File store(File outputFile) throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
             String versionStr = getVersionFromFile(new File(getWorkingDir(), getFileName('version')))
@@ -159,7 +168,7 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
     boolean isVersionRequired() {
         if(versionRequired) {
-            String rv = getVersionFromFile(configDir)
+            String rv = getVersionFromFile(getVersionFile())
             if(! rv) {
                 return true
             }

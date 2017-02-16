@@ -11,10 +11,9 @@ interface VersionProvider extends Named {
     @Override
     String getName()
 
-    // Update methods
-    void setUpdatePos(String updatePos)
-
     void update(UpdateConfiguration updateConfig)
+
+    void setVersion() throws java.io.IOException
 
     File store(File outputFile) throws java.io.IOException
 

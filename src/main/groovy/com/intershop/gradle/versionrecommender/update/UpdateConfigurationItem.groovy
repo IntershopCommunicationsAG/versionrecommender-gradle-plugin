@@ -19,7 +19,7 @@ class UpdateConfigurationItem implements Comparable, Named {
         this.module = module
     }
 
-    String name
+    String name = ''
 
     String module = ''
 
@@ -27,7 +27,11 @@ class UpdateConfigurationItem implements Comparable, Named {
 
     String version = ''
 
-    UpdatePos updatePos = UpdatePos.HOTFIX
+    String update = UpdatePos.HOTFIX.toString()
+
+    UpdatePos getUpdatePos() {
+        return update as UpdatePos
+    }
 
     String searchPattern = ''
 

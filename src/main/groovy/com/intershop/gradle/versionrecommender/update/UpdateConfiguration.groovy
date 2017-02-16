@@ -1,5 +1,6 @@
 package com.intershop.gradle.versionrecommender.update
 
+import com.intershop.gradle.versionrecommender.util.UpdatePos
 import groovy.transform.CompileStatic
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
@@ -12,6 +13,12 @@ class UpdateConfiguration {
     String ivyPattern
 
     List<String> defaultUpdateProvider = []
+
+    String defaultUpdate = UpdatePos.HOTFIX.toString()
+
+    UpdatePos getUpdatePos() {
+        return defaultUpdate as UpdatePos
+    }
 
     final NamedDomainObjectContainer<UpdateConfigurationItem> updateConfigItemContainer
 

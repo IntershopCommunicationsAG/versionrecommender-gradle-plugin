@@ -42,19 +42,19 @@ class UpdateConfirmationSpec extends Specification {
         UpdateConfiguration uc = new UpdateConfiguration(project)
 
         UpdateConfigurationItem uci1 = new UpdateConfigurationItem('filter', 'com.intershop.*', '')
-        uci1.updatePos = UpdatePos.MINOR
+        uci1.update = UpdatePos.MINOR.toString()
         uc.addConfigurationItem(uci1)
 
         UpdateConfigurationItem uci2 = new UpdateConfigurationItem('core', 'com.intershop.platform', 'core')
-        uci2.updatePos = UpdatePos.MAJOR
+        uci2.update = UpdatePos.MAJOR.toString()
         uc.addConfigurationItem(uci2)
 
         UpdateConfigurationItem uci3 = new UpdateConfigurationItem('runtime', 'com.intershop.platform', 'runtime')
-        uci3.updatePos = UpdatePos.MINOR
+        uci3.update = UpdatePos.MINOR.toString()
         uc.addConfigurationItem(uci3)
 
         UpdateConfigurationItem uci4 = new UpdateConfigurationItem('platform', 'com.intershop.platform', '')
-        uci4.updatePos = UpdatePos.HOTFIX
+        uci4.update = UpdatePos.HOTFIX.toString()
         uc.addConfigurationItem(uci4)
 
         UpdateConfigurationItem uci5 = new UpdateConfigurationItem('jetty', 'org.jetty', '')

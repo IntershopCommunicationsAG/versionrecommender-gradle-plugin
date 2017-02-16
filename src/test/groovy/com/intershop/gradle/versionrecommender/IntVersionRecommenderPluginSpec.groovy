@@ -588,6 +588,25 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         storeFileFilter4.text == '1.0.1'
         storeFileFilter3.text == '1.0.1'
         storeFileFilter2.text == '1.0.1'
+
+        when:
+        def resultAltSet = getPreparedGradleRunner()
+                .withArguments('setLocalFilter5', '-s') //, '--profile')
+                .buildAndFail()
+
+        then:
+        resultAltSet.task(':setLocalFilter5').outcome == FAILED
+
+        when:
+        def resultAltSet2 = getPreparedGradleRunner()
+                .withArguments('setLocalFilter5', '-Pfilter5Version=1.0.0', '-s') //, '--profile')
+                .build()
+        File updateFileFilter5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
+
+        then:
+        resultAltSet2.task(':setLocalFilter5').outcome == SUCCESS
+        updateFileFilter5.exists()
+        updateFileFilter5.text == '1.0.0-LOCAL'
     }
 
     def 'test simple configuration for multiproject'() {
@@ -604,29 +623,29 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         version = '1.0.0'
         
         versionRecommendation {
-                provider {
-                    ivy('filter4',  'com.intershop:filter:2.0.0') {}
-                }
+            provider {
+                ivy('filter4',  'com.intershop:filter:2.0.0') {}
             }
-            
-            configurations {
-                create('testConfig')
-            }
+        }
         
-            dependencies {
-                testConfig 'com.intershop:component1@ivy'
-            }
-                     
-            task copyResult(type: Copy) {
-                into new File(projectDir, 'result')
-                from configurations.testConfig
-            }
+        configurations {
+            create('testConfig')
+        }
+        
+        dependencies {
+            testConfig 'com.intershop:component1@ivy'
+        }
+                 
+        task copyResult(type: Copy) {
+            into new File(projectDir, 'result')
+            from configurations.testConfig
+        }
 
-            ${repo}
+        ${repo}
 
-            repositories {
-                jcenter()
-            }
+        repositories {
+            jcenter()
+        }
         """.stripIndent()
 
         File settingsfile = file('settings.gradle')
@@ -666,6 +685,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         versionRecommendation {
             provider {
                 ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+            }
+            updateConfiguration {
+                ivyPattern = '${ivyPattern}'
+
+                updateConfigItemContainer {
+                    testUpdate1 {
+                        org = 'com.intershop.another'
+                        update = 'MINOR'
+                    }
+                }                    
             }
         }
             
@@ -707,6 +736,18 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         resultTasks.output.contains('resetFilter')
         !resultTasks.output.contains('project2b:resetFilter')
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('updateFilter2', '-i') //, '--profile')
+                .build()
+
+        File fileFilter2 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter2.version')
+
+        then:
+        resultUpdate.task(':updateFilter2').outcome == SUCCESS
+        fileFilter2.exists()
+        fileFilter2.text == '1.1.0'
     }
 
     private String writeIvyRepo(File dir) {

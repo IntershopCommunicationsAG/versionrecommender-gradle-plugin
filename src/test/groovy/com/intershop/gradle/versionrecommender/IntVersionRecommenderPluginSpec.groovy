@@ -784,6 +784,184 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         fileFilter2.text == '1.1.0'
     }
 
+    def 'test publishing with ivy'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'java'
+                id 'ivy-publish'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
+                }
+            }
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    ivy {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url "\$buildDir/repo"
+                        layout('pattern') {
+                            ivy "${ivyPattern}"
+                            artifact "${artifactPattern}"
+                        }
+                    }
+                }
+            }
+                        
+            dependencies {
+                compile 'org.apache.logging.log4j:log4j-core'
+                compile 'commons-io:commons-io'
+                runtime 'commons-codec:commons-codec'
+            }
+
+            ${writeIvyReadRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File javaFile = file('src/main/java/com/intershop/log4jExample.java', testProjectDir)
+        javaFile << """package com.intershop;
+
+            import org.apache.logging.log4j.LogManager;
+            import org.apache.logging.log4j.Logger;
+            import org.apache.commons.io.FileUtils;
+            import java.util.List;
+            import java.io.File;
+            import java.io.IOException;
+            
+            public class log4jExample{
+            
+               /* Get actual class name to be printed on */
+               static Logger log = LogManager.getLogger(log4jExample.class.getName());
+               
+               public static void main(String[] args) throws IOException {
+                  log.debug("Hello this is a debug message");
+                  log.info("Hello this is an info message");
+                  
+                  File file = new File("/commons/io/project.properties");
+                  List lines = FileUtils.readLines(file, "UTF-8");
+               }
+            }
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-i') //, '--profile')
+                .build()
+        File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
+
+        then:
+        result.task(':publish').outcome == SUCCESS
+        ivyFile.exists()
+        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" conf="runtime-&gt;default" rev="1.4"/>')
+    }
+
+    def 'test publishing with maven'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'java'
+                id 'maven-publish'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
+                }
+            }
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    maven {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url "\$buildDir/repo"
+                    }
+                }
+            }
+                        
+            dependencies {
+                compile 'org.apache.logging.log4j:log4j-core'
+                compile 'commons-io:commons-io'
+                runtime 'commons-codec:commons-codec'
+            }
+
+            ${writeIvyReadRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File javaFile = file('src/main/java/com/intershop/log4jExample.java', testProjectDir)
+        javaFile << """package com.intershop;
+
+            import org.apache.logging.log4j.LogManager;
+            import org.apache.logging.log4j.Logger;
+            import org.apache.commons.io.FileUtils;
+            import java.util.List;
+            import java.io.File;
+            import java.io.IOException;
+            
+            public class log4jExample{
+            
+               /* Get actual class name to be printed on */
+               static Logger log = LogManager.getLogger(log4jExample.class.getName());
+               
+               public static void main(String[] args) throws IOException {
+                  log.debug("Hello this is a debug message");
+                  log.info("Hello this is an info message");
+                  
+                  File file = new File("/commons/io/project.properties");
+                  List lines = FileUtils.readLines(file, "UTF-8");
+               }
+            }
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-s') //, '--profile')
+                .build()
+        File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
+
+        then:
+        result.task(':publish').outcome == SUCCESS
+    }
+
     private String writeIvyRepo(File dir) {
         File repoDir = new File(dir, 'repo')
         File localRepoDir = new File(dir, 'localRepo')
@@ -975,6 +1153,40 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                         artifact "${ivyPattern}"
                     }
                 }                
+            }""".stripIndent()
+
+        return repostr
+    }
+
+    private String writeIvyReadRepo(File dir) {
+        File repoDir = new File(dir, 'readrepo')
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '1.0.0') {
+                dependency org: 'org.apache.logging.log4j', name: 'log4j-core', rev: '2.2'
+                dependency org: 'commons-io', name: 'commons-io', rev: '2.1'
+                dependency org: 'commons-codec', name: 'commons-codec', rev: '1.4'
+            }
+
+            'org.apache.logging.log4j:log4j-core:jar:2.7'
+            module(org: 'com.intershop', name:'altfilter', rev: '1.0.0') {
+                dependency org: 'org.apache.logging.log4j', name: 'log4j-core', rev: '2.7'
+                dependency org: 'commons-io', name: 'commons-io', rev: '2.5'
+                dependency org: 'commons-codec', name: 'commons-codec', rev: '1.10'
+            }
+        }.writeTo(repoDir)
+
+        String repostr = """
+            repositories {
+                ivy {
+                    name 'ivyLocal'
+                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                    layout('pattern') {
+                        ivy "${ivyPattern}"
+                        artifact "${artifactPattern}"
+                        artifact "${ivyPattern}"
+                    }
+                }
             }""".stripIndent()
 
         return repostr

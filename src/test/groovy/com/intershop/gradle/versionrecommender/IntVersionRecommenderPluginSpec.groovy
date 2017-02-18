@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Intershop Communications AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
@@ -641,6 +656,157 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         resultAlt.task(':copyResult').outcome == SUCCESS
         copyResult.exists()
+    }
+
+    def 'test update with a multi provider configuration and with different update configuration'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') { }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {
+                        transitives = true
+                        overrideTransitives = true
+                    }
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {
+                        configDir = file('filter2')
+                    }
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('update', '-s') //, '--profile')
+                .build()
+
+        File fileFilter5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
+        File fileFilter4 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter4.version')
+        File fileFilter3 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter3.version')
+        File fileFilter2 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter2.version')
+        File fileFilter1 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter1.version')
+
+        then:
+        resultUpdate.task(':update').outcome == SUCCESS
+        !fileFilter5.exists()
+        fileFilter4.exists()
+        fileFilter3.exists()
+        fileFilter2.exists()
+        !fileFilter1.exists()
+        fileFilter4.text == '1.0.1'
+        fileFilter3.text == '1.0.1'
+        fileFilter2.text == '1.0.1'
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', '-s') //, '--profile')
+                .build()
+
+        File fileStoreFilter2 = new File(testProjectDir, 'filter2/.ivyFilter2.version')
+
+        then:
+        resultUpdate.task(':update').outcome == SUCCESS
+        fileStoreFilter2.exists()
+        fileStoreFilter2.text == '1.0.1'
+    }
+
+    def 'test override with a multi provider configuration and with different configuration'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') { }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {
+                        transitives = true
+                        overrideTransitives = true
+                    }
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {
+                        configDir = file('filter2')
+                    }
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop.other:component1@ivy'
+                testConfig 'com.intershop.other:component2@ivy'
+                testConfig 'com.intershop.other:depcomponent1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultUpdate.task(':copyResult').outcome == SUCCESS
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/ivy-2.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/ivy-10.0.0.xml')).exists()
     }
 
     def 'test simple configuration for multiproject'() {
@@ -1330,38 +1496,66 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             module(org: 'com.intershop.other', name: 'filter', rev: '1.0.0') {
                 dependency org: 'com.intershop.other', name: 'component1', rev: '1.0.0'
                 dependency org: 'com.intershop.other', name: 'component2', rev: '1.0.0'
+                dependency org: 'com.intershop.other', name: 'depfilter', rev: '1.0.0'
                 dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.0'
             }
             module(org: 'com.intershop.other', name: 'component1', rev: '1.0.0')
             module(org: 'com.intershop.other', name: 'component2', rev: '1.0.0')
             module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.0')
+            module(org: 'com.intershop.other', name: 'depfilter', rev: '1.0.0') {
+                dependency org: 'com.intershop.other', name: 'depcomponent1', rev: '2.0.0'
+                dependency org: 'com.intershop.other', name: 'component2', rev: '10.0.0'
+            }
+            module(org: 'com.intershop.other', name: 'depcomponent1', rev: '1.0.0')
+            module(org: 'com.intershop.other', name: 'component2', rev: '10.0.0')
 
             module(org: 'com.intershop.other', name: 'filter', rev: '1.0.1') {
                 dependency org: 'com.intershop.other', name: 'component1', rev: '1.0.1'
                 dependency org: 'com.intershop.other', name: 'component2', rev: '1.0.1'
+                dependency org: 'com.intershop.other', name: 'depfilter', rev: '1.0.1'
                 dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.1'
             }
             module(org: 'com.intershop.other', name: 'component1', rev: '1.0.1')
             module(org: 'com.intershop.other', name: 'component2', rev: '1.0.1')
             module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.1.1')
+            module(org: 'com.intershop.other', name: 'depfilter', rev: '1.0.1') {
+                dependency org: 'com.intershop.other', name: 'depcomponent1', rev: '1.0.1'
+                dependency org: 'com.intershop.other', name: 'component2', rev: '10.0.1'
+            }
+            module(org: 'com.intershop.other', name: 'depcomponent1', rev: '1.0.1')
+            module(org: 'com.intershop.other', name: 'component2', rev: '10.0.1')
 
             module(org: 'com.intershop.other', name: 'filter', rev: '1.1.0') {
                 dependency org: 'com.intershop.other', name: 'component1', rev: '1.1.0'
                 dependency org: 'com.intershop.other', name: 'component2', rev: '1.1.0'
+                dependency org: 'com.intershop.other', name: 'depfilter', rev: '1.1.0'
                 dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.2.0'
             }
             module(org: 'com.intershop.other', name: 'component1', rev: '1.1.0')
             module(org: 'com.intershop.other', name: 'component2', rev: '1.1.0')
             module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.2.0')
+            module(org: 'com.intershop.other', name: 'depfilter', rev: '1.1.0') {
+                dependency org: 'com.intershop.other', name: 'depcomponent1', rev: '1.1.0'
+                dependency org: 'com.intershop.other', name: 'component2', rev: '10.1.0'
+            }
+            module(org: 'com.intershop.other', name: 'depcomponent1', rev: '1.1.0')
+            module(org: 'com.intershop.other', name: 'component2', rev: '10.1.0')
 
             module(org: 'com.intershop.other', name: 'filter', rev: '2.0.0') {
                 dependency org: 'com.intershop.other', name: 'component1', rev: '2.0.0'
                 dependency org: 'com.intershop.other', name: 'component2', rev: '2.0.0'
+                dependency org: 'com.intershop.other', name: 'depfilter', rev: '2.0.0'
                 dependency org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.2.0'
             }
             module(org: 'com.intershop.other', name: 'component1', rev: '2.0.0')
             module(org: 'com.intershop.other', name: 'component2', rev: '2.0.0')
             module(org: 'org.apache.tomcat', name: 'tomcat-catalina', rev: '9.2.0')
+            module(org: 'com.intershop.other', name: 'depfilter', rev: '2.0.0') {
+                dependency org: 'com.intershop.other', name: 'depcomponent1', rev: '2.0.0'
+                dependency org: 'com.intershop.other', name: 'component2', rev: '11.0.0'
+            }
+            module(org: 'com.intershop.other', name: 'depcomponent1', rev: '2.0.0')
+            module(org: 'com.intershop.other', name: 'component2', rev: '11.0.0')
         }.writeTo(repoDir)
 
         new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {

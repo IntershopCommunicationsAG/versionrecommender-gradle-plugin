@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Intershop Communications AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.intershop.gradle.versionrecommender.extension
 
 import com.intershop.gradle.versionrecommender.provider.VersionProvider
@@ -11,7 +26,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import java.util.regex.Pattern
-
 
 @CompileStatic
 @Slf4j
@@ -56,12 +70,12 @@ abstract class RecommendationProvider implements VersionProvider {
     }
 
     @Override
-    void useTransitives(boolean transitive) {
+    void setTransitives(boolean transitive) {
         this.transitive = transitive
     }
 
     @Override
-    void overrideTransitives(boolean override) {
+    void setOverrideTransitives(boolean override) {
         this.override = override
     }
 
@@ -161,16 +175,18 @@ abstract class RecommendationProvider implements VersionProvider {
                 String tmpModule = "${child.moduleGroup}:${child.moduleName}".toString()
                 String tmpVersion = versions.get(tmpModule)
                 if(tmpVersion && tmpVersion != child.moduleVersion) {
-                    log.warn('There are two versions for {} - {} and {}', tmpModule, tmpVersion, child.moduleVersion)
+                    project.logger.warn('There are two versions for {} - {} and {}', tmpModule, tmpVersion, child.moduleVersion)
                     if(override) {
                         try {
                             Version oldVersion = Version.valueOf(tmpVersion)
                             Version newVersion = Version.valueOf(child.moduleVersion)
                             if(oldVersion < newVersion) {
+                                project.logger.quiet('Version {} was replaced with {} for {}:{}', oldVersion, newVersion, child.moduleGroup, child.moduleName)
                                 versions.put(tmpModule, child.moduleVersion)
                             }
                         } catch(ParserException pex) {
                             if(tmpVersion < child.moduleVersion) {
+                                project.logger.quiet('Version {} was replaced with {} for {}:{}', tmpVersion, child.moduleVersion, child.moduleGroup, child.moduleName)
                                 versions.put(tmpModule, child.moduleVersion)
                             }
                         }
@@ -178,6 +194,7 @@ abstract class RecommendationProvider implements VersionProvider {
                 }
                 if(! tmpVersion) {
                     versions.put(tmpModule, child.moduleVersion)
+                    project.logger.quiet('Filter for {}:{}:{} from transitive dependencies', child.moduleGroup, child.moduleName, child.moduleVersion)
                 }
                 calculateDependencies("${child.moduleGroup}:${child.moduleName}".toString(), child.moduleVersion)
             }

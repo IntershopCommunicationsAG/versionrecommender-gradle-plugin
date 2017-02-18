@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Intershop Communications AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.intershop.gradle.versionrecommender.provider
 
 import com.intershop.gradle.versionrecommender.util.FileInputType
@@ -19,6 +34,9 @@ import org.codehaus.plexus.interpolation.ValueSource
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 @Slf4j
 class MavenProvider extends AbstractFileBasedProvider {
@@ -73,12 +91,12 @@ class MavenProvider extends AbstractFileBasedProvider {
     }
 
     @Override
-    void useTransitives(boolean transitive) {
+    void setTransitives(boolean transitive) {
         log.warn('Maven BOM provider {} does not support this method (transitive)', name)
     }
 
     @Override
-    void overrideTransitives(boolean override){
+    void setOverrideTransitives(boolean override){
         log.warn('Maven BOM provider {} does not support this method (overrideTransitives)', name)
     }
 
@@ -169,5 +187,37 @@ class MavenProvider extends AbstractFileBasedProvider {
         String getLocation() {
             return null
         }
+    }
+
+    private File getFile() {
+        File file = null
+        try {
+            switch (inputType) {
+                case FileInputType.FILE:
+                    file = inputFile
+                    break
+                case FileInputType.DEPENDENCYMAP:
+                    file = getFileFromModule()
+                    break
+                case FileInputType.URL:
+                    file = getTemporaryFile(inputURL.openStream())
+                    break
+            }
+        } catch (Exception ex) {
+            log.error('It was not possible to create file from {} input ({}).', input, ex.getMessage())
+            file = null
+        }
+        return file
+    }
+
+    private File getTemporaryFile(InputStream input) {
+        try {
+            Path tempFile = Files.createTempFile(workingDir.toPath(), ".${getShortTypeName().toLowerCase()}${getName().capitalize()}".toString(), 'tmp')
+            Files.copy(input, tempFile)
+            return tempFile.toFile()
+        }catch (IOException ex) {
+            log.error('It was not possible to create a temporary file in {} for {} ({}).', workingDir, "${getShortTypeName().toLowerCase()}${getName().capitalize()}".toString(), ex.getMessage())
+        }
+        return null
     }
 }

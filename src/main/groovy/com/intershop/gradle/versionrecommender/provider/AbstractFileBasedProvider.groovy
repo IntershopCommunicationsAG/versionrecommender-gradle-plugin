@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Intershop Communications AG.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.intershop.gradle.versionrecommender.provider
 
 import com.intershop.gradle.versionrecommender.extension.RecommendationProvider
@@ -11,9 +26,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
-
-import java.nio.file.Files
-import java.nio.file.Path
 
 @CompileStatic
 @Slf4j
@@ -189,49 +201,18 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
                     stream = inputFile.newInputStream()
                     break
                 case FileInputType.DEPENDENCYMAP:
-                    stream = getFileFromModule().newInputStream()
+                    stream = getFileFromModule()?.newInputStream()
                     break
                 case FileInputType.URL:
                     stream = inputURL.openStream()
                     break
             }
         } catch (Exception ex) {
+            ex.printStackTrace()
             log.error('It was not possible to create stream from {} input ({}).', input, ex.getMessage())
             stream = null
         }
         return stream
-    }
-
-    protected File getFile() {
-        File file = null
-        try {
-            switch (inputType) {
-                case FileInputType.FILE:
-                    file = inputFile
-                    break
-                case FileInputType.DEPENDENCYMAP:
-                    file = getFileFromModule()
-                    break
-                case FileInputType.URL:
-                    file = getTemporaryFile(inputURL.openStream())
-                    break
-            }
-        } catch (Exception ex) {
-            log.error('It was not possible to create file from {} input ({}).', input, ex.getMessage())
-            file = null
-        }
-        return file
-    }
-
-    private File getTemporaryFile(InputStream input) {
-        try {
-            Path tempFile = Files.createTempFile(workingDir.toPath(), ".${getShortTypeName().toLowerCase()}${getName().capitalize()}".toString(), 'tmp')
-            Files.copy(input, tempFile)
-            return tempFile.toFile()
-        }catch (IOException ex) {
-            log.error('It was not possible to create a temporary file in {} for {} ({}).', workingDir, "${getShortTypeName().toLowerCase()}${getName().capitalize()}".toString(), ex.getMessage())
-        }
-        return null
     }
 
     private static Map getDependencyMap(String depStr) {
@@ -254,20 +235,19 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
         return returnValue
     }
 
-    private File getFileFromModule() {
+    protected File getFileFromModule() {
         Map dMap = new HashMap(inputDependency)
         // adapt version
         String version = getVersionFromFiles()
         if(version) {
             dMap.put('version', version)
-
             // adapt extension
             if (!dMap['ext']) {
                 dMap.put('ext', getShortTypeName())
             }
+
             // create a temporary configuration to resolve the file
             Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
-
             ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
             log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
 

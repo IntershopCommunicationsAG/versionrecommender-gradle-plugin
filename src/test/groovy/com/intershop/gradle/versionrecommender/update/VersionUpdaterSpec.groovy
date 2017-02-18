@@ -372,6 +372,6 @@ class VersionUpdaterSpec extends Specification {
         String uv = vu.getUpdateVersion('com.google.apis','google-api-services-appsactivity','v1-rev29-1.20.0', '^(v1-rev)(\\d+)(-1\\.20\\.0)$', 2)
 
         then:
-        uv == 'v1-rev31-1.20.0'
+        uv != 'v1-rev29-1.20.0'
     }
 }

@@ -962,6 +962,343 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         result.task(':publish').outcome == SUCCESS
     }
 
+    def 'test publishing ivy filter with projects and specified versions'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'ivy-publish'
+            }
+            
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'ivy-publish'
+                
+                group = 'com.intershop'
+                version = '1.0.0'
+
+                publishing {
+                    publications {
+                        ivyFilter(IvyPublication) {
+                            module 'ivy-filter'
+                            revision project.version
+
+                            versionManagement.withSubProjects { subprojects }     
+
+                            // alternative syntax when you want to explicitly add a dependency with no transitives
+                            versionManagement.withDependencies { 'manual:dep:1' }
+
+                            // further customization of the POM is allowed if desired
+                            descriptor.withXml { asNode().info[0].appendNode('description', 'A demonstration of maven IVY customization') }
+                        }
+                    }
+                    repositories {
+                        ivy {
+                            // change to point to your repo, e.g. http://my.org/repo
+                            url "\$buildDir/repo"
+                            layout('pattern') {
+                                ivy "${ivyPattern}"
+                                artifact "${artifactPattern}"
+                            }
+                        }
+                    }
+                }                
+            }
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File proj1Dir = createSubProject('project1a', settingsfile, '')
+        File proj2Dir = createSubProject('project2b', settingsfile, '')
+
+        writeJavaTestClass('com.intershop.project1', proj1Dir)
+        writeJavaTestClass('com.intershop.project2', proj2Dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-s')
+                .build()
+
+        File ivy = new File(testProjectDir, 'build/repo/com.intershop/ivy-filter/1.0.0/ivys/ivy-1.0.0.xml')
+
+        then:
+        result.task(':project1a:publish').outcome == SUCCESS
+        result.task(':project2b:publish').outcome == SUCCESS
+        result.task(':publish').outcome == SUCCESS
+        ivy.text.contains('<dependency org="com.intershop" name="project1a" rev="1.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="com.intershop" name="project2b" rev="1.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="manual" name="dep" rev="1" conf="default"/>')
+    }
+
+    def 'test publishing maven filter with projects and specified versions'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'maven-publish'
+            }
+            
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'maven-publish'
+                
+                group = 'com.intershop'
+                version = '1.0.0'
+
+                publishing {
+                    publications {
+                        mvnFilter(MavenPublication) {
+                            artifactId 'mvn-filter'
+                            version project.version
+
+                            versionManagement.withSubProjects { subprojects }     
+
+                            // alternative syntax when you want to explicitly add a dependency with no transitives
+                            versionManagement.withDependencies { 'manual:dep:1' }
+
+                            // further customization of the POM is allowed if desired
+                            pom.withXml { asNode().appendNode('description', 'A demonstration of maven IVY customization') }
+                        }
+                    }
+                    repositories {
+                        maven {
+                            // change to point to your repo, e.g. http://my.org/repo
+                            url "\$buildDir/repo"
+                        }
+                    }
+                }                
+            }
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File proj1Dir = createSubProject('project1a', settingsfile, '')
+        File proj2Dir = createSubProject('project2b', settingsfile, '')
+
+        writeJavaTestClass('com.intershop.project1', proj1Dir)
+        writeJavaTestClass('com.intershop.project2', proj2Dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-s')
+                .build()
+
+        File pom = new File(testProjectDir, 'build/repo/com/intershop/mvn-filter/1.0.0/mvn-filter-1.0.0.pom')
+
+        then:
+        result.task(':project1a:publish').outcome == SUCCESS
+        result.task(':project2b:publish').outcome == SUCCESS
+        result.task(':publish').outcome == SUCCESS
+        pom.text.contains('<groupId>com.intershop</groupId>')
+        pom.text.contains('<artifactId>project1a</artifactId>')
+        pom.text.contains('<artifactId>project2b</artifactId>')
+        pom.text.contains('<groupId>manual</groupId>')
+        pom.text.contains('<artifactId>dep</artifactId>')
+        pom.text.contains('<version>1</version>')
+    }
+
+    def 'test publishing ivy filter with projects and filter versions'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'ivy-publish'
+            }
+            
+            versionRecommendation {
+                provider {
+                    properties('list') {
+                        versionMap = [
+                            'com.intershop.test:testcomp1': '10.0.0',
+                            'com.intershop.testglob:*': '11.0.0',
+                        ]
+                    }
+                }
+            }
+
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'ivy-publish'
+                
+                group = 'com.intershop'
+                version = '1.0.0'
+
+                publishing {
+                    publications {
+                        ivyFilter(IvyPublication) {
+                            module 'ivy-filter'
+                            revision project.version
+
+                            versionManagement.withSubProjects { subprojects }     
+
+                            // alternative syntax when you want to explicitly add a dependency with no transitives
+                            versionManagement.withDependencies { [
+                                        'com.intershop.test:testcomp1',
+                                        'com.intershop.testglob:testglob1',
+                                        'com.intershop.testglob:testglob10' ] }
+
+                            // further customization of the POM is allowed if desired
+                            descriptor.withXml { asNode().info[0].appendNode('description', 'A demonstration of maven IVY customization') }
+                        }
+                    }
+                    repositories {
+                        ivy {
+                            // change to point to your repo, e.g. http://my.org/repo
+                            url "\$buildDir/repo"
+                            layout('pattern') {
+                                ivy "${ivyPattern}"
+                                artifact "${artifactPattern}"
+                            }
+                        }
+                    }
+                }                
+            }
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File proj1Dir = createSubProject('project1a', settingsfile, '')
+        File proj2Dir = createSubProject('project2b', settingsfile, '')
+
+        writeJavaTestClass('com.intershop.project1', proj1Dir)
+        writeJavaTestClass('com.intershop.project2', proj2Dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-s')
+                .build()
+
+        File ivy = new File(testProjectDir, 'build/repo/com.intershop/ivy-filter/1.0.0/ivys/ivy-1.0.0.xml')
+
+        then:
+        result.task(':project1a:publish').outcome == SUCCESS
+        result.task(':project2b:publish').outcome == SUCCESS
+        result.task(':publish').outcome == SUCCESS
+        ivy.text.contains('<dependency org="com.intershop" name="project1a" rev="1.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="com.intershop" name="project2b" rev="1.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="com.intershop.test" name="testcomp1" rev="10.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="com.intershop.testglob" name="testglob1" rev="11.0.0" conf="default"/>')
+        ivy.text.contains('<dependency org="com.intershop.testglob" name="testglob10" rev="11.0.0" conf="default"/>')
+    }
+
+    def 'test publishing maven filter with projects and filter versions'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'maven-publish'
+            }
+
+            versionRecommendation {
+                provider {
+                    properties('list') {
+                        versionMap = [
+                            'com.intershop.test:testcomp1': '10.0.0',
+                            'com.intershop.testglob:*': '11.0.0',
+                        ]
+                    }
+                }
+            }
+            
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'maven-publish'
+                
+                group = 'com.intershop'
+                version = '1.0.0'
+
+                publishing {
+                    publications {
+                        mvnFilter(MavenPublication) {
+                            artifactId 'mvn-filter'
+                            version project.version
+
+                            versionManagement.withSubProjects { subprojects }     
+
+                            // alternative syntax when you want to explicitly add a dependency with no transitives
+                            versionManagement.withDependencies { [
+                                        'com.intershop.test:testcomp1',
+                                        'com.intershop.testglob:testglob1',
+                                        'com.intershop.testglob:testglob10' ] }
+
+                            // further customization of the POM is allowed if desired
+                            pom.withXml { asNode().appendNode('description', 'A demonstration of maven IVY customization') }
+                        }
+                    }
+                    repositories {
+                        maven {
+                            // change to point to your repo, e.g. http://my.org/repo
+                            url "\$buildDir/repo"
+                        }
+                    }
+                }                
+            }
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File proj1Dir = createSubProject('project1a', settingsfile, '')
+        File proj2Dir = createSubProject('project2b', settingsfile, '')
+
+        writeJavaTestClass('com.intershop.project1', proj1Dir)
+        writeJavaTestClass('com.intershop.project2', proj2Dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-s')
+                .build()
+
+        File pom = new File(testProjectDir, 'build/repo/com/intershop/mvn-filter/1.0.0/mvn-filter-1.0.0.pom')
+
+        then:
+        result.task(':project1a:publish').outcome == SUCCESS
+        result.task(':project2b:publish').outcome == SUCCESS
+        result.task(':publish').outcome == SUCCESS
+        pom.text.contains('<groupId>com.intershop</groupId>')
+        pom.text.contains('<artifactId>project1a</artifactId>')
+        pom.text.contains('<artifactId>project2b</artifactId>')
+
+        pom.text.contains('<groupId>com.intershop.test</groupId>')
+        pom.text.contains('<artifactId>testcomp1</artifactId>')
+        pom.text.contains('<version>10.0.0</version>')
+        pom.text.contains('<groupId>com.intershop.testglob</groupId>')
+        pom.text.contains('<artifactId>testglob1</artifactId>')
+        pom.text.contains('<artifactId>testglob10</artifactId>')
+        pom.text.contains('<version>11.0.0</version>')
+    }
+
     private String writeIvyRepo(File dir) {
         File repoDir = new File(dir, 'repo')
         File localRepoDir = new File(dir, 'localRepo')

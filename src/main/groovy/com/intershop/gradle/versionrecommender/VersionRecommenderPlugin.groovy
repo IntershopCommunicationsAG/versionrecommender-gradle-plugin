@@ -1,6 +1,7 @@
 package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
+import com.intershop.gradle.versionrecommender.publisher.PublicationXmlGenerator
 import com.intershop.gradle.versionrecommender.util.NoVersionException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -37,6 +38,10 @@ class VersionRecommenderPlugin implements Plugin<Project> {
             applyRecommendation(it)
             applyIvyVersionRecommendation(it)
             applyMvnVersionRecommendation(it)
+        }
+
+        if(! project.extensions.findByType(PublicationXmlGenerator)) {
+            project.extensions.create(PublicationXmlGenerator.EXTENSIONNAME, PublicationXmlGenerator, project)
         }
     }
 
@@ -81,7 +86,6 @@ class VersionRecommenderPlugin implements Plugin<Project> {
     }
 
     private void applyMvnVersionRecommendation(Project project) {
-
         project.plugins.withType(MavenPublishPlugin) {
             project.publishing {
                 publications {

@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.intershop.gradle.versionrecommender.publisher
 
-import com.intershop.gradle.versionrecommender.extension.RecommendationProviderContainer
+
+package com.intershop.gradle.versionrecommender.extension
+
+import com.intershop.gradle.versionrecommender.recommendation.RecommendationProviderContainer
 import com.intershop.gradle.versionrecommender.util.ModuleNotationParser
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider

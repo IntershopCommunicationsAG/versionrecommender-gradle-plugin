@@ -16,7 +16,7 @@
 package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
-import com.intershop.gradle.versionrecommender.publisher.PublicationXmlGenerator
+import com.intershop.gradle.versionrecommender.extension.PublicationXmlGenerator
 import com.intershop.gradle.versionrecommender.util.NoVersionException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,35 +31,78 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.specs.Spec
 
+/**
+ * This plugin applies functionality for version handling in large projects.
+ *
+ * It provides the possibility
+ * <ul>
+ *     <li>to store version numbers in</li>
+ *     <ul>
+ *         <li>Ivy files</li>
+ *         <li>Maven BOM files</li>
+ *         <li>Properties files</li>
+ *         <li>Simple static properties configuration</li>
+ *     </ul>
+ *     <li>to update versions</li>
+ * </ul>
+ *
+ * It adds also some functionality for the creation of BOM und Ivy filters.
+ *
+ * This plugin applies the functionality always to the root project!
+ */
 class VersionRecommenderPlugin implements Plugin<Project> {
 
     private VersionRecommenderExtension extension
 
+    /**
+     * Apply this plugin to the given target project.
+     *
+     * @param project The target project
+     */
     @Override
     void apply(final Project project) {
+        // helper method to make sure this is
+        // a plugin for the root project.
         applyToRootProject(project.getRootProject())
     }
 
+    /**
+     * Create extension and add the functionality to
+     * the given project. This is always the root project.
+     *
+     * @param project The target project
+     */
     private void applyToRootProject(Project project) {
         project.logger.info('Create extension {} for {}', VersionRecommenderExtension.EXTENSIONNAME, project.name)
 
+        // create extension on root project
         extension = project.extensions.findByType(VersionRecommenderExtension) ?: project.extensions.create(VersionRecommenderExtension.EXTENSIONNAME, VersionRecommenderExtension, project)
 
+        // add version recommendation to to root project.
         applyRecommendation(project)
         applyIvyVersionRecommendation(project)
         applyMvnVersionRecommendation(project)
 
+        // add version recommendation to to sub projects.
         project.getSubprojects().each {
             applyRecommendation(it)
             applyIvyVersionRecommendation(it)
             applyMvnVersionRecommendation(it)
         }
 
+        // add support for filter creation to the root project
         if(! project.extensions.findByType(PublicationXmlGenerator)) {
             project.extensions.create(PublicationXmlGenerator.EXTENSIONNAME, PublicationXmlGenerator, project)
         }
     }
 
+    /**
+     * Apply functionality for an Ivy Publication.
+     * Version information will be added to an Ivy File
+     * with empty rev attributes.
+     *
+     * @param project The target project
+     */
     private void applyIvyVersionRecommendation(Project project) {
         project.plugins.withType(IvyPublishPlugin) {
             project.publishing {
@@ -100,6 +143,13 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         }
     }
 
+    /**
+     * Apply functionality for a Maven Publication.
+     * Version information will be added to an pom File
+     * with empty version or missing version nodes.
+     *
+     * @param project The target project
+     */
     private void applyMvnVersionRecommendation(Project project) {
         project.plugins.withType(MavenPublishPlugin) {
             project.publishing {
@@ -150,6 +200,13 @@ class VersionRecommenderPlugin implements Plugin<Project> {
 
     }
 
+    /**
+     * Apply the basic version recommendation for resolving
+     * version numbers from other(external) sources.
+     * This initialization will also add all the necessary tasks.
+     *
+     * @param project The target project
+     */
     private void applyRecommendation(Project project) {
         project.getConfigurations().all { Configuration conf ->
             conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->

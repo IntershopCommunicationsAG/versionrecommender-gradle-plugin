@@ -15,11 +15,19 @@
  */
 package com.intershop.gradle.versionrecommender.extension
 
+import com.intershop.gradle.versionrecommender.recommendation.RecommendationProviderContainer
 import com.intershop.gradle.versionrecommender.update.UpdateConfiguration
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
+/**
+ * The main extension of this plugin. It adds the DSL
+ * for the configuration of version providers and
+ * configuration for the update function.
+ * It contains also some basic configuration for version
+ * recommendation.
+ */
 @CompileStatic
 class VersionRecommenderExtension {
 
@@ -27,27 +35,53 @@ class VersionRecommenderExtension {
 
     private Project project
 
+    /**
+     * Holds the version recommendation.
+     */
     final RecommendationProviderContainer provider
 
-    final String[] defaultUpdateConfigurations
-
+    /**
+     * Holds the update configuration.
+     */
     final UpdateConfiguration updateConfiguration
 
+    /**
+     * Constructor with initialization of the basic configuration
+     *
+     * @param project The target project
+     */
     VersionRecommenderExtension(Project project) {
         this.project = project
         provider = new RecommendationProviderContainer(project)
 
         updateConfiguration = new UpdateConfiguration(project)
-        defaultUpdateConfigurations = []
+        forceRecommenderVersion = false
     }
 
-    void updateConfiguration(final Closure c) {
-        project.configure(updateConfiguration, c)
+    /**
+     * Creates the provider configuration from the
+     * closure of the provider configuration.
+     *
+     * @param providerClosure
+     */
+    void provider(Closure providerClosure) {
+        ConfigureUtil.configure(providerClosure, provider)
     }
 
-    void provider(Closure c) {
-        ConfigureUtil.configure(c, provider)
+    /**
+     * Creates the update configuration from the
+     * closure of the update configuration.
+     *
+     * @param updateConfigClosure
+     */
+    void updateConfiguration(final Closure updateConfigClosure) {
+        project.configure(updateConfiguration, updateConfigClosure)
     }
 
-    boolean forceRecommenderVersion = false
+    /**
+     * If this variable true, the version is always taken from
+     * the version recommendation. This will override configured
+     * versions in dependencies.
+     */
+    boolean forceRecommenderVersion
 }

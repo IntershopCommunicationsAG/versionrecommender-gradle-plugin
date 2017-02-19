@@ -15,7 +15,7 @@
  */
 package com.intershop.gradle.versionrecommender.tasks
 
-import com.intershop.gradle.versionrecommender.extension.RecommendationProvider
+import com.intershop.gradle.versionrecommender.recommendation.RecommendationProvider
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask

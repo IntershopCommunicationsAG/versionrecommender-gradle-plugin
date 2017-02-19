@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.intershop.gradle.versionrecommender.provider
+package com.intershop.gradle.versionrecommender.recommendation
 
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.util.TestDir

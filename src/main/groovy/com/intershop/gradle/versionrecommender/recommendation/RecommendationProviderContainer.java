@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.intershop.gradle.versionrecommender.extension;
 
-import com.intershop.gradle.versionrecommender.provider.IvyProvider;
-import com.intershop.gradle.versionrecommender.provider.MavenProvider;
-import com.intershop.gradle.versionrecommender.provider.PropertiesProvider;
+package com.intershop.gradle.versionrecommender.recommendation;
+
 import com.intershop.gradle.versionrecommender.tasks.*;
 import groovy.lang.Closure;
 import org.gradle.api.Action;

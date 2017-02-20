@@ -22,12 +22,24 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Set version</p>
+ * <p>Set the version, provided by a special property, to the provider.
+ * The property name is composed of the provider name and 'Version'. </p>
+ * <p>The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class SetVersion extends DefaultTask {
 
+    /**
+     * Version recommendation provider of this task
+     */
     @Input
     RecommendationProvider provider
 
+    /**
+     * Task action
+     */
     @TaskAction
     void runSetLocalExtension() {
         if(! (provider.getVersionFromProperty())) {
@@ -36,11 +48,21 @@ class SetVersion extends DefaultTask {
         provider.setVersion()
     }
 
+    /**
+     * Description
+     *
+     * @return "Set special version for 'provider name'"
+     */
     @Override
     String getDescription() {
         return "Set special version for ${provider.getName()}"
     }
 
+    /**
+     * Group
+     *
+     * @return "Provider name - Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

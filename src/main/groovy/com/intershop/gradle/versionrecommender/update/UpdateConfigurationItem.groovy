@@ -19,37 +19,84 @@ import com.intershop.gradle.versionrecommender.util.UpdatePos
 import groovy.transform.CompileStatic
 import org.gradle.api.Named
 
+/**
+ * <p>Update configuration item</p>
+ * <p>This item provides all parameter for
+ * an single update configuration</p>
+ */
 @CompileStatic
 class UpdateConfigurationItem implements Comparable, Named {
 
+    /**
+     * Simple constructor
+     *
+     * @param name
+     */
     UpdateConfigurationItem(String name) {
         this.name = name
         this.org = ''
         this.module = ''
     }
 
+    /**
+     * Constructor with basic configuration attributes
+     *
+     * @param name      Name of the configuration
+     * @param org       Organisation
+     * @param module    Module name
+     */
     UpdateConfigurationItem(String name, String org, String module) {
         this.name = name
         this.org = org
         this.module = module
     }
 
+    /**
+     * Name of the configuration item
+     */
     String name = ''
 
+    /**
+     * Module name
+     */
     String module = ''
 
+    /**
+     * Organisation name
+     */
     String org = ''
 
+    /**
+     * Version for this configuration.
+     * This is used for the udpate if specified.
+     */
     String version = ''
 
+    /**
+     * Update position for this special
+     * update configuration.
+     */
     String update = UpdatePos.HOTFIX.toString()
 
+    /**
+     * Returns an update position objec from
+     * update attribute.
+     *
+     * @return
+     */
     UpdatePos getUpdatePos() {
         return update as UpdatePos
     }
 
+    /**
+     * Search pattern for special versions in a list
+     */
     String searchPattern = ''
 
+    /**
+     * Search pattern for the configured version.
+     * The default value is the search pattern.
+     */
     String versionPattern
 
     String getVersionPattern() {
@@ -63,10 +110,22 @@ class UpdateConfigurationItem implements Comparable, Named {
         }
     }
 
+    /**
+     * Complex search pattern for the next version.
+     */
     String patternForNextVersion = ''
 
+    /**
+     * Number of the pattern group for updates
+     */
     int sortStringPos = 0
 
+    /**
+     * Equals method for update configuration items
+     *
+     * @param other
+     * @return
+     */
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -78,6 +137,12 @@ class UpdateConfigurationItem implements Comparable, Named {
         return compareTo((UpdateConfigurationItem) other) == 0
     }
 
+    /**
+     * Compare method for update configuration items
+     *
+     * @param other
+     * @return
+     */
     @Override
     int compareTo(Object other) {
         if(((UpdateConfigurationItem)other).org == this.org) {

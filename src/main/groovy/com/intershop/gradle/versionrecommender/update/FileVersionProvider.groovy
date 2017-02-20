@@ -18,10 +18,21 @@ package com.intershop.gradle.versionrecommender.update
 import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
 
+/**
+ * This class provides methods to collect all available version in file based repositories.
+ */
 class FileVersionProvider {
 
-    public static List<String> getVersionFromMavenMetadata(File repo, String group, String module) {
-        File metadataFile = new File(repo, "/${group.replace('.', '/')}/${module}/maven-metadata.xml")
+    /**
+     * Collect a list of all available versions from a file based Maven repository.
+     *
+     * @param repo          Repository directory
+     * @param group         Group of the module
+     * @param artifactid    Artifact ID of the module
+     * @return              a list of available versions
+     */
+    public static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
+        File metadataFile = new File(repo, "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml")
         if(metadataFile.exists()) {
             GPathResult modelMetaData = new XmlSlurper().parse(metadataFile)
             List<String> list = []
@@ -34,10 +45,19 @@ class FileVersionProvider {
         }
     }
 
+    /**
+     * Collect a list of all available versions from a file based Ivy repository.
+     *
+     * @param repo      Repository directory
+     * @param pattern   Ivy layout pattern
+     * @param org       Organisation of the module
+     * @param name      Name of the module
+     * @return          a list of available versions
+     */
     @CompileStatic
-    public static List<String> getVersionsFromIvyListing(File repo, String pattern, String group, String module) {
+    public static List<String> getVersionsFromIvyListing(File repo, String pattern, String org, String name) {
         int i = pattern.indexOf('[revision]')
-        String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', group.replaceAll('/','.')).replaceAll('\\[module]', module)
+        String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         File versionDir = new File(repo, path)
 
         if(versionDir.exists()) {

@@ -23,12 +23,24 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Extend version with LOCAL</p>
+ * <p>The version configuration of the provider will be extended with
+ * the extension LOCAL.</p>
+ * <p>The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class SetLocalVersion extends DefaultTask {
 
+    /**
+     * Version recommendation provider of this task
+     */
     @Input
     RecommendationProvider provider
 
+    /**
+     * Task action
+     */
     @TaskAction
     void runSetLocalExtension() {
         if(provider.isVersionRequired() && ! (provider.getVersionFromProperty())) {
@@ -37,11 +49,21 @@ class SetLocalVersion extends DefaultTask {
         provider.setVersionExtension(VersionExtension.LOCAL)
     }
 
+    /**
+     * Description
+     *
+     * @return "Extend filter configuration for 'provider name' with LOCAL"
+     */
     @Override
     String getDescription() {
         return "Extend filter configuration for ${provider.getName()} with LOCAL"
     }
 
+    /**
+     * Group
+     *
+     * @return "Provider name - Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

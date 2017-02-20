@@ -23,15 +23,29 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Store update version</p>
+ * <p>Stored updated version information of a configured provider</p>
+ * <p>The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class StoreUpdateVersion extends DefaultTask {
 
+    /**
+     * Version recommendation provider of this task
+     */
     @Input
     RecommendationProvider provider
 
+    /**
+     * The file with the stored version information
+     */
     @OutputFile
     File versionFile
 
+    /**
+     * Task action
+     */
     @TaskAction
     void storeUpdateVersion(){
         try {
@@ -41,11 +55,21 @@ class StoreUpdateVersion extends DefaultTask {
         }
     }
 
+    /**
+     * Description
+     *
+     * @return "Store changes from working dir for 'provider name'"
+     */
     @Override
     String getDescription() {
         return "Store changes from working dir for ${provider.getName()}"
     }
 
+    /**
+     * Group
+     *
+     * @return "Provider name - Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

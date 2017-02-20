@@ -23,14 +23,29 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Store update task of a project</p>
+ * <p>This task stores all updated version information of all providers
+ * in the configured default list to the project configuration.
+ * The main functionality is implemented in the connected providers.</P
+ */
 @CompileStatic
 class StoreUpdate extends DefaultTask {
 
+    /**
+     * Provider list of this task
+     */
     @Input
     List<RecommendationProvider> providers = []
 
+    /**
+     * Input map for version files
+     */
     Map<String,File> versionFiles = [:]
 
+    /**
+     * Task action
+     */
     @TaskAction
     void storeChanges() {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
@@ -46,11 +61,21 @@ class StoreUpdate extends DefaultTask {
         }
     }
 
+    /**
+     * Description
+     *
+     * @return "Store changes from working dir to configuration"
+     */
     @Override
     String getDescription() {
         return "Store changes from working dir to configuration"
     }
 
+    /**
+     * Group
+     *
+     * @return "Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "Version Recommendation"

@@ -22,22 +22,43 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Remove temporary version</p>
+ * <p>The temporary version configuration of the provider will be removed.</p>
+ * <p>The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class ResetVersion extends DefaultTask {
 
+    /**
+     * Version recommendation provider of this task
+     */
     @Input
     RecommendationProvider provider
 
+    /**
+     * Task action
+     */
     @TaskAction
     void resetVersion() {
         provider.setVersionExtension(VersionExtension.NONE)
     }
 
+    /**
+     * Description
+     *
+     * @return "Reset filter configuration for 'provider name'"
+     */
     @Override
     String getDescription() {
         return "Reset filter configuration for ${provider.getName()}"
     }
 
+    /**
+     * Group
+     *
+     * @return "Provider name - Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

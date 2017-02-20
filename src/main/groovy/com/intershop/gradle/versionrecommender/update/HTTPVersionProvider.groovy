@@ -21,12 +21,26 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.HttpResponseException
 
+/**
+ * This class provides methods to collect all available version in remote based repositories.
+ * Only http and https is supported.
+ */
 @Slf4j
 class HTTPVersionProvider {
 
     private static final int DEFAULT_PROXY_PORT = -1
 
-    public static List<String> getVersionFromMavenMetadata(String repo, String group, String module, String username = '', String password = '') {
+    /**
+     * Collect a list of all available versions from a remote based Maven repository.
+     *
+     * @param repo          Repository URL (http/https based)
+     * @param group         Group of the module
+     * @param artifactid    Artifact ID of the module
+     * @param username      Username of repository credentials (Default is an empty string.)
+     * @param password      Password of repository credentials (Default is an empty string.)
+     * @return              a list of available versions
+     */
+    public static List<String> getVersionFromMavenMetadata(String repo, String group, String artifactid, String username = '', String password = '') {
         List<String> versions = []
 
         HTTPBuilder http = getHttpBuilder(repo, username, password)
@@ -34,7 +48,7 @@ class HTTPVersionProvider {
 
         try {
             versions = http.get(
-                    path: "/${group.replace('.', '/')}/${module}/maven-metadata.xml",
+                    path: "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml",
                     contentType: ContentType.XML) { resp, xml ->
                 if (!xml) {
                     return []
@@ -47,15 +61,26 @@ class HTTPVersionProvider {
                 }
             }.collect { it.toString() }
         } catch (HttpResponseException respEx) {
-            log.info('{}:{} not found in {}', group, module, repo )
+            log.info('{}:{} not found in {}', group, artifactid, repo )
         }
 
         return versions
     }
 
-    public static List<String> getVersionsFromIvyListing(String repo, String pattern, String group, String module, String username = '', String password = '') {
+    /**
+     * Collect a list of all available versions from a remote based Ivy repository.
+     *
+     * @param repo          Repository URL (http/https based)
+     * @param pattern       Ivy layout pattern
+     * @param org           Organisation of the module
+     * @param name          Name of the module
+     * @param username      Username of repository credentials (Default is an empty string.)
+     * @param password      Password of repository credentials (Default is an empty string.)
+     * @return              a list of available versions
+     */
+    public static List<String> getVersionsFromIvyListing(String repo, String pattern, String org, String name, String username = '', String password = '') {
         int i = pattern.indexOf('[revision]')
-        String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', group.replaceAll('/','.')).replaceAll('\\[module]', module)
+        String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         List<String> versions = []
 
         HTTPBuilder http = getHttpBuilder("${repo}${(repo.endsWith("/") ? '' : '/')}${path}", username, password)
@@ -75,12 +100,20 @@ class HTTPVersionProvider {
                 }
             }.collect { it.toString() }
         } catch (HttpResponseException respEx) {
-            log.info('{}:{} not found in {}', group, module, repo )
+            log.info('{}:{} not found in {}', org, name, repo )
         }
 
         return versions
     }
 
+    /**
+     * Provides an configured HTTP(S) client
+     *
+     * @param repo          Repository URL (http/https based)
+     * @param username      Username of repository credentials (Default is an empty string.)
+     * @param password      Password of repository credentials (Default is an empty string.)
+     * @return              configured http(s) client
+     */
     private static HTTPBuilder getHttpBuilder(String repo, String username = '', String password = '') {
         HTTPBuilder http = new HTTPBuilder(repo)
         http.ignoreSSLIssues()
@@ -93,6 +126,11 @@ class HTTPVersionProvider {
         return http
     }
 
+    /**
+     * Adds a proxy configuration if system variables are available.
+     *
+     * @param http pre cconfigured http(s) client
+     */
     private static void setProxySettings(HTTPBuilder http) {
 
         String scheme = new URL(http.uri.toString()).getProtocol().toString()

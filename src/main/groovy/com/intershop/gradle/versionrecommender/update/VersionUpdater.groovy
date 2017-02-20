@@ -26,13 +26,14 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
+/**
+ * This class provides data and methods for the
+ * version update.
+ */
 @Slf4j
 class VersionUpdater {
 
     private static final String versionregex = '(\\d+)(\\.\\d+)(\\.\\d+)(\\.\\d+)?'
-
-    public String userName
-    public String password
 
     public String ivyPattern
 

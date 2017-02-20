@@ -23,12 +23,24 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Update version</p>
+ * <p>Calculates the update of a version of a configured provider. The update
+ * can be configured with a special update configuration.</p>
+ * <p>The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class UpdateVersion extends DefaultTask {
 
+    /**
+     * Version recommendation provider of this task
+     */
     @Input
     RecommendationProvider provider
 
+    /**
+     * Task action
+     */
     @TaskAction
     void runUpdate() {
         if(provider.isVersionRequired() && ! (provider.getVersionFromProperty())) {
@@ -38,11 +50,21 @@ class UpdateVersion extends DefaultTask {
         provider.update(ext.updateConfiguration)
     }
 
+    /**
+     * Description
+     *
+     * @return "Update Dependencies for 'provider name'"
+     */
     @Override
     String getDescription() {
         return "Update Dependencies for ${provider.getName()}"
     }
 
+    /**
+     * Group
+     *
+     * @return "Provider name - Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

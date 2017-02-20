@@ -21,12 +21,24 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Reset task of a project</p>
+ * <p>This task removes temporary version information of all providers
+ * in the configured default list to the project configuration.
+ * The main functionality is implemented in the connected providers.</p>
+ */
 @CompileStatic
 class ResetAllVersion extends DefaultTask {
 
+    /**
+     * Provider list of this task
+     */
     @Input
     List<RecommendationProvider> providers = []
 
+    /**
+     * Task action
+     */
     @TaskAction
     void resetVersion() {
         HashSet<File> workingdirs = new HashSet<File>()
@@ -40,11 +52,21 @@ class ResetAllVersion extends DefaultTask {
         }
     }
 
+    /**
+     * Description
+     *
+     * @return "Reset all filter configurations"
+     */
     @Override
     String getDescription() {
         return "Reset all filter configurations"
     }
 
+    /**
+     * Group
+     *
+     * @return "Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "Version Recommendation"

@@ -23,12 +23,24 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * <p>Update task of a project</p>
+ * <p>This task updates version information of all providers
+ * in the configured default list to the project configuration.
+ * The main functionality is implemented in the connected providers.</P
+ */
 @CompileStatic
 class Update extends DefaultTask {
 
+    /**
+     * Provider list of this task
+     */
     @Input
     List<RecommendationProvider> providers = []
 
+    /**
+     * Task action
+     */
     @TaskAction
     void runUpdate() {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
@@ -43,11 +55,21 @@ class Update extends DefaultTask {
         }
     }
 
+    /**
+     * Description
+     *
+     * @return "Update Dependencies for configured default filters"
+     */
     @Override
     String getDescription() {
         return "Update Dependencies for configured default filters"
     }
 
+    /**
+     * Group
+     *
+     * @return "Version Recommendation"
+     */
     @Override
     String getGroup() {
         return "Version Recommendation"

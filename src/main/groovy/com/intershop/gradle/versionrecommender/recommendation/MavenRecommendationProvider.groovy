@@ -38,18 +38,50 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import java.nio.file.Files
 import java.nio.file.Path
 
+/**
+ * This class implements the access to an Maven BOM file.
+ */
 @Slf4j
 class MavenRecommendationProvider extends FileBasedRecommendationProvider {
 
+    /**
+     * Constructor is called by configur(Closure)
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     */
+    MavenRecommendationProvider(final String name, final Project project)  {
+        super(name, project)
+    }
+
+    /**
+     * Addditonal constructor with a parameter for the input.
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     * @param input     input object, can be an File, URL, String or dependency map
+     */
     MavenRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
     }
 
+    /**
+     * Returns a type name of an special implementation.
+     *
+     * @return returns always pom
+     */
     @Override
     String getShortTypeName() {
         return 'pom'
     }
 
+    /**
+     * Map with all version information of the provider will
+     * be calculated by this method. Before something happens
+     * versions is checked for 'null'.
+     * The key is a combination of the group or organisation
+     * and the name or artifact id. The value is the version.
+     */
     @Override
     synchronized void fillVersionMap() {
         log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
@@ -90,16 +122,35 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * It is not possible to change this behavior. Dependencies will
+     * be always calculated transitive.
+     * Therefore this method is not supported for this provider. A warning
+     * message will be shown in the console.
+     *
+     * @param transitive
+     */
     @Override
     void setTransitives(boolean transitive) {
         log.warn('Maven BOM provider {} does not support this method (transitive)', name)
     }
 
+    /**
+     * It is not possible to change this behavior. Dependencies will
+     * be always calculated transitive.
+     * Therefore this method is not supported for this provider. A warning
+     * message will be shown in the console.
+     *
+     * @param transitive
+     */
     @Override
     void setOverrideTransitives(boolean override){
         log.warn('Maven BOM provider {} does not support this method (overrideTransitives)', name)
     }
 
+    /**
+     * Helper class for the pom file analysis.
+     */
     private static class ProjectPropertiesModelInterpolator extends StringSearchModelInterpolator {
         private final Project project
 
@@ -118,6 +169,9 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Helper class for the pom file analysis.
+     */
     private class GradleModelResolver implements ModelResolver {
         private final Project project
 
@@ -171,6 +225,9 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Helper class for the pom file analysis.
+     */
     private class StreamModelSource implements ModelSource {
         InputStream inputStream
 
@@ -189,6 +246,11 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * The analyzer for the Maven file needs a local
+     * file.
+     * @return
+     */
     private File getFile() {
         File file = null
         try {
@@ -210,6 +272,11 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         return file
     }
 
+    /**
+     * The analyzer for the Maven file needs a local
+     * file, therefore the file is stored temporary from an URL.
+     * @return a file object for analysis
+     */
     private File getTemporaryFile(InputStream input) {
         try {
             Path tempFile = Files.createTempFile(workingDir.toPath(), ".${getShortTypeName().toLowerCase()}${getName().capitalize()}".toString(), 'tmp')

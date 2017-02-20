@@ -26,33 +26,70 @@ import org.gradle.api.Project
 
 import java.util.regex.Pattern
 
+/**
+ * This class implements the access to a properties file.
+ */
 @Slf4j
 @CompileStatic
 class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
 
     private File propertiesFile
 
+    /**
+     * Constructor is called by configur(Closure)
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     */
     PropertiesRecommendationProvider(final String name, final Project project) {
         super(name, project)
     }
 
+    /**
+     * Addditonal constructor with a parameter for the input.
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     * @param input     input object, can be an File, URL, String or dependency map
+     */
     PropertiesRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
         updateExceptions = []
     }
 
+    /**
+     * List of exceptions for update operation
+     * It is possible to add also placeholder.
+     */
+    List<String> updateExceptions
+
+    /**
+     * Returns a type name of an special implementation.
+     *
+     * @return returns always properties
+     */
     @Override
     String getShortTypeName() {
         return 'properties'
     }
 
-    List<String> updateExceptions
-
+    /**
+     * If the result of this method is true,
+     * it is possible to adapt the version.
+     *
+     * @return true, if the input is a file in the configuration directory otherwise false
+     */
     @Override
     boolean isAdaptable() {
         return (inputType == FileInputType.FILE && inputFile.getParentFile() == configDir)
     }
 
+    /**
+     * Update the versions of the provider with a
+     * special update configuration.
+     *
+     * @param updateConfig the update configuration for this provider
+     */
     @Override
     void update(UpdateConfiguration updateConfig) {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
@@ -81,15 +118,15 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
-    private boolean checkUpdateException(String orgModule) {
-        boolean rv = false
-        updateExceptions.any {String exc ->
-            rv = (exc ==~ /${exc.replaceAll("\\*", ".*?")}/)
-            return rv
-        }
-        return rv
-    }
-
+    /**
+     * Stores changed version information to
+     * the project configuration, if
+     * isAdaptable is true.
+     *
+     * @param Input file for the operation
+     * @return File with version information
+     * @throws IOException
+     */
     @Override
     File store(File outputFile) throws IOException {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
@@ -110,10 +147,23 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         return null
     }
 
+    /**
+     * Get file object with version information
+     *
+     * @return file with version information
+     */
+    @Override
     File getVersionFile() {
         return new File(getConfigDir(), inputFile.getName())
     }
 
+    /**
+     * It is possible to add an extension
+     * to the existing version, if
+     * isAdaptable is true.
+     *
+     * @param vex version extension, eg SNAPSHOT or LOCAL
+     */
     @Override
     void setVersionExtension(final VersionExtension versionExtension) {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
@@ -135,6 +185,13 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Map with all version information of the provider will
+     * be calculated by this method. Before something happens
+     * versions is checked for 'null'.
+     * The key is a combination of the group or organisation
+     * and the name or artifact id. The value is the version.
+     */
     @Override
     synchronized void fillVersionMap() {
         InputStream propsStream = getStream()
@@ -165,6 +222,24 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Analysis update exception with placeholdern.
+     *
+     * @param  module
+     * @return true, if the module is included in the list
+     */
+    private boolean checkUpdateException(String module) {
+        boolean rv = false
+        updateExceptions.any {String exc ->
+            rv = (exc ==~ /${exc.replaceAll("\\*", ".*?")}/)
+            return rv
+        }
+        return rv
+    }
+
+    /**
+     * Remove a properties file
+     */
     private void removePropertiesFile() {
         File adaptedVersionFile = new File(workingDir, inputFile.getName())
 
@@ -179,6 +254,13 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Check version in the property list. An Gradle exception is thrown
+     * if the version contains LOCAL.
+     * If the extension is SNAPSHOT a warning message will be shown on the console.
+     *
+     * @param properties object
+     */
     private void checkVersion(SimpleVersionProperties svp) {
         svp.values().each {
             if(it.toString().endsWith(VersionExtension.LOCAL.toString())) {
@@ -189,12 +271,25 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
         }
     }
 
+    /**
+     * Write version to a special properties file. In this file
+     * only a equals is the separator between key and value. The key
+     * can contain a colons.
+     *
+     * @param props         Properties object.
+     * @param versionFile   target file
+     * @return              target file if information was written
+     */
     private File writeVersionProperties(SimpleVersionProperties props, File versionFile) {
         props.store(versionFile)
         log.info('File {} was written for {}.', versionFile.absolutePath, getName())
         return versionFile
     }
 
+    /**
+     * Reads properties list from file.
+     * @return a properties object.
+     */
     private SimpleVersionProperties getProperties() {
         SimpleVersionProperties svp = new SimpleVersionProperties()
         svp.load(new InputStreamReader(getStream()))

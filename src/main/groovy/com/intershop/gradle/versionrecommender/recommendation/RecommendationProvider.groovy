@@ -26,8 +26,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import java.util.regex.Pattern
+
 /**
- * Abstract class for
+ * This class implements the main methods and
+ * attributes for the configuration of providers.
  */
 @CompileStatic
 @Slf4j
@@ -47,6 +49,12 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     protected UpdatePos updatePos
     protected Map<String, String> versions = null
 
+    /**
+     * Constructor is called by configur(Closure)
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     */
     RecommendationProvider(String name, Project project) {
         this.name = name
         this.project = project
@@ -60,33 +68,28 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         globs = new HashMap<Pattern, String>()
     }
 
+    /**
+     * The name of the proivder.
+     *
+     * @return name of the provider
+     */
     String getName() {
         return this.name
     }
 
+    /**
+     * Map with a manual static version configuration.
+     * It is not possible to update or change this
+     * configuration over tasks.
+     */
     Map<String, String> versionMap
 
-    @Override
-    boolean isAdaptable() {
-        return false
-    }
-
-    @Override
-    void setTransitives(boolean transitive) {
-        this.transitive = transitive
-    }
-
-    @Override
-    void setOverrideTransitives(boolean override) {
-        this.override = override
-    }
-
-    @Override
-    void setVersionExtension(VersionExtension versionExtension) {
-        this.versionExtension = versionExtension
-    }
-
-    // Working Dir
+    /**
+     * The working dir is used for all operations
+     * with temporary files.
+     *
+     * @param workingDir
+     */
     @Override
     void setWorkingDir(File workingDir) {
         this.workingDir = workingDir
@@ -94,7 +97,12 @@ abstract class RecommendationProvider implements IRecommendationProvider {
             workingDir.mkdirs()
     }
 
-    // Config Dir
+    /**
+     * The config dir is the directory with
+     * all stored project files.
+     *
+     * @param configDir
+     */
     @Override
     void setConfigDir(File configDir) {
         this.configDir = configDir
@@ -102,27 +110,127 @@ abstract class RecommendationProvider implements IRecommendationProvider {
             configDir.mkdirs()
     }
 
+    /**
+     * The working dir is used for all operations
+     * with temporary files.
+     *
+     * @return working directory
+     */
     File getWorkingDir() {
         return this.workingDir
     }
 
+    /**
+     * The config dir is the directory with
+     * all stored project files.
+     *
+     * @return configuration directory
+     */
     File getConfigDir() {
         return this.configDir
     }
 
+    /**
+     * It is possible to add an extension
+     * to the existing version, if
+     * isAdaptable is true.
+     *
+     * @param vex version extension, eg SNAPSHOT or LOCAL
+     */
+    @Override
+    void setVersionExtension(VersionExtension versionExtension) {
+        this.versionExtension = versionExtension
+    }
+
+    /**
+     * If the result of this method is true,
+     * it is possible to adapt the version
+     *
+     * @return the default value is always false
+     */
+    @Override
+    boolean isAdaptable() {
+        return false
+    }
+
+    /**
+     * If also transitive dependencies are to be added to the
+     * filter list, the value must be set to true.
+     *
+     * @param transitive true for transitive resolution of configured dependency
+     */
+    @Override
+    void setTransitives(boolean transitive) {
+        this.transitive = transitive
+    }
+
+    /**
+     * If a resolved dependency should override an
+     * existing version, the value must be set to true.
+     *
+     * @param override
+     */
+    @Override
+    void setOverrideTransitives(boolean override) {
+        this.override = override
+    }
+
+    /**
+     * Map with all version information of the provider will
+     * be calculated by this method. Before something happens
+     * versions is checked for 'null'.
+     * The key is a combination of the group or organisation
+     * and the name or artifact id. The value is the version.
+     */
     abstract void fillVersionMap()
 
+    /**
+     * This method returns true if a version information
+     * for this provider is necessary, because it is not
+     * part of the stored configuration.
+     *
+     * @return
+     */
     abstract boolean isVersionRequired()
 
+    /**
+     * This method returns the name of the
+     * project property with a version information.
+     *
+     * @return
+     */
     String getVersionPropertyName() {
         return "${this.getName()}Version"
     }
 
+    /**
+     * This method returns the name of a task.
+     *
+     * @return
+     */
+    String getTaskName(String prefix) {
+        return "${prefix}${getName().capitalize()}"
+    }
+
+    /**
+     * This method delivers a version from
+     * an project property.
+     *
+     * @return
+     */
     String getVersionFromProperty() {
         String versionProperty = project.findProperty(getVersionPropertyName()) ?: ''
         return versionProperty
     }
 
+    /**
+     * Main method of the provider. This method should
+     * return a version for an given module with name.
+     *
+     * @param org Organisiation or Group of the dependency
+     * @param name Name or artifact id of the dependency
+     * @return the version of the dependency from the provider.
+     */
     @Override
     String getVersion(String org, String name) {
         String version = ''
@@ -132,7 +240,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
             fillVersionMap()
 
             if (versionMap) {
-                getVersionMap().each { String k, String v ->
+                versionMap.each { String k, String v ->
                     if(k.contains('*')) {
                         globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
                     } else {
@@ -164,13 +272,17 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         return version
     }
 
-    String getTaskName(String prefix) {
-        return "${prefix}${getName().capitalize()}"
-    }
-
-    protected void calculateDependencies(String descr, String version) {
+    /**
+     * This method calculate transitive dependencies and
+     * add these configuration to the list. This depends
+     * also from setTransitive and setOverrideTransitives.
+     *
+     * @param module of the original dependency
+     * @param version version of the original dependency
+     */
+    protected void calculateDependencies(String module, String version) {
         // create a temporary configuration to resolve the file
-        Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create("${descr}:${version}"))
+        Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create("${module}:${version}"))
         conf.setTransitive(true)
         conf.getResolvedConfiguration().firstLevelModuleDependencies.each { dependency ->
             dependency.children.each { child ->

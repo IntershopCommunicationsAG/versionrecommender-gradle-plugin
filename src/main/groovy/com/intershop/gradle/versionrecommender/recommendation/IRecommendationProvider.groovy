@@ -34,14 +34,15 @@ interface IRecommendationProvider extends Named {
     String getName()
 
     /**
-     * Update configuration for the provider
+     * Update the version of the provider with a
+     * special update configuration.
      *
-     * @param updateConfig
+     * @param updateConfig the update configuration for this provider
      */
     void update(UpdateConfiguration updateConfig)
 
     /**
-     * Override the version of the provider, if
+     * Overrides the version of the provider, if
      * isAdaptable is true.
      *
      * @throws IOException
@@ -49,7 +50,7 @@ interface IRecommendationProvider extends Named {
     void setVersion() throws java.io.IOException
 
     /**
-     * Store changed version information to
+     * Stores changed version information to
      * the project configuration, if
      * isAdaptable is true.
      *
@@ -60,7 +61,7 @@ interface IRecommendationProvider extends Named {
     File store(File outputFile) throws java.io.IOException
 
     /**
-     * get file object with version information
+     * Get file object with version information
      *
      * @return file with version information
      */

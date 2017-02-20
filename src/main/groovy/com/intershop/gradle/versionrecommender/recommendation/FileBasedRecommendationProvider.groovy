@@ -22,10 +22,15 @@ import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.gradle.api.GradleException
+import org.gradle.api.IllegalDependencyNotation
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 
+/**
+ * This abstract class implements the most important
+ * methods for file based recommendation provider.
+ */
 @CompileStatic
 @Slf4j
 abstract class FileBasedRecommendationProvider extends RecommendationProvider {
@@ -35,11 +40,15 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
     protected Map inputDependency
     protected Object input
     protected boolean versionRequired
-
     protected FileInputType inputType
-
     protected VersionExtension versionExtension = VersionExtension.NONE
 
+    /**
+     * Constructor is called by configur(Closure)
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     */
     FileBasedRecommendationProvider(final String name, final Project project)  {
         super(name, project)
         this.input = null
@@ -47,6 +56,13 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         versionRequired = false
     }
 
+    /**
+     * Addditonal constructor with a parameter for the input.
+     *
+     * @param name      the name of the provider
+     * @param project   the target project
+     * @param input     input object, can be an File, URL, String or dependency map
+     */
     FileBasedRecommendationProvider(final String name, final Project project, final Object input) {
         this(name, project)
 
@@ -79,13 +95,30 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
     }
 
+    /**
+     * Returns a type name of an special implementation.
+     *
+     * @return
+     */
     abstract String getShortTypeName()
 
+    /**
+     * If the result of this method is true,
+     * it is possible to adapt the version
+     *
+     * @return true if the input type is a dependency
+     */
     @Override
     boolean isAdaptable() {
         return (inputType == FileInputType.DEPENDENCYMAP)
     }
 
+    /**
+     * Update the version of the provider with a
+     * special update configuration.
+     *
+     * @param updateConfig the update configuration for this provider
+     */
     @Override
     void update(UpdateConfiguration updateConfig) {
         if(inputType == FileInputType.DEPENDENCYMAP) {
@@ -110,6 +143,12 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
     }
 
+    /**
+     * Overrides the version of the provider, if
+     * isAdaptable is true.
+     *
+     * @throws IOException
+     */
     @Override
     void setVersion() throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
@@ -119,6 +158,15 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
     }
 
+    /**
+     * Stores changed version information to
+     * the project configuration, if
+     * isAdaptable is true.
+     *
+     * @param Input file for the operation
+     * @return File with version information
+     * @throws IOException
+     */
     @Override
     File store(File outputFile) throws IOException {
         if(inputType == FileInputType.DEPENDENCYMAP) {
@@ -142,19 +190,23 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         return null
     }
 
+    /**
+     * Get file object with version information
+     *
+     * @return file with version information
+     */
     @Override
     File getVersionFile() {
         return new File(getConfigDir(), getFileName('version'));
     }
 
-    private void checkVersion(String version) {
-        if(version.endsWith(VersionExtension.LOCAL.toString())) {
-            throw new GradleException("Don't store the LOCAL version for ${getName()} to the project configuration!")
-        } else if(version.endsWith(VersionExtension.SNAPSHOT.toString())){
-            log.warn('A SNAPSHOT version is stored to the project configuration for {}!', getName())
-        }
-    }
-
+    /**
+     * It is possible to add an extension
+     * to the existing version, if
+     * isAdaptable is true.
+     *
+     * @param vex version extension, eg SNAPSHOT or LOCAL
+     */
     @Override
     void setVersionExtension(final VersionExtension versionExtension) {
         this.versionExtension = versionExtension
@@ -177,6 +229,14 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
     }
 
+    /**
+     * This method returns true if a version information
+     * for this provider is necessary, because it is not
+     * part of the stored configuration.
+     *
+     * @return
+     */
+    @Override
     boolean isVersionRequired() {
         if(versionRequired) {
             String rv = getVersionFromFile(getVersionFile())
@@ -187,11 +247,11 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         return false
     }
 
-    // protected methods
-    protected String getFileName(String fileextension) {
-        return ".${getShortTypeName().toLowerCase()}${getName().capitalize()}.${fileextension}"
-    }
-
+    /**
+     * Creates a stream from input object.
+     *
+     * @return
+     */
     protected InputStream getStream() {
         InputStream stream = null
         try {
@@ -214,30 +274,15 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         return stream
     }
 
-    private static Map getDependencyMap(String depStr) {
-        Map returnValue = new HashMap()
-        String[] dext = depStr.split('@')
-        if (dext.size() > 1) {
-            returnValue.put('ext', dext[1])
-        }
-
-        String[] mav = dext[0].split(':')
-        if (mav.size() < 2) {
-            throw new IllegalArgumentException("Group / Org and module name must be specified.")
-        }
-        returnValue.put('group', mav[0])
-        returnValue.put('name', mav[1])
-
-        if (mav.size() > 2) {
-            returnValue.put('version', mav[2])
-        }
-        return returnValue
-    }
-
+    /**
+     * Creates a file from a dependency.
+     *
+     * @return
+     */
     protected File getFileFromModule() {
         Map dMap = new HashMap(inputDependency)
         // adapt version
-        String version = getVersionFromFiles()
+        String version = getVersionFromConfig()
         if(version) {
             dMap.put('version', version)
             // adapt extension
@@ -255,7 +300,68 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         return null
     }
 
-    private String getVersionFromFiles() {
+    /**
+     * Checks a version for extensions. An Gradle exception is thrown
+     * if the version contains LOCAL.
+     * If the extension is SNAPSHOT a warning message will be shown on the console.
+     *
+     * @param version string with version information
+     */
+    private void checkVersion(String version) {
+        if(version.endsWith(VersionExtension.LOCAL.toString())) {
+            throw new GradleException("Don't store the LOCAL version for ${getName()} to the project configuration!")
+        } else if(version.endsWith(VersionExtension.SNAPSHOT.toString())){
+            project.logger.warn('A SNAPSHOT version is stored to the project configuration for {}!', getName())
+        }
+    }
+
+    /**
+     * Calculates a dependency map from string.
+     * If the string is not a correct dependency description
+     * an IllegalDependencyNotation will be thrown.
+     *
+     * @param dependencyStr dependency description
+     * @return this is a map object with an dependency description.
+     */
+    private static Map getDependencyMap(String dependencyStr) {
+        Map returnValue = new HashMap()
+        String[] dext = dependencyStr.split('@')
+        if (dext.size() > 1) {
+            returnValue.put('ext', dext[1])
+        }
+
+        String[] mav = dext[0].split(':')
+        if (mav.size() < 2) {
+            throw new IllegalDependencyNotation("Supplied String module notation '${dependencyStr}'" +
+                    " is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.")
+        }
+        returnValue.put('group', mav[0])
+        returnValue.put('name', mav[1])
+
+        if (mav.size() > 2) {
+            returnValue.put('version', mav[2])
+        }
+        return returnValue
+    }
+
+    /**
+     * Calculate a filename from provider attributes.
+     *
+     * @param fileextension extension of a file, eg. properties or version
+     * @return complete string
+     */
+    private String getFileName(String fileextension) {
+        return ".${getShortTypeName().toLowerCase()}${getName().capitalize()}.${fileextension}"
+    }
+
+    /**
+     * Reads a version from a version file.
+     * It the file is not available, it tries to use version from
+     * property or the specified version or the configured dependency.
+     *
+     * @return a version string, if no version was found null.
+     */
+    private String getVersionFromConfig() {
         String rVersion = null
 
         File adaptedVersionFile = new File(workingDir, getFileName('version'))
@@ -268,12 +374,23 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         return rVersion
     }
 
+    /**
+     * Writes a version string to a file.
+     * It returns the file object if the file was written.
+     *
+     * @param version       the version information
+     * @param versionFile   the target file
+     * @return              the target file if written
+     */
     private File writeVersionToFile(String version, File versionFile) {
         versionFile.setText(version)
         log.info('Version {} is stored to {} for {}.', version, versionFile.absolutePath, getName())
         return versionFile
     }
 
+    /**
+     * Removes a version file from the working directory.
+     */
     private void removeVersionFile() {
         File adaptedVersionFile = new File(workingDir, getFileName('version'))
 
@@ -288,6 +405,12 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
     }
 
+    /**
+     * Return version information from a file.
+     *
+     * @param versionFile
+     * @return version information
+     */
     private String getVersionFromFile(File versionFile) {
         if(! versionFile.getParentFile().exists()) {
             versionFile.getParentFile().mkdirs()
@@ -298,6 +421,4 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         }
         return rVersion
     }
-
-
 }

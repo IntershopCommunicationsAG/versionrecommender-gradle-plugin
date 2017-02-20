@@ -22,7 +22,7 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.HttpResponseException
 
 @Slf4j
-class HTTPProvider {
+class HTTPVersionProvider {
 
     private static final int DEFAULT_PROXY_PORT = -1
 

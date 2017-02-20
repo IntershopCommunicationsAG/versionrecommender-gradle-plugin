@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-
 package com.intershop.gradle.versionrecommender.extension
 
 import com.intershop.gradle.versionrecommender.recommendation.RecommendationProviderContainer
@@ -27,6 +25,44 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.maven.MavenPublication
 
+/**
+ * This is an extension for the publishing of an
+ * filter creation.
+ *
+ * The methods must be called inside of the
+ * publication.
+ *
+ * Ivy
+ * <pre>
+ * <code>
+ *  publishing {
+ *      publications {
+ *          ivyFilter(IvyPublication) {
+ *              module 'ivy-filter'
+ *              revision project.version
+ *
+ *              versionManagement.withSubProjects { subprojects }
+ *          }
+ *      }
+ * }
+ * </pre>
+ * </code>
+ * Maven BOM
+ * <pre>
+ * <code>
+ * publishing {
+ *     publications {
+ *         mvnFilter(MavenPublication) {
+ *             artifactId 'mvn-filter'
+ *             version project.version
+ *
+ *             versionManagement.withSubProjects { subprojects }
+ *         }
+ *    }
+ * }
+ * </pre>
+ * </code>
+ */
 class PublicationXmlGenerator {
 
     final static String EXTENSIONNAME = 'versionManagement'
@@ -34,10 +70,21 @@ class PublicationXmlGenerator {
     private Project project
     private RecommendationProviderContainer providerContainer
 
+    /**
+     * Constructor
+     *
+     * @param project The target project
+     */
     PublicationXmlGenerator(Project project) {
         this.project = project
     }
 
+    /**
+     * Method adds a list of sub projects or a single
+     * project as dependencies to the descriptor.
+     *
+     * @param projectClosure List of sub projects / single project
+     */
     void withSubProjects(Closure projectClosure) {
         Iterable<Project> subprojects = null
 
@@ -52,6 +99,13 @@ class PublicationXmlGenerator {
         generateDependencyXml(projectClosure.delegate.delegate, { subprojects.collect { ModuleNotationParser.parse(it) } }, project.versionRecommendation.provider)
     }
 
+    /**
+     * Method adds a list of dependencies from
+     * a list of configurations or a single configuration
+     * to the descriptor.
+     *
+     * @param configurationsClosure List of configurations / single configuration
+     */
     void fromConfigurations(Closure configurationsClosure) {
         Iterable<Configuration> configurations
 
@@ -66,6 +120,13 @@ class PublicationXmlGenerator {
         generateDependencyXml(configurationsClosure.delegate.delegate, { configurations.collect { getManagedDependencies(it) }.flatten() }, project.versionRecommendation.provider)
     }
 
+    /**
+     * Method adds a list of dependencies or a
+     * single configuration dependency to the
+     * descriptor.
+     *
+     * @param dependenciesClosure List of dependencies / single dependency
+     */
     void withDependencies(Closure dependenciesClosure) {
         Iterable<String> dependencies = null
 
@@ -79,8 +140,14 @@ class PublicationXmlGenerator {
         generateDependencyXml(dependenciesClosure.delegate.delegate, { dependencies.collect { ModuleNotationParser.parse(it) } }, project.versionRecommendation.provider)
     }
 
-    protected static generateDependencyXml(IvyPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
-
+    /**
+     * Method add dependencies to the descriptor.
+     *
+     * @param pub   IvyPublication
+     * @param deps  Dependencies
+     * @param rpc   RecommendationProviderContainer
+     */
+    protected static void generateDependencyXml(IvyPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
         pub.descriptor.withXml { XmlProvider xml ->
             Node root = xml.asNode()
 
@@ -101,7 +168,14 @@ class PublicationXmlGenerator {
         }
     }
 
-    protected static generateDependencyXml(MavenPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
+    /**
+     * Method add dependencies to the descriptor.
+     *
+     * @param pub   MavenPublication
+     * @param deps  Dependencies
+     * @param rpc   RecommendationProviderContainer
+     */
+    protected static void generateDependencyXml(MavenPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
         pub.pom.withXml { XmlProvider xml ->
             Node root = xml.asNode()
             def dependencyManagement = root.getByName("dependencyManagement")
@@ -130,11 +204,24 @@ class PublicationXmlGenerator {
         }
     }
 
+    /**
+     * Calculates managed dependencies
+     *
+     * @param configuration
+     * @return a set of ModuleVersionIdentifier
+     */
     protected static Set<ModuleVersionIdentifier> getManagedDependencies(Configuration configuration) {
         getManagedDependenciesRecursive(configuration.resolvedConfiguration.firstLevelModuleDependencies,
                 new HashSet<ModuleVersionIdentifier>())
     }
 
+    /**
+     * Calculates managed dependencies - recursive
+     *
+     * @param deps  set of ResolvedDependency
+     * @param all   set of ModuleVersionIdentifier
+     * @return a set of ModuleVersionIdentifier
+     */
     protected static Set<ModuleVersionIdentifier> getManagedDependenciesRecursive(Set<ResolvedDependency> deps, Set<ModuleVersionIdentifier> all) {
         deps.each {ResolvedDependency dep ->
             all << dep.module.id

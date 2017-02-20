@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 
 @CompileStatic
 @Slf4j
-abstract class AbstractFileBasedProvider extends RecommendationProvider {
+abstract class FileBasedRecommendationProvider extends RecommendationProvider {
 
     protected File inputFile
     protected URL inputURL
@@ -40,14 +40,14 @@ abstract class AbstractFileBasedProvider extends RecommendationProvider {
 
     protected VersionExtension versionExtension = VersionExtension.NONE
 
-    AbstractFileBasedProvider(final String name, final Project project)  {
+    FileBasedRecommendationProvider(final String name, final Project project)  {
         super(name, project)
         this.input = null
         inputType = FileInputType.NONE
         versionRequired = false
     }
 
-    AbstractFileBasedProvider(final String name, final Project project, final Object input) {
+    FileBasedRecommendationProvider(final String name, final Project project, final Object input) {
         this(name, project)
 
         this.input = input

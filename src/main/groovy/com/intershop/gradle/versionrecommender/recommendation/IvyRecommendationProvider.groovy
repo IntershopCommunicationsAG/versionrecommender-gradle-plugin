@@ -20,9 +20,9 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Project
 
 @Slf4j
-class IvyProvider extends AbstractFileBasedProvider {
+class IvyRecommendationProvider extends FileBasedRecommendationProvider {
 
-    IvyProvider(final String name, final Project project, final Object input) {
+    IvyRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
     }
 

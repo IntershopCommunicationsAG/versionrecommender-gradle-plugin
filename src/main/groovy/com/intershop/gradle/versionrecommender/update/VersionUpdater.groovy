@@ -65,20 +65,20 @@ class VersionUpdater {
         initLists()
 
         mvnHttpRepList.any { MavenArtifactRepository repo ->
-            versionList = HTTPProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, module, repo.credentials.username, repo.credentials.password)
+            versionList = HTTPVersionProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, module, repo.credentials.username, repo.credentials.password)
             if(versionList)
                 return true
         }
         if(! versionList) {
             if(ivyPattern) {
                 ivyHttpRepList.any { IvyArtifactRepository repo ->
-                    versionList = HTTPProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, module, repo.credentials.username, repo.credentials.password)
+                    versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, module, repo.credentials.username, repo.credentials.password)
                     if (versionList)
                         return true
                 }
                 if (!versionList) {
                     ivyFileRepList.any { IvyArtifactRepository repo ->
-                        versionList = FileProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, module)
+                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, module)
                         if (versionList)
                             return true
                     }
@@ -87,7 +87,7 @@ class VersionUpdater {
 
             if(! versionList) {
                 mvnFileRepList.any { MavenArtifactRepository repo ->
-                    versionList = FileProvider.getVersionFromMavenMetadata(new File(repo.url), group, module)
+                    versionList = FileVersionProvider.getVersionFromMavenMetadata(new File(repo.url), group, module)
                     if(versionList)
                         return true
                 }

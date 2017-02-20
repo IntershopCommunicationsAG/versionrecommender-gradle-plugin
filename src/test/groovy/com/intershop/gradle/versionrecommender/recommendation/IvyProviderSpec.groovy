@@ -62,7 +62,7 @@ class IvyProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('ivytest/ivy.xml').getFile())
 
-        IvyProvider provider = new IvyProvider('test', project, file)
+        IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, file)
 
         then:
         provider.getVersion('javax.inject','javax.inject') == '1'
@@ -73,7 +73,7 @@ class IvyProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('ivytest/ivy.xml').getFile())
 
-        IvyProvider provider = new IvyProvider('test', project, file)
+        IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, file)
         provider.transitive = true
 
         then:
@@ -103,7 +103,7 @@ class IvyProviderSpec extends Specification {
             }
         }
 
-        IvyProvider provider = new IvyProvider('test', project, 'com.intershop:filter:2.0.0')
+        IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -151,7 +151,7 @@ class IvyProviderSpec extends Specification {
             }
         }
 
-        IvyProvider provider = new IvyProvider('test', project, 'com.intershop:filter:2.0.0')
+        IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
         provider.setVersionExtension(VersionExtension.LOCAL)
 
         then:
@@ -205,7 +205,7 @@ class IvyProviderSpec extends Specification {
             }
         }
 
-        IvyProvider provider = new IvyProvider('test', project, 'com.intershop:filter:1.0.0')
+        IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:1.0.0')
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'

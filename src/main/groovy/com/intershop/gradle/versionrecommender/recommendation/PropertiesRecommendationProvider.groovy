@@ -28,15 +28,15 @@ import java.util.regex.Pattern
 
 @Slf4j
 @CompileStatic
-class PropertiesProvider extends AbstractFileBasedProvider {
+class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
 
     private File propertiesFile
 
-    PropertiesProvider(final String name, final Project project) {
+    PropertiesRecommendationProvider(final String name, final Project project) {
         super(name, project)
     }
 
-    PropertiesProvider(final String name, final Project project, final Object input) {
+    PropertiesRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
         updateExceptions = []
     }

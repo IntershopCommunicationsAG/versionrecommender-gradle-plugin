@@ -18,7 +18,7 @@ package com.intershop.gradle.versionrecommender.update
 import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
 
-class FileProvider {
+class FileVersionProvider {
 
     public static List<String> getVersionFromMavenMetadata(File repo, String group, String module) {
         File metadataFile = new File(repo, "/${group.replace('.', '/')}/${module}/maven-metadata.xml")

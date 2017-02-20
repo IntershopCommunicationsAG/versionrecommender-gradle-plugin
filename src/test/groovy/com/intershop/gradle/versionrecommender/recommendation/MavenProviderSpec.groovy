@@ -63,7 +63,7 @@ class MavenProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('mvntest/hibernate-validator-5.3.0.Final.pom').getFile())
 
-        MavenProvider provider = new MavenProvider('test', project, file)
+        MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, file)
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'
@@ -85,7 +85,7 @@ class MavenProviderSpec extends Specification {
             url "file://${repoDir.absolutePath}"
         }
 
-        MavenProvider provider = new MavenProvider('test', project, 'com.intershop:filter:2.0.0')
+        MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -121,7 +121,7 @@ class MavenProviderSpec extends Specification {
             }
         }
 
-        MavenProvider provider = new MavenProvider('test', project, 'com.intershop:filter:2.0.0')
+        MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
         provider.setVersionExtension(VersionExtension.LOCAL)
 
         then:
@@ -188,7 +188,7 @@ class MavenProviderSpec extends Specification {
             }
         }
 
-        MavenProvider provider = new MavenProvider('test', project, 'com.intershop:filter:1.0.0')
+        MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:1.0.0')
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'

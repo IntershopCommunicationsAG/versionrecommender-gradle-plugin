@@ -39,9 +39,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @Slf4j
-class MavenProvider extends AbstractFileBasedProvider {
+class MavenRecommendationProvider extends FileBasedRecommendationProvider {
 
-    MavenProvider(final String name, final Project project, final Object input) {
+    MavenRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
     }
 

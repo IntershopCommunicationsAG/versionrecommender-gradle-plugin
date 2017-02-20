@@ -60,7 +60,7 @@ class PropertiesProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
-        PropertiesProvider provider = new PropertiesProvider('test', project, file)
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
 
         then:
         provider.getVersion('com.intershop.business','businesscomp') == '2.4.5'
@@ -68,7 +68,7 @@ class PropertiesProviderSpec extends Specification {
 
     def 'Properties provider with properties only'() {
         when:
-        PropertiesProvider provider = new PropertiesProvider('test', project, new File('empty.properties'))
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, new File('empty.properties'))
 
         provider.setVersionMap(['com.intershop.platform:platformcomp':'1.2.3',
                                 'com.intershop.business:businesscomp':'2.4.5'])
@@ -82,7 +82,7 @@ class PropertiesProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
-        PropertiesProvider provider = new PropertiesProvider('test', project, file)
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
 
         provider.setVersionMap(['com.intershop.content:contentcomp':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
@@ -97,7 +97,7 @@ class PropertiesProviderSpec extends Specification {
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
-        PropertiesProvider provider = new PropertiesProvider('test', project, file)
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
 
         provider.setVersionMap(['com.intershop.content:*':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
@@ -109,7 +109,7 @@ class PropertiesProviderSpec extends Specification {
 
     def 'Properties provider from file and properties with dependencies'() {
         when:
-        PropertiesProvider provider = new PropertiesProvider('test', project, new File('empty.properties'))
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, new File('empty.properties'))
 
         provider.setVersionMap(['org.hibernate:hibernate-validator':'5.3.0.Final',
                                  'org.tmatesoft.svnkit:svnkit':'1.8.14'])
@@ -129,7 +129,7 @@ class PropertiesProviderSpec extends Specification {
         File confFile = new File(project.projectDir, 'version.properties')
         confFile << file.getText()
 
-        PropertiesProvider provider = new PropertiesProvider('test', project, confFile)
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, confFile)
         provider.setVersionExtension(VersionExtension.LOCAL)
 
         then:
@@ -148,7 +148,7 @@ class PropertiesProviderSpec extends Specification {
         File confFile = new File(project.projectDir, 'version.properties')
         confFile.setText(propertiesContent)
 
-        PropertiesProvider provider = new PropertiesProvider('test', project, confFile)
+        PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, confFile)
         project.repositories.add(project.repositories.jcenter())
 
         then:

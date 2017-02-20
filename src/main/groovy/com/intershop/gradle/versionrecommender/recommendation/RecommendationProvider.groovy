@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-
 package com.intershop.gradle.versionrecommender.recommendation
 
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
-import com.intershop.gradle.versionrecommender.recommendation.VersionProvider
 import com.intershop.gradle.versionrecommender.util.UpdatePos
 import com.intershop.gradle.versionrecommender.util.VersionExtension
 import com.intershop.release.version.ParserException
@@ -29,10 +26,12 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import java.util.regex.Pattern
-
+/**
+ * Abstract class for
+ */
 @CompileStatic
 @Slf4j
-abstract class RecommendationProvider implements VersionProvider {
+abstract class RecommendationProvider implements IRecommendationProvider {
 
     private String name
     private File workingDir

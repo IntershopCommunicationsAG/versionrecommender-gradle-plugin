@@ -85,20 +85,20 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
         return provider;
     }
 
-    IvyProvider ivy(String name, Object input, Closure closure) {
-        return add(new IvyProvider(name, project, input), closure);
+    IvyRecommendationProvider ivy(String name, Object input, Closure closure) {
+        return add(new IvyRecommendationProvider(name, project, input), closure);
     }
 
-    MavenProvider pom(String name, Object input, Closure closure) {
-        return add(new MavenProvider(name, project, input), closure);
+    MavenRecommendationProvider pom(String name, Object input, Closure closure) {
+        return add(new MavenRecommendationProvider(name, project, input), closure);
     }
 
-    PropertiesProvider properties(String name, Object input, Closure closure) {
-        return add(new PropertiesProvider(name, project, input), closure);
+    PropertiesRecommendationProvider properties(String name, Object input, Closure closure) {
+        return add(new PropertiesRecommendationProvider(name, project, input), closure);
     }
 
-    PropertiesProvider properties(String name, Closure closure) {
-        return add(new PropertiesProvider(name, project), closure);
+    PropertiesRecommendationProvider properties(String name, Closure closure) {
+        return add(new PropertiesRecommendationProvider(name, project), closure);
     }
 
     public String getVersion(String group, String name) {

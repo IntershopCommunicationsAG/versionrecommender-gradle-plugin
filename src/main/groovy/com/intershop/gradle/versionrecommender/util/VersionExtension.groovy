@@ -17,6 +17,9 @@ package com.intershop.gradle.versionrecommender.util
 
 import groovy.transform.CompileStatic
 
+/**
+ * All available version extensions.
+ */
 @CompileStatic
 enum VersionExtension {
     SNAPSHOT {

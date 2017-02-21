@@ -15,6 +15,14 @@
  */
 package com.intershop.gradle.versionrecommender.util
 
+/**
+ * Override Java standard properties.
+ * <ul>
+ *     <li>The format of the file will be stored, so that comments are still available after an store of the changed content.</li>
+ *     <li>Onlny an equals sign splitts the key and value.</li>
+ * </ul>
+ *
+ */
 class SimpleVersionProperties extends Properties {
 
     private static final long serialVersionUID = 1L

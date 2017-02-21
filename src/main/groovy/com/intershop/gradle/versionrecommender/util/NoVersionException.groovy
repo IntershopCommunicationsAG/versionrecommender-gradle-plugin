@@ -17,19 +17,31 @@ package com.intershop.gradle.versionrecommender.util
 
 import groovy.transform.CompileStatic
 
+/**
+ * Excption class if a version is not available.
+ */
 @CompileStatic
 class NoVersionException extends RuntimeException {
 
     private static final long serialVersionUID = 1L
 
+    /**
+     * {@inheritDoc}
+     */
     public NoVersionException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public NoVersionException(String message) {
         super(message);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public NoVersionException(Throwable cause) {
         super(cause);
     }

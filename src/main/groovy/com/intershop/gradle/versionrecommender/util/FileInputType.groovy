@@ -18,7 +18,7 @@ package com.intershop.gradle.versionrecommender.util
 import groovy.transform.CompileStatic
 
 /**
- * The names of all digits of a version number, that can be updated.
+ * The list of all available input types.
  */
 @CompileStatic
 enum FileInputType {

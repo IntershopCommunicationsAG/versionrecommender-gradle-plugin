@@ -17,19 +17,31 @@ package com.intershop.gradle.versionrecommender.util
 
 import groovy.transform.CompileStatic
 
+/**
+ * Excption class if a configuration is wrong.
+ */
 @CompileStatic
 class ConfigurationException extends RuntimeException {
 
     private static final long serialVersionUID = 1L
 
+    /**
+     * {@inheritDoc}
+     */
     public ConfigurationException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public ConfigurationException(String message) {
         super(message);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public ConfigurationException(Throwable cause) {
         super(cause);
     }

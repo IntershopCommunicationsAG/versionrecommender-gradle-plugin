@@ -21,9 +21,18 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 
+/**
+ * This class provides methods to parse strings or projects for an ModuleVersionIdentifier.
+ */
 @CompileStatic
 class ModuleNotationParser {
 
+    /**
+     * Parse a string for ModuleVersionIdentifier
+     *
+     * @param dependencyNotation
+     * @return
+     */
     static ModuleVersionIdentifier parse(String dependencyNotation) {
         String[] moduleNotationParts = dependencyNotation.split(":")
         if (moduleNotationParts.length < 2 || moduleNotationParts.length > 4) {
@@ -57,6 +66,12 @@ class ModuleNotationParser {
         ] as ModuleVersionIdentifier
     }
 
+    /**
+     * Store module information of a project in a ModuleVersionIdentifier
+     *
+     * @param project
+     * @return
+     */
     static ModuleVersionIdentifier parse(Project project) {
         ModuleVersionIdentifier mvi = [
             getGroup: { project.getGroup() },

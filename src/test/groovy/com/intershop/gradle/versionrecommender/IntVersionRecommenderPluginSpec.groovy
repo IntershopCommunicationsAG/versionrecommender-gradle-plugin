@@ -675,8 +675,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                     ivy('filter5',  'com.intershop:altfilter') {}
                     ivy('filter4',  'com.intershop:filter:1.0.0') { }
                     ivy('filter3',  'com.intershop.other:filter:1.0.0') {
-                        transitives = true
-                        overrideTransitives = true
+                        transitive = true
+                        overrideTransitiveDeps = true
                     }
                     ivy('filter2',  'com.intershop.another:filter:1.0.0') {
                         configDir = file('filter2')
@@ -761,8 +761,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                     ivy('filter5',  'com.intershop:altfilter') {}
                     ivy('filter4',  'com.intershop:filter:1.0.0') { }
                     ivy('filter3',  'com.intershop.other:filter:1.0.0') {
-                        transitives = true
-                        overrideTransitives = true
+                        transitive = true
+                        overrideTransitiveDeps = true
                     }
                     ivy('filter2',  'com.intershop.another:filter:1.0.0') {
                         configDir = file('filter2')

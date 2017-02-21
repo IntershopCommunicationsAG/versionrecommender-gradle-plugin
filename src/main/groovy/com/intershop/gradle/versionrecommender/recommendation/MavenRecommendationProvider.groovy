@@ -131,7 +131,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
      * @param transitive
      */
     @Override
-    void setTransitives(boolean transitive) {
+    void setTransitive(boolean transitive) {
         log.warn('Maven BOM provider {} does not support this method (transitive)', name)
     }
 
@@ -144,7 +144,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
      * @param transitive
      */
     @Override
-    void setOverrideTransitives(boolean override){
+    void setOverrideTransitiveDeps(boolean override){
         log.warn('Maven BOM provider {} does not support this method (overrideTransitives)', name)
     }
 

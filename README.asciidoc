@@ -1,0 +1,176 @@
+= Version Recommender Plugin
+:latestRevision: 1.0.0
+:toc:
+
+== Summary
+With this plugin it is possible to maintain the version of dependencies in other sources. It allows to leave
+the version number empty in your configuration. The following version recommendation providers are available:
+
+* Ivy file
+* Maven pom / bom file
+* Properties file
+* Static properties
+
+Dependent on the kind of version provider it is possible to run automatic updates on request. This plugin
+provides furthermore an extension for the generation of Ivy or BOM file filters.
+
+== Usage
+To use the Version Recommender plugin provided by Intershop, include the following in your build script of your *root* project:
+
+[source,groovy]
+[subs=+attributes]
+.build.gradle
+----
+plugins {
+    id 'com.intershop.gradle.versionrecommender' version '{latestRevision}'
+}
+
+versionRecommendation {
+    provider {
+        ivy('ivy_name',  'org.company:ivyfilter:1.0.0') {
+            transitive = true
+            overrideTransitiveDeps = false
+        }
+
+        pom('pom_name', 'org.company:pomfilter:1.0.0') {}
+
+        properties('props_name', file('version.properties')) {}
+
+        properties('props_static') {
+            versionMap = [
+                'com.company.test:testcomp1': '10.0.0',
+                'com.company.testglob:*': '11.0.0',
+            ]
+        }
+    }
+    updateConfiguration {
+        ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+
+        defaultUpdateProvider = ['ivy_provider_name',
+                                 'pom_provider_name']
+
+        updateConfigItemContainer {
+            testUpdate1 {
+                org = 'org.eclipse.jetty'
+                searchPattern = '\\.v\\d+'
+            }
+            testUpdate2 {
+                org = 'com.company.another'
+                update = 'MINOR'
+            }
+        }
+    }
+}
+----
+
+This plugin will always applied to the root project.
+
+== Tasks
+The Version Recommender plugin adds the following tasks to the project:
+
+[cols="20%,15%,65%", width="95%", options="header"]
+|===
+|Task name                      |Type               |Description
+|setLocal__[ProviderName]__     |setLocalVersion    |This task will add 'LOCAL' to the version of the dependency
+of Ivy or Pom filters. For a properties file filter all configured versions will be extended with LOCAL.
+|setSnapshot__[ProviderName]__  |setSnapshotVersion |This task will add 'SNAPSHOT' to the version of the dependency
+of Ivy or Pom filters. For a properties file filter all configured versions will be extended with SNAPSHOT.
+|set__[ProviderName]__          |setVersion         |This task will set a version from a project property to the
+dependency of the filter. The project property is the name of the provider with version - '__[ProviderName]__Version'.
+|update__[ProviderName]__       |UpdateVersion      |This task start an update of the version of a dependency of
+the filter. The update can be configured over the update configuration.
+|store__[ProviderName]__        |StoreUpdateVersion |Store the temporary change / update to the configuration directory.
+|reset__[ProviderName]__        |ResetVersion       |The temporary change / update will be removed.
+|update                         |Update             |This task will run an update for all providers configured with
+'defaultUpdateProvider'.
+|store                          |StoreUpdate        |This task will store the temporary change / update to the
+configuration directory of all providers configured with 'defaultUpdateProvider'.
+|update                         |ResetAllVersion    |The temporary changes / updates of all providers configured in
+'defaultUpdateProvider' will be removed.
+|===
+
+All task are part of the package `'com.intershop.gradle.versionrecommender.tasks'`
+
+The tasks are only available for filters with an dependency configuration or for the property filter configuration if
+the file is located in the project directory.
+Temporary version configuration will be stored in files in a working directory, which is per default located in the build
+directory of the root project. The file name is `'._[providerType][ProviderName]_.version'`.
+
+== Project Extension 'versionRecommendation'
+
+This plugin adds an extension *`versionRecommendation`* to the root project. This extension contains the
+plugin configuration for the version recommendation and also for the update functionality.
+
+=== Methods
+[cols="20%,15%,65%", width="95%", options="header"]
+|===
+|Method                           | Type                                      | Description
+|*provider*(configure)            | <<provider,RecommendationProviderContainer>>| This method configured the container of all providers.
+The order depends on the configuration.
+|*updateConfiguration*(configure) | <<updateConfiguration,UpdateConfiguration>> | This method configures the update configuration.
+|===
+
+=== Attributes
+[cols="20%,15%,15%,50%", width="95%", options="header"]
+|===
+|Property                   | Type        | Default value | Description
+|*forceRecommenderVersion*  | `boolean`   | `false`       | If this variable true, the version is always taken from
+the version recommendation. This will override configured versions in dependencies.
+|===
+
+==== [[provider]]Provider configuration 'provider' (`RecommendationProviderContainer`)
+[cols="20%,15%,65%", width="95%", options="header"]
+|===
+|Method                                 | Type                                | Description
+|*ivy*(String, Object, Closure)         | IvyRecommendationProvider           | Adds an Ivy based recommendation provider.
+|*pom*(String, Object, Closure)         | MavenRecommendationProvider         | Adds a Pom based recommendation provider.
+|*properties*(String, Object, Closure)  | PropertiesRecommendationProvider    | Adds a properties file base recommendation provider.
+|*properties*(String, Closure)          | PropertiesRecommendationProvider    | Adds a property configuration with a map.
+|*getVersion*(String, String)           | String                              | Returns a version from the provider list configuration or null.
+|===
+
+The first parameter is always the name of the provider. This name is used for properties and tasks.
+The second parameter is the input for the provider. The following inputs are possible:
+
+- Dependency
+** This can be a Map, eg. `[group: 'com.company', name: 'module', version: 'version']`
+** Or also a String, eg 'com.company:module:version'
+** It is possible to leave the version away.
+** If the version is not specified, the provider is not used.
+** The version can be changed for this configuration.
+- URL
+** Configuration for direct access via URL
+** The version for this configuration is not adaptable.
+- File
+** This is the configuration for a special file.
+** If this is specified for a Properties provider, the version information inside of the file are adaptable.
+
+===== Ivy Recommendation Provider
+
+
+===== Pom Recommendation Provider
+
+
+===== Properties Recommendation Provider
+
+
+==== [[updateConfiguration]]Update configuration 'updateConfiguration' (`UpdateConfiguration`)
+[cols="20%,15%,65%", width="95%", options="header"]
+|===
+|Method                           | Type                                      | Description
+|===
+
+== Project Extension 'versionManagement'
+
+This plugin adds an extension *`versionManagement`* to the root project. This extension contains methods which will
+add functionality to the publication configuration.
+
+=== Methods
+[cols="20%,15%,65%", width="95%", options="header"]
+|===
+|Method                         | Type                     | Description
+|*withSubProjects*(configure)   | List<Project> or Project | A list of sub projects or a single sub project, eg. `'subprojects'`
+|*fromConfigurations*(configure)| List<String> or String   | A list or a single configuration of the project, eg. `'compile'`.
+|*withDependencies*(configure)  | List<String> or String   | A list or a single string with a dependency configuration,
+eg.`` 'com.company:module:version'``.
+|===

@@ -154,7 +154,7 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      */
     @Override
     File getVersionFile() {
-        return new File(getConfigDir(), inputFile.getName())
+        return inputFile
     }
 
     /**
@@ -172,8 +172,6 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
                 svp.keys().each { String key ->
                     svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
                 }
-
-                println inputFile
 
                 writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
                 log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)

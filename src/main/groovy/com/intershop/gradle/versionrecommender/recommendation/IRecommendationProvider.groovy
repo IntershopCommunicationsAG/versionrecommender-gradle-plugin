@@ -106,7 +106,7 @@ interface IRecommendationProvider extends Named {
      *
      * @param transitive true for transitive resolution of configured dependency
      */
-    void setTransitives(boolean transitive)
+    void setTransitive(boolean transitive)
 
     /**
      * If a resolved dependency should override an
@@ -114,7 +114,7 @@ interface IRecommendationProvider extends Named {
      *
      * @param override
      */
-    void setOverrideTransitives(boolean override)
+    void setOverrideTransitiveDeps(boolean override)
 
     /**
      * Main method of the provider. This method should

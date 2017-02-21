@@ -160,7 +160,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
      * @param transitive true for transitive resolution of configured dependency
      */
     @Override
-    void setTransitives(boolean transitive) {
+    void setTransitive(boolean transitive) {
         this.transitive = transitive
     }
 
@@ -171,7 +171,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
      * @param override
      */
     @Override
-    void setOverrideTransitives(boolean override) {
+    void setOverrideTransitiveDeps(boolean override) {
         this.override = override
     }
 
@@ -275,7 +275,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     /**
      * This method calculate transitive dependencies and
      * add these configuration to the list. This depends
-     * also from setTransitive and setOverrideTransitives.
+     * also from setTransitive and setOverrideTransitiveDeps.
      *
      * @param module of the original dependency
      * @param version version of the original dependency

@@ -20,6 +20,8 @@ import com.intershop.release.version.ParserException
 import com.intershop.release.version.Version
 import com.intershop.release.version.VersionParser
 import com.intershop.release.version.VersionType
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.ArtifactRepository
@@ -30,25 +32,41 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
  * This class provides data and methods for the
  * version update.
  */
+@CompileStatic
 @Slf4j
 class VersionUpdater {
 
+    // version regex for a semantic version
     private static final String versionregex = '(\\d+)(\\.\\d+)(\\.\\d+)(\\.\\d+)?'
 
-    public String ivyPattern
-
+    // the target project
     private Project project
 
+    // repository lists for maven and ivy repos, file and remote based
     private List<MavenArtifactRepository> mvnHttpRepList
     private List<MavenArtifactRepository> mvnFileRepList
     private List<IvyArtifactRepository> ivyHttpRepList
     private List<IvyArtifactRepository> ivyFileRepList
 
+    /**
+     * Ivy pattern for Ivy repository access
+     */
+    public String ivyPattern
+
+    /**
+     * Constructor
+     *
+     * @param project   the target project
+     */
     VersionUpdater(Project project) {
         this.project = project
     }
 
-    private initLists() {
+    /**
+     * Initialize repository lists for the first call of the class, after evaluation of the project.
+     */
+    @CompileDynamic
+    private void initLists() {
         if(mvnHttpRepList == null || mvnFileRepList == null) {
             List<ArtifactRepository> mvnRepList = project.getRepositories().findAll { it instanceof MavenArtifactRepository }
             mvnHttpRepList = mvnRepList.findAll { ((MavenArtifactRepository) it).url.scheme.startsWith('http') }
@@ -61,25 +79,39 @@ class VersionUpdater {
         }
     }
 
-    List<String> getVersionList(String group, String module) {
+    /**
+     * <p>Calculate a list of versions for the specified module from.
+     * This is the order for the repositories:</p>
+     * <ul>
+     *     <li>Maven repositories remote based (http(s))</li>
+     *     <li>Ivy repositories remote based (http(s))</li>
+     *     <li>Ivy repositories file based</li>
+     *     <li>Maven repositories file based</li>
+     * </ul>
+     *
+     * @param group     Module group or organization
+     * @param name      Module name or artifact id
+     * @return          List of available versions
+     */
+    List<String> getVersionList(String group, String name) {
         List<String> versionList = []
         initLists()
 
         mvnHttpRepList.any { MavenArtifactRepository repo ->
-            versionList = HTTPVersionProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, module, repo.credentials.username, repo.credentials.password)
+            versionList = HTTPVersionProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, name, repo.credentials.username, repo.credentials.password)
             if(versionList)
                 return true
         }
         if(! versionList) {
             if(ivyPattern) {
                 ivyHttpRepList.any { IvyArtifactRepository repo ->
-                    versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, module, repo.credentials.username, repo.credentials.password)
+                    versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, name, repo.credentials.username, repo.credentials.password)
                     if (versionList)
                         return true
                 }
                 if (!versionList) {
                     ivyFileRepList.any { IvyArtifactRepository repo ->
-                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, module)
+                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, name)
                         if (versionList)
                             return true
                     }
@@ -88,7 +120,7 @@ class VersionUpdater {
 
             if(! versionList) {
                 mvnFileRepList.any { MavenArtifactRepository repo ->
-                    versionList = FileVersionProvider.getVersionFromMavenMetadata(new File(repo.url), group, module)
+                    versionList = FileVersionProvider.getVersionFromMavenMetadata(new File(repo.url), group, name)
                     if(versionList)
                         return true
                 }
@@ -98,37 +130,87 @@ class VersionUpdater {
         return versionList
     }
 
-    String getUpdateVersion(String group, String module, String version, UpdatePos pos = UpdatePos.HOTFIX) {
-        List<String> versionList = getVersionList(group, module)
+    /**
+     * This method calculates the update version for semantic
+     * versions with three or four digits. A patch or minor
+     * version digit with the value 0 can be empty (Apache style).
+     *
+     * @see <a href="https://github.com/IntershopCommunicationsAG/extended-version">Library extended-version</a>
+     *
+     * @param group     Module group or organization
+     * @param name      Module name or artifact id
+     * @param version   Configured version
+     * @param pos       Update position. Default is HOTFIX and for versions with three digits PATCH.
+     * @return          update version or if not available null
+     */
+    String getUpdateVersion(String group, String name, String version, UpdatePos pos = UpdatePos.HOTFIX) {
+        List<String> versionList = getVersionList(group, name)
 
         if(versionList) {
-            project.logger.quiet('{}:{} with {}', group, module, versionList)
+            project.logger.quiet('{}:{} with {}', group, name, versionList)
             String uv = calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
             if(uv) {
-                project.logger.quiet('{}:{} has been updated updated from {} to {}', group, module, version, uv)
+                project.logger.quiet('{}:{} has been updated updated from {} to {}', group, name, version, uv)
                 return uv
             }
         }
-        project.logger.quiet('{}:{} was not updated. The version is still {}', group, module, version)
+        project.logger.quiet('{}:{} was not updated. The version is still {}', group, name, version)
         return null
     }
 
-    String getUpdateVersion(String group, String module, String version, String searchPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionPattern =  searchPattern) {
-        List<String> versionList = getVersionList(group, module)
+    /**
+     * <p>This method calculates the update version for semantic
+     * versions with three or four digits and a special extension, eg 3.5.GA.
+     * This extension can be configured with an pattern. If the current
+     * configured version is different, it is possible to configure a
+     * special version pattern. The matching extension will removed for
+     * comparison.</p>
+     * <p>A patch or minor version digit with the value 0 can be empty (Apache style).</p>
+     *
+     * @param group             Module group or organization
+     * @param name              Module name or artifact id
+     * @param version           Configured version
+     * @param searchPattern     Regex pattern for an extension
+     * @param pos               Update position. Default is HOTFIX and for versions with three digits PATCH.
+     * @param versionPattern    Regex pattern for an extension of the configured version if different from searchPattern
+     * @return                  update version or if not available null
+     */
+    String getUpdateVersion(String group, String name, String version, String searchPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionPattern =  searchPattern) {
+        List<String> versionList = getVersionList(group, name)
         if(versionList) {
             return calculateUpdateVersion(filterVersion(versionList, version,  searchPattern, pos, versionPattern), version)
         }
         return null
     }
 
-    String getUpdateVersion(String group, String module, String version, String patternForNextVersion, int sortStringPos) {
-        List<String> versionList = getVersionList(group, module)
+    /**
+     * <p>This method calculates the update version for non
+     * semantic versions. An regex pattern and the position
+     * of a group is used for the calculation of the next version.</p>
+     *
+     * @param group                 Module group or organization
+     * @param name                  Module name or artifact id
+     * @param version               Configured version
+     * @param patternForNextVersion Regex pattern with groups
+     * @param sortStringPos         Position of the group - this is used for sorting and filtering
+     * @return                      update version or if not available null
+     */
+    String getUpdateVersion(String group, String name, String version, String patternForNextVersion, int sortStringPos) {
+        List<String> versionList = getVersionList(group, name)
         if(versionList) {
             return calculateUpdateVersion(filterVersion(versionList, version, patternForNextVersion, sortStringPos), version)
         }
         return null
     }
 
+    /**
+     * Calculate the update version from a list of filtered and sorted list of versions.
+     * The last item will be used always.
+     *
+     * @param filteredVersion   List of filtered and sorted version
+     * @param version           the configured version
+     * @return                  update version or if not available null
+     */
     private static String calculateUpdateVersion(List<String> filteredVersion, String version) {
         if(filteredVersion) {
             String updateVersion = filteredVersion.last()
@@ -139,7 +221,15 @@ class VersionUpdater {
         return null
     }
 
-    static List<String> filterVersion(List<String> list, String version, UpdatePos pos = UpdatePos.HOTFIX) {
+    /**
+     * Filter and sort a list of semantic versions for the specified update position.
+     *
+     * @param list      List of versions
+     * @param version   Configured version
+     * @param pos       Update position. Default is HOTFIX and for versions with three digits PATCH.
+     * @return          a list of filtered and sorted versions
+     */
+    protected static List<String> filterVersion(List<String> list, String version, UpdatePos pos = UpdatePos.HOTFIX) {
         int digits = 0
         String staticMetaData = ''
 
@@ -182,7 +272,7 @@ class VersionUpdater {
                     filter += "(-\\w+)?"
                 }
 
-                List<Version> filteredList = list.findAll {
+                List<Version> filteredList = (List<Version>)(list.findAll {
                     it =~ /${filter}/
                 }.collect {
                     try {
@@ -190,9 +280,7 @@ class VersionUpdater {
                     } catch (ParserException ex) {
                         log.info('Version {} can not be parsed as semantic version.', it)
                     }
-                }.findAll {
-                    it > versionObj
-                }.sort()
+                }.findAll {Object vo -> ((Version)vo) > versionObj }).sort()
 
                 List<Version> filteredList2 = filteredList.findAll { it >= nextVersion }
 
@@ -207,7 +295,17 @@ class VersionUpdater {
         return []
     }
 
-    static String getStringFromVersion(Version v, int digits) {
+    /**
+     * Calculates a string for a semantic version. This is important
+     * if on the minor or patch digits is empty.
+     *
+     * @see <a href="https://github.com/IntershopCommunicationsAG/extended-version">Library extended-version</a>
+     *
+     * @param v         Version object
+     * @param digits    Number of digits of the version
+     * @return          a version string
+     */
+    private static String getStringFromVersion(Version v, int digits) {
         if(v.getNormalVersion().versionType == VersionType.fourDigits){
             switch (digits) {
                 case 3:
@@ -250,7 +348,23 @@ class VersionUpdater {
         return v.toString()
     }
 
-    static List<String> filterVersion(List<String> list, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {
+    /**
+     * <p>Filter and sort a list of semantic versions for the specified update position
+     * with an special extension, eg 3.5.GA.</p>
+     * <p>This extension can be configured with an pattern. If the current
+     * configured version is different, it is possible to configure a
+     * special version pattern. The matching extension will removed for
+     * comparison.</p>
+     *
+     * @param list              List of versions
+     * @param version           Configured version
+     * @param searchPattern     Regex pattern for an extension
+     * @param pos               Update position. Default is HOTFIX and for versions with three digits PATCH.
+     * @param versionPattern    Regex pattern for an extension of the configured version if different from searchPattern
+     * @return                  a list of filtered and sorted versions
+     */
+    @CompileDynamic
+    protected static List<String> filterVersion(List<String> list, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {
         int digits = 0
 
         def versionExtension = (version =~ /${versionExtPattern}/)
@@ -319,7 +433,19 @@ class VersionUpdater {
         }
     }
 
-    static List<String> filterVersion(List<String> list, String version, String patternForNextVersion, int sortStringPos) {
+    /**
+     * <p>This method filters and sort a list of non
+     * semantic versions. An regex pattern and the position
+     * of a group is used for the calculation of the next version.</p>
+     *
+     * @param list                  List of versions
+     * @param version               Configured version
+     * @param patternForNextVersion Regex pattern with groups
+     * @param sortStringPos         Position of the group - this is used for sorting and filtering
+     * @return                      a list of filtered and sorted versions
+     */
+    @CompileDynamic
+    protected static List<String> filterVersion(List<String> list, String version, String patternForNextVersion, int sortStringPos) {
         def mv = (version =~ /${patternForNextVersion}/)
         if(mv.count < 1) {
             throw new RuntimeException("Pattern for next version '${patternForNextVersion}' does not match to version '${version}'.")

@@ -114,7 +114,7 @@ class UpdateConfiguration {
         } else if(config.patternForNextVersion) {
             returnValue = updater.getUpdateVersion(group, name, version, config.patternForNextVersion, config.sortStringPos)
         } else {
-            returnValue = updater.getUpdateVersion(group, name, version, config.updatePos)
+            returnValue = updater.getUpdateVersion(group, name, version, config.getUpdatePos())
         }
         return returnValue
     }
@@ -135,6 +135,7 @@ class UpdateConfiguration {
         }
         if(item == null) {
             item = new UpdateConfigurationItem('empty')
+            item.setUpdate(getUpdatePos().toString())
         }
         return item
     }

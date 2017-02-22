@@ -117,7 +117,8 @@ it is possible to enable this provider with a specific version.
 ** The version for this configuration is not adaptable.
 - *File*
 ** This is the configuration for a special file. This file should be part of the project.
-** If this is specified for a properties provider, the versions inside of the file are adaptable.
+** If this is specified for a properties provider, the versions inside of the file are adaptable and
+selected properties can be exclude if necessary with a configuration.
 
 ===== Ivy Recommendation Provider
 

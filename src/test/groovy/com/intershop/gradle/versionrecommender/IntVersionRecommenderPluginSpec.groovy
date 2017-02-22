@@ -516,6 +516,60 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultUpdate.task(':updateComplex').outcome == SUCCESS
     }
 
+    def 'test complex properties update with exclude configuration'() {
+        given:
+        copyResources('updatetest/test.version', 'properties.version')
+
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    properties('complex', project.file('properties.version')) {
+                        changeExcludes = ['org.jboss.logging:*']
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItemContainer {
+                        testUpdate1 {
+                            org = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.google.inject:guice'
+            }
+                     
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('updateComplex', '-s') //, '--profile')
+                .build()
+
+        then:
+        resultUpdate.task(':updateComplex').outcome == SUCCESS
+        ! resultUpdate.output.contains('org.jboss.logging')
+        ! resultUpdate.output.contains('No changes on properties')
+
+    }
+
     def 'test update with a multi provider configuration'() {
         given:
         buildFile << """

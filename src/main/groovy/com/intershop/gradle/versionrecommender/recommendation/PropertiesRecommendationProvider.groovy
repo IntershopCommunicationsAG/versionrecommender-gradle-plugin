@@ -54,14 +54,14 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      */
     PropertiesRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
-        excludes = []
+        changeExcludes = []
     }
 
     /**
      * List of exceptions for update operation
      * It is possible to add also placeholder.
      */
-    List<String> excludes
+    List<String> changeExcludes
 
     /**
      * Returns a type name of an special implementation.
@@ -237,8 +237,8 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      */
     private boolean checkExclude(String module) {
         boolean rv = false
-        excludes.any { String exc ->
-            rv = (exc ==~ /${exc.replaceAll("\\*", ".*?")}/)
+        changeExcludes.any { String exc ->
+            rv = (module ==~ /${exc.replaceAll("\\*", ".*?")}/)
             return rv
         }
         return rv

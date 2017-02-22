@@ -650,7 +650,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         File storeFileFilter1 = new File(testProjectDir, '.ivyFilter1.version')
 
         then:
-        resultUpdate.task(':update').outcome == SUCCESS
+        resultStore.task(':store').outcome == SUCCESS
         ! storeFileFilter5.exists()
         storeFileFilter4.exists()
         storeFileFilter3.exists()
@@ -711,6 +711,77 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultAlt.task(':copyResult').outcome == SUCCESS
         copyResult.exists()
     }
+
+    def 'test update and store with a multi provider configuration'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') {}
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', 'update', '-s') //, '--profile')
+                .build()
+
+        File storeFileFilter5 = new File(testProjectDir, '.ivyFilter5.version')
+        File storeFileFilter4 = new File(testProjectDir, '.ivyFilter4.version')
+        File storeFileFilter3 = new File(testProjectDir, '.ivyFilter3.version')
+        File storeFileFilter2 = new File(testProjectDir, '.ivyFilter2.version')
+        File storeFileFilter1 = new File(testProjectDir, '.ivyFilter1.version')
+
+        then:
+        resultStore.task(':store').outcome == SUCCESS
+        resultStore.task(':update').outcome == SUCCESS
+        !storeFileFilter5.exists()
+        storeFileFilter4.exists()
+        storeFileFilter3.exists()
+        storeFileFilter2.exists()
+        !storeFileFilter1.exists()
+        storeFileFilter4.text == '1.0.1'
+        storeFileFilter3.text == '1.0.1'
+        storeFileFilter2.text == '1.0.1'
+    }
+
 
     def 'test update with a multi provider configuration and with different update configuration'() {
         given:
@@ -793,7 +864,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         File fileStoreFilter2 = new File(testProjectDir, 'filter2/.ivyFilter2.version')
 
         then:
-        resultUpdate.task(':update').outcome == SUCCESS
+        resultStore.task(':store').outcome == SUCCESS
         fileStoreFilter2.exists()
         fileStoreFilter2.text == '1.0.1'
     }

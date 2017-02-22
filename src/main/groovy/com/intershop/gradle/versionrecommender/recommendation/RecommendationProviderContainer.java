@@ -120,6 +120,15 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             // remove the temporary version file of all configured tasks (default update task list)
             ResetAllVersion resetAll = project.getTasks().maybeCreate("reset", ResetAllVersion.class);
             resetAll.getProviders().add(provider);
+
+            // modify order of tasks
+            storeUpdateVersionTask.mustRunAfter(setVersionTask, updateTask);
+            resetTask.mustRunAfter(storeUpdateVersionTask, setVersionTask, updateTask, snapshotTask, localTask);
+
+            storeUpdateVersionTask.mustRunAfter(defaultUpdateTask, storeUpdateVersionTask, setVersionTask, updateTask);
+            defaultStoreTask.mustRunAfter(defaultUpdateTask, storeUpdateVersionTask, setVersionTask, updateTask);
+
+            resetAll.mustRunAfter(storeUpdateVersionTask, setVersionTask, updateTask, snapshotTask, localTask, defaultUpdateTask, storeUpdateVersionTask);
         }
 
         return provider;

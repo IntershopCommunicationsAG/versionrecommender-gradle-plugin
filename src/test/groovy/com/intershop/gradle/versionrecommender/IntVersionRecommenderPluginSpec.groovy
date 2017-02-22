@@ -1258,39 +1258,50 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
-                id 'ivy-publish'
             }
-            
-            allprojects {
-                apply plugin: 'java'
-                apply plugin: 'ivy-publish'
+
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
                 
+            group = 'com.intershop'
+            version = '1.0.0'
+
+            dependencies {
+                compile 'commons-configuration:commons-configuration:1.6' 
+            }
+
+            subprojects {
                 group = 'com.intershop'
-                version = '1.0.0'
+                version = '1.0.0'                
+            }
 
-                publishing {
-                    publications {
-                        ivyFilter(IvyPublication) {
-                            module 'ivy-filter'
-                            revision project.version
+            publishing {
+                publications {
+                    ivyFilter(IvyPublication) {
+                        module 'ivy-filter'
+                        revision project.version
 
-                            versionManagement.withSubProjects { subprojects }     
+                        // adds all sub projects
+                        versionManagement.withSubProjects { subprojects }   
 
-                            // alternative syntax when you want to explicitly add a dependency with no transitives
-                            versionManagement.withDependencies { 'manual:dep:1' }
+                        // the transitive closure of this configuration will be flattened 
+                        // and added to the dependency management section
+                        versionManagement.fromConfigurations { project.configurations.compile }  
 
-                            // further customization of the POM is allowed if desired
-                            descriptor.withXml { asNode().info[0].appendNode('description', 'A demonstration of maven IVY customization') }
-                        }
+                        // alternative syntax when you want to explicitly add a dependency with no transitives
+                        versionManagement.withDependencies { 'manual:dep:1' }
+
+                        // further customization of the POM is allowed if desired
+                        descriptor.withXml { asNode().info[0].appendNode('description', 'A demonstration of IVY customization') }
                     }
-                    repositories {
-                        ivy {
-                            // change to point to your repo, e.g. http://my.org/repo
-                            url "\$buildDir/repo"
-                            layout('pattern') {
-                                ivy "${ivyPattern}"
-                                artifact "${artifactPattern}"
-                            }
+                }
+                repositories {
+                    ivy {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url "\$buildDir/repo"
+                        layout('pattern') {
+                            ivy "${ivyPattern}"
+                            artifact "${artifactPattern}"
                         }
                     }
                 }                
@@ -1321,8 +1332,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         File ivy = new File(testProjectDir, 'build/repo/com.intershop/ivy-filter/1.0.0/ivys/ivy-1.0.0.xml')
 
         then:
-        result.task(':project1a:publish').outcome == SUCCESS
-        result.task(':project2b:publish').outcome == SUCCESS
         result.task(':publish').outcome == SUCCESS
         ivy.text.contains('<dependency org="com.intershop" name="project1a" rev="1.0.0" conf="default"/>')
         ivy.text.contains('<dependency org="com.intershop" name="project2b" rev="1.0.0" conf="default"/>')
@@ -1337,36 +1346,48 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 id 'maven-publish'
             }
             
-            allprojects {
-                apply plugin: 'java'
-                apply plugin: 'maven-publish'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
                 
+            group = 'com.intershop'
+            version = '1.0.0'
+
+            subprojects {
                 group = 'com.intershop'
-                version = '1.0.0'
-
-                publishing {
-                    publications {
-                        mvnFilter(MavenPublication) {
-                            artifactId 'mvn-filter'
-                            version project.version
-
-                            versionManagement.withSubProjects { subprojects }     
-
-                            // alternative syntax when you want to explicitly add a dependency with no transitives
-                            versionManagement.withDependencies { 'manual:dep:1' }
-
-                            // further customization of the POM is allowed if desired
-                            pom.withXml { asNode().appendNode('description', 'A demonstration of maven IVY customization') }
-                        }
-                    }
-                    repositories {
-                        maven {
-                            // change to point to your repo, e.g. http://my.org/repo
-                            url "\$buildDir/repo"
-                        }
-                    }
-                }                
+                version = '1.0.0'                
             }
+
+            dependencies {
+                compile 'commons-configuration:commons-configuration:1.6'
+            }
+
+            publishing {
+                publications {
+                    mvnFilter(MavenPublication) {
+                        artifactId 'mvn-filter'
+                        version project.version
+
+                        // adds all sub projects
+                        versionManagement.withSubProjects { subprojects }   
+
+                        // the transitive closure of this configuration will be flattened 
+                        // and added to the dependency management section
+                        versionManagement.fromConfigurations { project.configurations.compile } 
+
+                        // alternative syntax when you want to explicitly add a dependency with no transitives
+                        versionManagement.withDependencies { 'manual:dep:1' }
+
+                        // further customization of the POM is allowed if desired
+                        pom.withXml { asNode().appendNode('description', 'A demonstration of maven customization') }
+                    }
+                }
+                repositories {
+                    maven {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url "\$buildDir/repo"
+                    }
+                }
+            } 
             
             repositories {
                 jcenter()
@@ -1393,8 +1414,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         File pom = new File(testProjectDir, 'build/repo/com/intershop/mvn-filter/1.0.0/mvn-filter-1.0.0.pom')
 
         then:
-        result.task(':project1a:publish').outcome == SUCCESS
-        result.task(':project2b:publish').outcome == SUCCESS
         result.task(':publish').outcome == SUCCESS
         pom.text.contains('<groupId>com.intershop</groupId>')
         pom.text.contains('<artifactId>project1a</artifactId>')

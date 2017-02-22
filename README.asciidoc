@@ -371,3 +371,237 @@ add functionality to the publication configuration.
 eg.`` 'com.company:module:version'``.
 |===
 
+=== Usage
+
+==== Ivy Publishing
+
+[source,groovy]
+[subs=+attributes]
+.build.gradle
+----
+plugins {
+    id 'com.intershop.gradle.versionrecommender' version '{latestRevision}'
+    id 'ivy-publish'
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'commons-configuration:commons-configuration:1.6'
+}
+
+publishing {
+    publications {
+        ivyFilter(IvyPublication) {
+            module 'ivy-filter'
+            revision project.version
+
+            // adds all sub projects
+            versionManagement.withSubProjects { subprojects }
+
+            // the transitive closure of this configuration will
+            // be flattened and added to the dependency management section
+            versionManagement.fromConfigurations { project.configurations.compile }
+
+            // alternative syntax when you want to explicitly add a dependency with no transitives
+            versionManagement.withDependencies { 'manual:dep:1' }
+
+            // further customization of the POM is allowed if desired
+            descriptor.withXml {
+                asNode().info[0].appendNode('description',
+                                            'A demonstration of IVY customization')
+            }
+        }
+    }
+    repositories {
+        ivy {
+            // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo"
+            layout('pattern') {
+                ivy '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
+                artifact '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
+            }
+        }
+    }
+}
+
+repositories {
+    jcenter()
+}
+----
+
+This will generate the following ivy.xml with publish.
+
+[source,xml]
+.ivy.xml
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+  <info organisation="com.intershop" module="ivy-filter" revision="1.0.0" status="integration" publication="20170222210207">
+    <description>A demonstration of IVY customization</description>
+  </info>
+  <configurations/>
+  <publications/>
+  <dependencies defaultconfmapping="*-&gt;default">
+    <!-- sub projects -->
+    <dependency org="com.intershop" name="project1a" rev="1.0.0" conf="default"/>
+    <dependency org="com.intershop" name="project2b" rev="1.0.0" conf="default"/>
+    <!-- dependencies from configuration compile -->
+    <dependency org="commons-digester" name="commons-digester" rev="1.8" conf="default"/>
+    <dependency org="commons-logging" name="commons-logging" rev="1.1.1" conf="default"/>
+    <dependency org="commons-lang" name="commons-lang" rev="2.4" conf="default"/>
+    <dependency org="commons-configuration" name="commons-configuration" rev="1.6" conf="default"/>
+    <dependency org="commons-beanutils" name="commons-beanutils" rev="1.7.0" conf="default"/>
+    <dependency org="commons-collections" name="commons-collections" rev="3.2.1" conf="default"/>
+    <dependency org="commons-beanutils" name="commons-beanutils-core" rev="1.8.0" conf="default"/>
+    <!-- dependency -->
+    <dependency org="manual" name="dep" rev="1" conf="default"/>
+  </dependencies>
+</ivy-module>
+----
+
+==== Maven Publishing
+
+[source,groovy]
+[subs=+attributes]
+.build.gradle
+----
+plugins {
+    id 'com.intershop.gradle.versionrecommender' version '{latestRevision}'
+    id 'maven-publish'
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'commons-configuration:commons-configuration:1.6'
+}
+
+publishing {
+    publications {
+        mvnFilter(MavenPublication) {
+            artifactId 'mvn-filter'
+            version project.version
+
+            // adds all sub projects
+            versionManagement.withSubProjects { subprojects }
+
+            // the transitive closure of this configuration will
+            // be flattened and added to the dependency management section
+            versionManagement.fromConfigurations { project.configurations.compile }
+
+            // alternative syntax when you want to explicitly add a dependency with no transitives
+            versionManagement.withDependencies { 'manual:dep:1' }
+
+            // further customization of the POM is allowed if desired
+            pom.withXml {
+                asNode().appendNode('description',
+                                    'A demonstration of maven customization')
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo"
+        }
+    }
+}
+
+repositories {
+    jcenter()
+}
+----
+
+This will generate the following pom file with publish.
+
+[source,xml]
+.mvn-filter.pom
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.intershop</groupId>
+  <artifactId>mvn-filter</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <dependencyManagement>
+    <dependencies>
+      <!-- project dependencies -->
+      <dependency>
+        <groupId>com.intershop</groupId>
+        <artifactId>project1a</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.intershop</groupId>
+        <artifactId>project2b</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+      <!-- dependencies from configuration compile -->
+      <dependency>
+        <groupId>commons-digester</groupId>
+        <artifactId>commons-digester</artifactId>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.4</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-configuration</groupId>
+        <artifactId>commons-configuration</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>1.7.0</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>3.2.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils-core</artifactId>
+        <version>1.8.0</version>
+      </dependency>
+      <!-- dependency -->
+      <dependency>
+        <groupId>manual</groupId>
+        <artifactId>dep</artifactId>
+        <version>1</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <description>A demonstration of maven customization</description>
+</project>
+----
+
+== Thanks
+
+Special thanks for the ideas to write this plugin:
+
+- https://github.com/nebula-plugins/nebula-dependency-recommender-plugin[nebula-dependency-recommender-plugin]
+
+- https://github.com/4finance/uptodate-gradle-plugin[com.ofg.uptodate]
+
+- https://github.com/lkishalmi/gradle-bom-plugin[com.github.lkishalmi.bill-of-materials]
+
+== License
+
+Copyright 2014-2016 Intershop Communications.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.

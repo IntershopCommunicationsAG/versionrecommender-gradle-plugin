@@ -54,14 +54,14 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      */
     PropertiesRecommendationProvider(final String name, final Project project, final Object input) {
         super(name, project, input)
-        updateExceptions = []
+        excludes = []
     }
 
     /**
      * List of exceptions for update operation
      * It is possible to add also placeholder.
      */
-    List<String> updateExceptions
+    List<String> excludes
 
     /**
      * Returns a type name of an special implementation.
@@ -97,7 +97,7 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
             boolean propertiesChanged = false
 
             svp.keySet().each {
-                if(! checkUpdateException(it.toString())) {
+                if(! checkExclude(it.toString())) {
                     String[] groupModul = it.toString().split(':')
                     String oldVersion = svp.getProperty(it.toString(), '')
 
@@ -168,14 +168,23 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
     void setVersionExtension(final VersionExtension versionExtension) {
         if(inputType == FileInputType.FILE && inputFile.getParentFile() == configDir) {
             if(versionExtension != VersionExtension.NONE) {
+                boolean propertiesChanged = false
+
                 SimpleVersionProperties svp = getProperties()
                 svp.keys().each { String key ->
-                    svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
+                    if(! checkExclude(key.toString())) {
+                        svp.setProperty(key, "${svp.getProperty(key)}-${versionExtension}")
+                        propertiesChanged = true
+                    }
                 }
 
-                writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
-                log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)
-                versions = null
+                if(propertiesChanged) {
+                    writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
+                    log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)
+                    versions = null
+                } else {
+                    log.warn('No changes on properties {}', inputFile.getAbsolutePath())
+                }
             } else {
                 removePropertiesFile()
                 versions = null
@@ -226,9 +235,9 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      * @param  module
      * @return true, if the module is included in the list
      */
-    private boolean checkUpdateException(String module) {
+    private boolean checkExclude(String module) {
         boolean rv = false
-        updateExceptions.any {String exc ->
+        excludes.any { String exc ->
             rv = (exc ==~ /${exc.replaceAll("\\*", ".*?")}/)
             return rv
         }

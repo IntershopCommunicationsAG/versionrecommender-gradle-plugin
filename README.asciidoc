@@ -27,38 +27,12 @@ plugins {
 
 versionRecommendation {
     provider {
-        ivy('ivy_name',  'org.company:ivyfilter:1.0.0') {
-            transitive = true
-            overrideTransitiveDeps = false
-        }
-
-        pom('pom_name', 'org.company:pomfilter:1.0.0') {}
-
-        properties('props_name', file('version.properties')) {}
-
-        properties('props_static') {
-            versionMap = [
-                'com.company.test:testcomp1': '10.0.0',
-                'com.company.testglob:*': '11.0.0',
-            ]
-        }
+        ivy('ivy_name', 'org.company:ivyfilter:1.0.0') {}
     }
     updateConfiguration {
         ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
 
-        defaultUpdateProvider = ['ivy_provider_name',
-                                 'pom_provider_name']
-
-        updateConfigItemContainer {
-            testUpdate1 {
-                org = 'org.eclipse.jetty'
-                searchPattern = '\\.v\\d+'
-            }
-            testUpdate2 {
-                org = 'com.company.another'
-                update = 'MINOR'
-            }
-        }
+        defaultUpdateProvider = ['ivy_name']
     }
 }
 ----
@@ -71,30 +45,28 @@ The Version Recommender plugin adds the following tasks to the project:
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
 |Task name                      |Type               |Description
-|setLocal__[ProviderName]__     |setLocalVersion    |This task will add 'LOCAL' to the version of the dependency
-of Ivy or Pom filters. For a properties file filter all configured versions will be extended with LOCAL.
-|setSnapshot__[ProviderName]__  |setSnapshotVersion |This task will add 'SNAPSHOT' to the version of the dependency
-of Ivy or Pom filters. For a properties file filter all configured versions will be extended with SNAPSHOT.
-|set__[ProviderName]__          |setVersion         |This task will set a version from a project property to the
-dependency of the filter. The project property is the name of the provider with version - '__[ProviderName]__Version'.
-|update__[ProviderName]__       |UpdateVersion      |This task start an update of the version of a dependency of
-the filter. The update can be configured over the update configuration.
-|store__[ProviderName]__        |StoreUpdateVersion |Store the temporary change / update to the configuration directory.
-|reset__[ProviderName]__        |ResetVersion       |The temporary change / update will be removed.
-|update                         |Update             |This task will run an update for all providers configured with
-'defaultUpdateProvider'.
-|store                          |StoreUpdate        |This task will store the temporary change / update to the
-configuration directory of all providers configured with 'defaultUpdateProvider'.
-|update                         |ResetAllVersion    |The temporary changes / updates of all providers configured in
-'defaultUpdateProvider' will be removed.
+|setLocal__[ProviderName]__     |setLocalVersion    |This task adds 'LOCAL' to the version of an dependency configuration
+of a provider _'[ProviderName]'_. For a properties file provider all configured versions will be extended with LOCAL.
+|setSnapshot__[ProviderName]__  |setSnapshotVersion |Does the same as setLocal__[ProviderName]__ but with SNAPSHOT.
+|set__[ProviderName]__          |setVersion         |This sets a version from a project property to the
+dependency of the provider _'[ProviderName]'_. The project property is: '__[ProviderName]__Version'.
+|update__[ProviderName]__       |UpdateVersion      |An update of the version of a dependency of provider _'[ProviderName]'_
+can be started with this task. The update functionality can be configured in the closure `updateConfiguration`.
+|store__[ProviderName]__        |StoreUpdateVersion |Store the temporary changes to the configuration directory.
+|reset__[ProviderName]__        |ResetVersion       |The temporary changes will be removed.
+|update                         |Update             |An update for configured providers can be started with this task.
+The configuration of these providers can be done with `'defaultUpdateProvider'`.
+|store                          |StoreUpdate        |Temporary changes of configured providers will be stored in the
+configuration directory with this task. The configuration of these providers can be done with `'defaultUpdateProvider'`.
+|reset                         |ResetAllVersion    |This task removes all temporary changes of all providers.
 |===
 
-All task are part of the package `'com.intershop.gradle.versionrecommender.tasks'`
+All tasks are part of the package `'com.intershop.gradle.versionrecommender.tasks'`
 
 The tasks are only available for filters with an dependency configuration or for the property filter configuration if
-the file is located in the project directory.
-Temporary version configuration will be stored in files in a working directory, which is per default located in the build
-directory of the root project. The file name is `'._[providerType][ProviderName]_.version'`.
+the file is located in the project directory. Temporary version configuration will be stored in files in a working
+directory, which is per default located in the build directory of the root project.
+The file name of this configuration is `'._[providerType][ProviderName]_.version'`, eg. `.ivyProviderName.version`.
 
 == Project Extension 'versionRecommendation'
 
@@ -104,17 +76,17 @@ plugin configuration for the version recommendation and also for the update func
 === Methods
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
-|Method                           | Type                                      | Description
-|*provider*(configure)            | <<provider,RecommendationProviderContainer>>| This method configured the container of all providers.
-The order depends on the configuration.
-|*updateConfiguration*(configure) | <<updateConfiguration,UpdateConfiguration>> | This method configures the update configuration.
+|Method                         | Type                                      | Description
+|*provider*(closure)            | <<provider,RecommendationProviderContainer>>| This method configures the container of all providers.
+The order of items depends on the order in the build configuration
+|*updateConfiguration*(closure) | <<updateConfiguration,UpdateConfiguration>> | This method configures the update configuration.
 |===
 
 === Attributes
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
 |Property                   | Type        | Default value | Description
-|*forceRecommenderVersion*  | `boolean`   | `false`       | If this variable true, the version is always taken from
+|*forceRecommenderVersion*  | `boolean`   | `false`       | If this variable is true, the version is always taken from
 the version recommendation. This will override configured versions in dependencies.
 |===
 
@@ -129,21 +101,23 @@ the version recommendation. This will override configured versions in dependenci
 |*getVersion*(String, String)           | String                              | Returns a version from the provider list configuration or null.
 |===
 
-The first parameter is always the name of the provider. This name is used for properties and tasks.
-The second parameter is the input for the provider. The following inputs are possible:
+The first parameter is always the name of the provider. It is used for project properties and tasks.
 
-- Dependency
-** This can be a Map, eg. `[group: 'com.company', name: 'module', version: 'version']`
-** Or also a String, eg 'com.company:module:version'
-** It is possible to leave the version away.
-** If the version is not specified, the provider is not used.
-** The version can be changed for this configuration.
-- URL
-** Configuration for direct access via URL
+The second parameter is the input of the provider. The following inputs are possible:
+
+- *Dependency*
+** This can be a Map, eg. `[group: 'com.company', name: 'module', version: 'version']`, or +
+a String, eg. 'com.company:module:version'
+** It is possible to leave the version empty, so that the provider is not used per default. With `'set[ProviderName]'`
+it is possible to enable this provider with a specific version.
+** The version can be adapted for this input configuration, with `'set[ProviderName]'`, `'setLocal[ProviderName]'`,
+`'setSnapshot[ProviderName]'` and `'update[ProviderName]'`.
+- *URL*
+** Configuration for direct access via URL.
 ** The version for this configuration is not adaptable.
-- File
-** This is the configuration for a special file.
-** If this is specified for a Properties provider, the version information inside of the file are adaptable.
+- *File*
+** This is the configuration for a special file. This file should be part of the project.
+** If this is specified for a properties provider, the versions inside of the file are adaptable.
 
 ===== Ivy Recommendation Provider
 

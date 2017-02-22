@@ -64,6 +64,38 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
     List<String> changeExcludes
 
     /**
+     * The config dir is the directory with
+     * all stored project files.
+     *
+     * @param configDir
+     */
+    @Override
+    void setConfigDir(File configDir) {
+        if(! isAdaptable()) {
+            super.setConfigDir(configDir)
+        } else {
+            project.logger.warn('Set configuration dir is not supported for {}, because the input is an file ({}],', getName(), inputFile.getName())
+        }
+    }
+
+    /**
+     * The config dir is the directory with
+     * all stored project files.
+     *
+     * @return configuration directory
+     */
+    @Override
+    File getConfigDir() {
+        if(isAdaptable()) {
+            return inputFile.getParentFile()
+        } else {
+            return super.getConfigDir()
+        }
+    }
+
+
+
+    /**
      * Returns a type name of an special implementation.
      *
      * @return returns always properties
@@ -81,7 +113,12 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
      */
     @Override
     boolean isAdaptable() {
-        return (inputType == FileInputType.FILE && inputFile.getParentFile() == configDir)
+        if(inputType == FileInputType.FILE) {
+            if(inputFile != null && inputFile.getParentFile()?.absolutePath?.startsWith(project.projectDir.absolutePath)) {
+                return true
+            }
+        }
+        return false
     }
 
     /**

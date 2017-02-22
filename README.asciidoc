@@ -121,13 +121,102 @@ it is possible to enable this provider with a specific version.
 selected properties can be exclude if necessary with a configuration.
 
 ===== Ivy Recommendation Provider
+The Ivy recommendation provider uses an Ivy file for the creation of a map with modules and versions. All dependency
+configurations are used and Ivy configurations are not considered. Of course it is possible to configure this provider
+also with an URL or with a file definition, but a dependency definition should be the most common configuration for this provider.
+The dependency configuration of the provider is also added to the version map of the provider.
 
+[source,groovy]
+.build.gradle
+----
+versionRecommendation {
+    provider {
+        ivy('providerName', 'org.company:ivyfilter:1.0.0') {}
+        ivy('providerName', [group: 'org.company', name: 'versions', version: '1.0.0']) {
+            transitive = true
+            overrideTransitiveDeps = false
+            versionMap = [ 'com.company:componet1':'1.0.0' ]
+        }
+    }
+}
+----
+
+This provider can be used with additional properties.
+
+====== Attributes
+[cols="20%,15%,15%,50%", width="95%", options="header"]
+|===
+|Property                   | Type                  | Default value | Description
+|*transitive*               | `boolean`             | `false`       | All dependencies from the Ivy file will be resolved transitive.
+|*overrideTransitiveDeps*   | `boolean`             | `false`       | If a different version is found for a module in a transitive
+dependency, and this version is greater than the previous version, the first version is overwritten.
+|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
+existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
+|===
 
 ===== Pom Recommendation Provider
+The Maven recommendation provider uses a Maven Bom file for the creation of a map with modules and versions. All dependency
+configurations are used and a scope is not considered. Of course it is possible to configure this provider
+also with an URL or with a file definition, but a dependency definition should be the most common configuration for this provider.
+All dependencies are resolved transitive and the dependency configuration of the provider is also added to the version map of the provider.
 
+[source,groovy]
+.build.gradle
+----
+versionRecommendation {
+    provider {
+        pom('providerName', 'org.company:bomfilter:1.0.0') {}
+        pom('providerName', [group: 'org.company', name: 'versions', version: '1.0.0']) {
+            versionMap = [ 'com.company:componet1':'1.0.0' ]
+        }
+    }
+}
+----
+
+This provider can be used with additional properties.
+
+====== Attributes
+[cols="20%,15%,15%,50%", width="95%", options="header"]
+|===
+|Property                   | Type                  | Default value | Description
+dependency, and this version is greater than the previous version, the first version is overwritten.
+|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
+existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
+|===
 
 ===== Properties Recommendation Provider
+The properties recommendation provider uses a properties file for the creation of a map with modules and versions. The format
+of this property file is special, because a colon is allowed in the keys. Furthermore the format and the order of all entries
+will be preserved, if the file is changed by a task.
 
+The input of this provier can be also an URL or dependency, but this input types are not supported by the tasks for version adaptions.
+
+[source,groovy]
+.build.gradle
+----
+versionRecommendation {
+    provider {
+        properties('providerName', rootProject.file('version.properties')) {}
+        properties('providerName', rootProject.file('3rdPartsVersion.properties')) {
+            transitive = true
+            overrideTransitiveDeps = false
+            versionMap = [ 'com.company:componet1':'1.0.0' ]
+        }
+    }
+}
+----
+
+[source,groovy]
+.build.gradle
+----
+versionRecommendation {
+    provider {
+        properties('providerName') {
+            versionMap = [ 'com.company:componet1':'1.0.0' ]
+        }
+    }
+}
+----
 
 ==== [[updateConfiguration]]Update configuration 'updateConfiguration' (`UpdateConfiguration`)
 [cols="20%,15%,65%", width="95%", options="header"]

@@ -267,8 +267,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
                     break
             }
         } catch (Exception ex) {
-            ex.printStackTrace()
-            log.error('It was not possible to create stream from {} input ({}).', input, ex.getMessage())
+            project.logger.error('It was not possible to create stream from {} input ({}).', input, ex.getMessage())
             stream = null
         }
         return stream

@@ -165,13 +165,12 @@ class VersionUpdater {
                 writeToUpdateLog("------------------------------------------------------------")
                 project.logger.quiet('{}:{} was not updated.', group, name)
             }
+        } else {
+            writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
+            writeToUpdateLog("${group}:${name} was without version list.")
+            writeToUpdateLog("------------------------------------------------------------")
+            project.logger.info('{}:{} was not updated.', group, name)
         }
-
-        writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
-        writeToUpdateLog("${group}:${name} was without version list.")
-        writeToUpdateLog("------------------------------------------------------------")
-        project.logger.info('{}:{} was not updated.', group, name)
-
         return null
     }
 

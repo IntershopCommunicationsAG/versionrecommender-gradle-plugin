@@ -49,6 +49,8 @@ class UpdateVersion extends DefaultTask {
             throw new GradleException("It is necessary to specify a version property with -P${provider.getVersionPropertyName()} = <version>.")
         }
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
+
+        ext.updateConfiguration.updateLogFile.delete()
         provider.update(ext.updateConfiguration)
         println "See for more information in update log: ${ext.updateConfiguration.updateLogFile}"
     }

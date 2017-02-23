@@ -45,6 +45,7 @@ class Update extends DefaultTask {
     void runUpdate() {
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
 
+        ext.updateConfiguration.updateLogFile.delete()
         providers.each {RecommendationProvider p ->
             if(ext.updateConfiguration.defaultUpdateProvider.contains(p.getName())) {
                 if(p.isVersionRequired() && ! (p.getVersionFromProperty())) {

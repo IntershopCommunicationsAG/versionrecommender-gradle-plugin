@@ -150,26 +150,14 @@ class VersionUpdater {
      */
     String getUpdateVersion(String group, String name, String version, UpdatePos pos = UpdatePos.HOTFIX) {
         List<String> versionList = getVersionList(group, name)
-
         if(versionList) {
             String uv = calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
-            if(uv) {
-                writeToUpdateLog("${group}:${name} has been updated from ${version} to ${uv}.")
-                writeToUpdateLog("${group}:${name} was updated from ${versionList}")
-                writeToUpdateLog("------------------------------------------------------------")
-                project.logger.quiet('{}:{} has been updated from {} to {}', group, name, version, uv)
+            createVersionLog(group, name, version, uv, versionList)
+            if(uv && versionList.contains(uv)) {
                 return uv
-            } else {
-                writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
-                writeToUpdateLog("${group}:${name} was using ${versionList}")
-                writeToUpdateLog("------------------------------------------------------------")
-                project.logger.quiet('{}:{} was not updated.', group, name)
             }
         } else {
-            writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
-            writeToUpdateLog("${group}:${name} was without version list.")
-            writeToUpdateLog("------------------------------------------------------------")
-            project.logger.info('{}:{} was not updated.', group, name)
+            createWOList(group, name, version)
         }
         return null
     }
@@ -194,7 +182,13 @@ class VersionUpdater {
     String getUpdateVersion(String group, String name, String version, String searchPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionPattern =  searchPattern) {
         List<String> versionList = getVersionList(group, name)
         if(versionList) {
-            return calculateUpdateVersion(filterVersion(versionList, version,  searchPattern, pos, versionPattern), version)
+            String uv = calculateUpdateVersion(filterVersion(versionList, version,  searchPattern, pos, versionPattern), version)
+            createVersionLog(group, name, version, uv, versionList)
+            if(uv && versionList.contains(uv)) {
+                return uv
+            }
+        } else {
+            createWOList(group, name, version)
         }
         return null
     }
@@ -214,9 +208,54 @@ class VersionUpdater {
     String getUpdateVersion(String group, String name, String version, String patternForNextVersion, int sortStringPos) {
         List<String> versionList = getVersionList(group, name)
         if(versionList) {
-            return calculateUpdateVersion(filterVersion(versionList, version, patternForNextVersion, sortStringPos), version)
+            String uv = calculateUpdateVersion(filterVersion(versionList, version, patternForNextVersion, sortStringPos), version)
+            createVersionLog(group, name, version, uv, versionList)
+            if(uv && versionList.contains(uv)) {
+                return uv
+            }
+        } else {
+            createWOList(group, name, version)
         }
         return null
+    }
+
+    /**
+     * Create output for existing version list.
+     *
+     * @param group            Module group or organization
+     * @param name             Module name or artifact id
+     * @param version          Configured version
+     * @param updateVersion    Updated version
+     * @param versionList      List wiht versions
+     */
+    private void createVersionLog(String group, String name, String version, String updateVersion, List<String> versionList) {
+        if(versionList) {
+            if (updateVersion && versionList.contains(updateVersion)) {
+                writeToUpdateLog("${group}:${name} has been updated from ${version} to ${updateVersion}.")
+                writeToUpdateLog("${group}:${name} was updated from ${versionList}")
+                writeToUpdateLog("------------------------------------------------------------")
+                project.logger.quiet('{}:{} has been updated from {} to {}', group, name, version, updateVersion)
+            } else {
+                writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
+                writeToUpdateLog("${group}:${name} was using ${versionList}")
+                writeToUpdateLog("------------------------------------------------------------")
+                project.logger.quiet('{}:{} was not updated.', group, name)
+            }
+        }
+    }
+
+    /**
+     * Create output for not existing versions.
+     *
+     * @param group            Module group or organization
+     * @param name             Module name or artifact id
+     * @param version          Configured version
+     */
+    private void createWOList(String group, String name, String version) {
+        writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
+        writeToUpdateLog("${group}:${name} was without version list.")
+        writeToUpdateLog("------------------------------------------------------------")
+        project.logger.info('{}:{} was not updated.', group, name)
     }
 
     /**

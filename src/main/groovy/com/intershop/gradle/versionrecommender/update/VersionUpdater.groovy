@@ -54,6 +54,11 @@ class VersionUpdater {
     public String ivyPattern
 
     /**
+     * Version log file
+     */
+    public File updateLogFile
+
+    /**
      * Constructor
      *
      * @param project   the target project
@@ -147,14 +152,26 @@ class VersionUpdater {
         List<String> versionList = getVersionList(group, name)
 
         if(versionList) {
-            project.logger.quiet('{}:{} with {}', group, name, versionList)
             String uv = calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
             if(uv) {
-                project.logger.quiet('{}:{} has been updated updated from {} to {}', group, name, version, uv)
+                writeToUpdateLog("${group}:${name} has been updated from ${version} to ${uv}.")
+                writeToUpdateLog("${group}:${name} was updated from ${versionList}")
+                writeToUpdateLog("------------------------------------------------------------")
+                project.logger.quiet('{}:{} has been updated from {} to {}', group, name, version, uv)
                 return uv
+            } else {
+                writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
+                writeToUpdateLog("${group}:${name} was using ${versionList}")
+                writeToUpdateLog("------------------------------------------------------------")
+                project.logger.quiet('{}:{} was not updated.', group, name)
             }
         }
-        project.logger.quiet('{}:{} was not updated. The version is still {}', group, name, version)
+
+        writeToUpdateLog("${group}:${name} was not updated. Version is still ${version}")
+        writeToUpdateLog("${group}:${name} was without version list.")
+        writeToUpdateLog("------------------------------------------------------------")
+        project.logger.info('{}:{} was not updated.', group, name)
+
         return null
     }
 
@@ -486,4 +503,20 @@ class VersionUpdater {
 
         return filteredList
     }
+
+    /**
+     * Create a logfile if configured with parent directory.
+     * The entry will be appended to the log file.
+     *
+     * @param entry
+     */
+    private synchronized void writeToUpdateLog(String entry) {
+        if(updateLogFile) {
+            if(! updateLogFile.exists()) {
+                updateLogFile.getParentFile().mkdirs()
+            }
+            updateLogFile << '\n' << entry
+        }
+    }
+
 }

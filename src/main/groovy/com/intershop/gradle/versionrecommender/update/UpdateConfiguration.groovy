@@ -15,6 +15,7 @@
  */
 package com.intershop.gradle.versionrecommender.update
 
+import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.util.UpdatePos
 import groovy.transform.CompileStatic
 import org.gradle.api.NamedDomainObjectContainer
@@ -27,9 +28,13 @@ import org.gradle.api.Project
 @CompileStatic
 class UpdateConfiguration {
 
-    /**
-     * Version updater class
-     */
+    // the target project
+    private Project project
+
+    // Update log file
+    private File updateLogFile
+
+    // Version updater class
     private VersionUpdater updater
 
     /**
@@ -53,6 +58,20 @@ class UpdateConfiguration {
     String defaultUpdate = UpdatePos.HOTFIX.toString()
 
     /**
+     * Update log file
+     */
+    void setUpdateLogFile(File logfile){
+        this.updateLogFile = logfile
+    }
+
+    File getUpdateLogFile() {
+        if(! updateLogFile) {
+            updateLogFile = new File(project.getRootProject().getBuildDir(), "${VersionRecommenderExtension.EXTENSIONNAME}/update/update.log")
+        }
+        return updateLogFile
+    }
+
+    /**
      * Read access to the default update position.
      *
      * @return update position for semantic versions
@@ -73,7 +92,11 @@ class UpdateConfiguration {
      * @param project the target project
      */
     UpdateConfiguration(Project project) {
-        updater = new VersionUpdater(project)
+        this.project = project
+
+        updater = new VersionUpdater(this.project)
+        updater.updateLogFile = getUpdateLogFile()
+
         updateConfigItemContainer = project.container(UpdateConfigurationItem)
     }
 

@@ -514,6 +514,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         then:
         resultUpdate.task(':updateComplex').outcome == SUCCESS
+        (new File(testProjectDir, 'build/versionRecommendation/update/update.log')).exists()
+        (new File(testProjectDir, 'build/versionRecommendation/properties.version')).exists()
     }
 
     def 'test complex properties update with exclude configuration'() {

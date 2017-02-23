@@ -53,6 +53,7 @@ class Update extends DefaultTask {
                 p.update(ext.updateConfiguration)
             }
         }
+        println "See for more information in update log: ${ext.updateConfiguration.updateLogFile}"
     }
 
     /**

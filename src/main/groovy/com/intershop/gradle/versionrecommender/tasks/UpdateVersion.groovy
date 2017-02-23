@@ -38,6 +38,8 @@ class UpdateVersion extends DefaultTask {
     @Input
     RecommendationProvider provider
 
+    File updateLogFile
+
     /**
      * Task action
      */
@@ -48,6 +50,7 @@ class UpdateVersion extends DefaultTask {
         }
         VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
         provider.update(ext.updateConfiguration)
+        println "See for more information in update log: ${ext.updateConfiguration.updateLogFile}"
     }
 
     /**

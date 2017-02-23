@@ -49,7 +49,8 @@ if (project.version.endsWith('-SNAPSHOT')) {
 }
 
 test {
-    systemProperty 'intershop.host.url',          'https://repository.intershop.de:443/ivy-releases/'
+    systemProperty 'intershop.host.ivy.url',          'https://repository.intershop.de:443/ivy-releases/'
+    systemProperty 'intershop.host.mvn.url',          'https://repository.intershop.de:443/mvn-releases/'
     systemProperty 'intershop.host.username',      System.getenv('ISHUSERNAME') ?: System.getProperty('ISHUSERNAME')
     systemProperty 'intershop.host.userpassword',  System.getenv('ISHKEY') ?: System.getProperty('ISHKEY')
 
@@ -147,18 +148,18 @@ publishing {
                 root.appendNode('description', project.description)
                 root.appendNode('url', "https:/gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
 
-                def scm = root.appendNode( 'scm' )
-                scm.appendNode( 'url', "https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
-                scm.appendNode( 'connection', "scm:git:https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}.git")
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', "https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
+                scm.appendNode('connection', "scm:git:https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}.git")
 
-                def org = root.appendNode( 'organization' )
-                org.appendNode( 'name', 'Intershop Communications' )
-                org.appendNode( 'url', 'http://intershop.com' )
+                def org = root.appendNode('organization')
+                org.appendNode('name', 'Intershop Communications')
+                org.appendNode('url', 'http://intershop.com')
 
-                def license = root.appendNode( 'licenses' ).appendNode( 'license' );
-                license.appendNode( 'name', 'Apache License, Version 2.0' )
-                license.appendNode( 'url', 'http://www.apache.org/licenses/LICENSE-2.0' )
-                license.appendNode( 'distribution', 'repo' )
+                def license = root.appendNode('licenses').appendNode('license');
+                license.appendNode('name', 'Apache License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0')
+                license.appendNode('distribution', 'repo')
             }
         }
     }

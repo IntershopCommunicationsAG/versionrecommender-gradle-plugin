@@ -15,11 +15,14 @@
  */
 package com.intershop.gradle.versionrecommender.update
 
+import com.intershop.gradle.versionrecommender.util.ConfigurationException
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.NodeChild
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.HttpResponseException
+
+import java.util.regex.Matcher
 
 /**
  * This class provides methods to collect all available version in remote based repositories.
@@ -42,13 +45,14 @@ class HTTPVersionProvider {
      */
     public static List<String> getVersionFromMavenMetadata(String repo, String group, String artifactid, String username = '', String password = '') {
         List<String> versions = []
+        Map<String, String> hostPath = getHostPath(repo)
 
-        HTTPBuilder http = getHttpBuilder(repo, username, password)
+        HTTPBuilder http = getHttpBuilder(hostPath.host , username, password)
         http.parser.'application/unknown' = http.parser.'application/xml'
 
         try {
             versions = http.get(
-                    path: "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml",
+                    path: "${hostPath.path ?: ''}/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml",
                     contentType: ContentType.XML) { resp, xml ->
                 if (!xml) {
                     return []
@@ -121,6 +125,7 @@ class HTTPVersionProvider {
         setProxySettings(http)
 
         if(username && password) {
+            log.info('User {} is used for access.', username)
             http.setHeaders([Authorization: "Basic ${"${username}:${password}".bytes.encodeBase64().toString()}"])
         }
         return http
@@ -138,8 +143,25 @@ class HTTPVersionProvider {
         String port =  System.getProperty("${scheme}.proxyPort")
 
         if(port && hostname) {
+            log.info('Proxy host is used: {}://{}:{}', scheme, hostname, port)
             http.setProxy(hostname, port, scheme)
         }
     }
 
+    /**
+     * Calculates the host url and the path from a given String.
+     *
+     * @param repodef
+     * @return Map with two keys - host and path
+     */
+    private static Map<String, String> getHostPath(repodef) {
+        Matcher hostPathMatcher = repodef =~ /^(.*:)\/\/([A-Za-z0-9\-\.]+)(:[0-9]+)?(.*)$/
+        if(hostPathMatcher.matches()){
+            String hostPath = hostPathMatcher.group(4) != '/' ? hostPathMatcher.group(4) : ''
+            return [host: "${hostPathMatcher.group(1)}//${hostPathMatcher.group(2)}${hostPathMatcher.group(3) ?: ''}",
+                    path: hostPath]
+        } else {
+            throw new ConfigurationException("${repodef} is not a host url!")
+        }
+    }
 }

@@ -192,7 +192,7 @@ This provider can be used with additional properties.
 |Property                   | Type                  | Default value | Description
 |*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
 existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
-|*workingDir*               | `File`                | buildDir/versionRecommendation | This directory is used for temporary version files.
+|*workingDir*               | `File`                | `buildDir/versionRecommendation` | This directory is used for temporary version files.
 The name of this file is `'.pom[ProviderName].version'`. This version configuration will overwrite the build script and the
 configuration in the configuration directory.
 |*configDir*                | `File`                | projectDir | This directory is used for persistent version files. The name
@@ -270,6 +270,9 @@ The paramters are group, name, version. It returns null if no newer version was 
 |Property                   | Type              | Default value     | Description
 |*ivyPattern*               | `String`          | ''                | An ivy pattern for Ivy Repositories. See http://ant.apache.org/ivy/history/latest-milestone/concept.html.
 Without this pattern Ivy repositories will be not analyzed.
+|*updateLogFile*            | `File`            | `buildDir/ +
+versionRecommendation/ +
+update/update.log` |  This file contains more detailed information.
 |*defaultUpdateProvider*    | `List<String>`    | `[]`              | A list of providers which will be updated if the task `'update'` runs.
 |*defaultUpdate*            | `String`          | `HOTFIX`          | String representation of updatePos. This attribute is
 readable and writable. The following values are possible `MAJOR`, `MINOR`, `PATCH`, `HOTFIX` and `NONE`.

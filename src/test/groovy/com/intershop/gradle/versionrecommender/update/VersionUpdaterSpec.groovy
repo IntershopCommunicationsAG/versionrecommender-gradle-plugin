@@ -24,6 +24,7 @@ import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import org.junit.rules.TestName
+import spock.lang.Requires
 import spock.lang.Specification
 
 class VersionUpdaterSpec extends Specification {
@@ -254,6 +255,11 @@ class VersionUpdaterSpec extends Specification {
         uv == null
     }
 
+    @Requires({
+        System.properties['intershop.host.ivy.url'] &&
+                System.properties['intershop.host.username'] &&
+                System.properties['intershop.host.userpassword']
+    })
     def 'getUpdateVersion from Ivy with semantic versions from repo'() {
         when:
         String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
@@ -262,7 +268,7 @@ class VersionUpdaterSpec extends Specification {
         project.repositories {
             ivy {
                 name 'ivy'
-                url System.properties['intershop.host.url']
+                url System.properties['intershop.host.ivy.url']
                 layout('pattern') {
                     ivy ivyPattern
                     artifact artifactPattern
@@ -284,6 +290,37 @@ class VersionUpdaterSpec extends Specification {
         uv == '11.0.13'
     }
 
+    @Requires({
+        System.properties['intershop.host.mvn.url'] &&
+                System.properties['intershop.host.username'] &&
+                System.properties['intershop.host.userpassword']
+    })
+    def 'getUpdateVersion from MVN with semantic versions from repo'() {
+        when:
+        project.repositories {
+            maven {
+                name 'mvn'
+                url System.properties['intershop.host.mvn.url']
+                credentials {
+                    username System.properties['intershop.host.username']
+                    password System.properties['intershop.host.userpassword']
+                }
+            }
+        }
+
+        VersionUpdater vu = new VersionUpdater(project)
+
+        String uv = vu.getUpdateVersion('com.intershop.build.release', 'intershop-buildinfo-plugin', '2.0.1')
+
+        then:
+        uv == '2.0.4'
+    }
+
+    @Requires({
+        System.properties['intershop.host.ivy.url'] &&
+                System.properties['intershop.host.username'] &&
+                System.properties['intershop.host.userpassword']
+    })
     def 'getUpdateVersion from Ivy with semantic versions from repo - module does not exists'() {
         when:
         String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
@@ -292,7 +329,7 @@ class VersionUpdaterSpec extends Specification {
         project.repositories {
             ivy {
                 name 'ivy'
-                url System.properties['intershop.host.url']
+                url System.properties['intershop.host.ivy.url']
                 layout('pattern') {
                     ivy ivyPattern
                     artifact artifactPattern
@@ -314,6 +351,11 @@ class VersionUpdaterSpec extends Specification {
         uv == null
     }
 
+    @Requires({
+        System.properties['intershop.host.ivy.url'] &&
+                System.properties['intershop.host.username'] &&
+                System.properties['intershop.host.userpassword']
+    })
     def 'getUpdateVersion from Ivy with semantic versions from repo - module exists only local'() {
         when:
         File repoDir = new File(testProjectDir, 'repo')
@@ -337,7 +379,7 @@ class VersionUpdaterSpec extends Specification {
             jcenter()
             ivy {
                 name 'ivy'
-                url System.properties['intershop.host.url']
+                url System.properties['intershop.host.ivy.url']
                 layout('pattern') {
                     ivy ivyPattern
                     artifact artifactPattern
@@ -376,7 +418,8 @@ class VersionUpdaterSpec extends Specification {
         String uv = vu.getUpdateVersion('org.eclipse.jetty','jetty-server','9.3.11.v20160721', '\\.v\\d+', UpdatePos.MINOR)
 
         then:
-        uv == '9.4.1.v20170120'
+        uv != null
+        uv.startsWith('9.4')
     }
 
     def 'getUpdateVersion with google version from Maven with semantic versions from jcenter'() {

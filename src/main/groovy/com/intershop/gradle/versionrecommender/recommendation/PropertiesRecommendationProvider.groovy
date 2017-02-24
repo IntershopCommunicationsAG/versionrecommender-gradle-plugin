@@ -136,13 +136,16 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
             svp.keySet().each {
                 if(! checkExclude(it.toString())) {
                     String[] groupModul = it.toString().split(':')
-                    String oldVersion = svp.getProperty(it.toString(), '')
+                    if(! it.toString().contains('*') && groupModul.size() == 2) {
+                        String oldVersion = svp.getProperty(it.toString(), '')
+                        String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
 
-                    String updateVersion = updateConfig.getUpdate(groupModul[0], groupModul.length > 1 ? groupModul[1] : '', oldVersion)
-
-                    if (updateVersion && updateVersion != oldVersion) {
-                        svp.setProperty(it.toString(), updateVersion)
-                        propertiesChanged = true
+                        if (updateVersion && updateVersion != oldVersion) {
+                            svp.setProperty(it.toString(), updateVersion)
+                            propertiesChanged = true
+                        }
+                    } else {
+                        log.info('{} is a pattern or an incorrect dependency.', it)
                     }
                 }
             }

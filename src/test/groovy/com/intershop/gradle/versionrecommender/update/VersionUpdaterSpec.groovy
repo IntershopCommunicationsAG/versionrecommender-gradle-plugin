@@ -105,6 +105,55 @@ class VersionUpdaterSpec extends Specification {
         uv == '1.0.1'
     }
 
+    def 'getUpdateVersion from Maven with semantic versions and milestone builds from local directory'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.0-dev1') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0-dev1'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.0-dev2') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0-dev2'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.0-dev3') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0-dev3'
+            }
+        }.writeTo(repoDir)
+
+        File metadata = new File(repoDir, 'com/intershop/gradle/jaxb/jaxb-gradle-plugin/maven-metadata.xml')
+
+        MarkupBuilder xmlMetadata = new MarkupBuilder(metadata.newWriter())
+        xmlMetadata.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
+        xmlMetadata.metadata {
+            groupId { mkp.yield('com.intershop.gradle.jaxb')}
+            artifactId { mkp.yield('jaxb-gradle-plugin')}
+            version { mkp.yield('1.0.0-dev3')}
+            versioning {
+                latest { mkp.yield('1.0.0-dev3')}
+                release { mkp.yield('1.0.0-dev3')}
+                versions {
+                    version { mkp.yield('1.0.0-dev1')}
+                    version { mkp.yield('1.0.0-dev2')}
+                    version { mkp.yield('1.0.0-dev3')}
+                }
+                lastUpdated { mkp.yield('20160923190059')}
+            }
+        }
+
+        project.repositories.maven {
+            name 'mvnLocal'
+            url "file://${repoDir.absolutePath}"
+        }
+
+        VersionUpdater vu = new VersionUpdater(project)
+        String uv = vu.getUpdateVersion('com.intershop.gradle.jaxb','jaxb-gradle-plugin','1.0.0-dev1')
+
+        then:
+        metadata.exists()
+        uv == '1.0.0-dev3'
+    }
+
     def 'getUpdateVersion from Maven with non semantic versions from local directory with different update configs'() {
         when:
         File repoDir = new File(testProjectDir, 'repo')

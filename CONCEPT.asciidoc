@@ -5,24 +5,24 @@
 == Initial Situation
 
 === Internal Project Dependencies
-- frequent changes on patch or minor level for released versions
-- the trunk of different projects use integration releases
-- update is maintained manually
-- small number of projects ( < 20 )
+- Frequent changes on patch or minor level for released versions
+- The trunks of different projects are using integration releases
+- Update is maintained manually
+- Small number of projects ( < 20 )
 
 === External Project Dependencies
-- more than 100 dependencies in the platform project
-- other projects have 25, 11 or none different dependencies
-- conflicts between internal projects are possible
-- updates are difficult, because there are a lot of transitive dependencies with conflicts
+- More than 100 dependencies in the platform project
+- Other projects have 25, 11 or none different dependencies.
+- Conflicts between internal projects are possible.
+- Updates are difficult, because there are a lot of transitive dependencies that may cause conflicts.
 
 == Requirements
 === Product or Internal Project Dependencies
-- updates of internal should be maintained automatically
-* based on a branch of the main product the version of the dependencies should be updated automatically and tested
-* the update must consider the used version of the branch so that the main version always remains stable
-* the order of versions must be correct handled
-* it is necessary to support Subversion as well Git
+- Updates of internal should be maintained automatically.
+* Based on a branch of the main product the version of the dependencies should be updated automatically and tested
+* The update must consider the used version of the branch. This ensures that the main version always remains stable.
+* The order of versions must be handled correctly.
+* Support of Subversion and Git is mandatory.
 
 .order of the ivy resolver for `1.0.+`
 ----
@@ -36,12 +36,12 @@
         latest: 1.0.1
 ----
 
-- a developer must be able to override these versions easily and reproducibly with a local version
-** this configuration must be handled in a separate file
-** the file must not be stored in the VCS, furthermore it must be possible to create a configuration in the VCS, that prevent the storage
-** the handling should be supported by some helper tasks
-- it must be possible to specify a version of a component or a version of a filter configuration
-- the configuration of internal dependencies must be configured in a separated file
+- A developer must be able to override these versions easily and reproducibly with a local version.
+** This configuration must be handled in a separate file.
+** The file *must not* be stored in the VCS. Furthermore, it must be possible to create a configuration in the VCS to prevent the storage at all.
+** The handling should be supported by some helper tasks.
+- It must be possible to specify a version of a component or a version of a filter configuration.
+- The configuration of internal dependencies has to be configured in a separated file.
 
 === Standards Filter Formats
 - bom
@@ -50,20 +50,20 @@
 - properties
 
 === External Library Dependencies
-- all external dependencies should be maintained in one single configuration
-** this dependency management configuration should be handled like other internal projects
-** the result of this project should be published in a Maven or Ivy project
-** other projects should use the dependency management configuration like a filter for versions
-** the update of this dependencies should be maintained manually, but supported by some helper tasks
-** it must be possible to control the update process
-*** update for all dependencies on the same level (major, minor, patch)
-*** conflicts must be logged
-*** conflict resolution must be configurable
-- versions of some libraries does not follow semantic versioning, but it must be possible to specify an update rule also for these special dependencies
-- the dependency management configuration must be deliverable to all customers
-** in a customer project, this configuration must also be overwritten
-** it should be possible to use other configurations for filtering dependencies with a version
--  Updates should be used only from configured repositories.
+- All external dependencies should be maintained in one single configuration.
+** This dependency management configuration should be handled like any other internal project.
+** The result of this project should be published via a Maven or an Ivy project.
+** Other projects should use the dependency management configuration like a filter for versions.
+** The update of this dependencies should be maintained manually, but supported by some helper tasks.
+** It must be possible to control the update process.
+*** Updates for all dependencies should be done on the same level (major, minor, patch).
+*** Conflicts must be logged.
+*** A conflict resolution must be configurable.
+- Versions of some libraries do not follow semantic versioning. Nonetheless it must be possible to specify an update rule also for these special dependencies.
+- The dependency management configuration must be deliverable to all customers.
+** In a customer project, this configuration must also be overwritten.
+** It should be possible to use other configurations for filtering dependencies with a version.
+-  Updates should be pulled only from configured repositories.
 
 === Questions and Answers - Issues and Discussion
 - What should happen if a dependency with a correct version is specified?
@@ -74,33 +74,33 @@
 . If the dependency is listed in the dependency filter the version is not used and
 .. an error is thrown.
 .. the version is taken from the filter configuration.
-. If the dependeny is a transitiv dependency of a configured dependency and the version does not match an error is thrown.
+. In case of a transitiv dependency downstream from a configured dependency with a version that does not match - an error is thrown.
 
-I think all use cases are conceivable options. Therefore it should be configurable.
+Since all use cases are conceivable options, each should be configurable.
 
 - Which format should be used for lock files and configuration files?
 
-I think json format is readable and easy to use.
+I think JSON format is readable and easy to use.
 
 == Workflow - Automatic Updates for Internal Dependencies
-.  triggered by new available release versions (Check repository for changes)
+.  Triggered by new available release versions (check repository for changes)
 .. https://marketplace.atlassian.com/plugins/com.entertainment.bamboo.plugins.httpclient/server/overview
 .. https://marketplace.atlassian.com/plugins/fr.armotic.bamboo.plugins.filedownloader/server/overview
 .. https://marketplace.atlassian.com/plugins/org.gaptap.bamboo.maven.maven-artifact-download-plugin/server/overview
-.. Implement own plugin for Bamboo
-. commit change to VCS, because the change must be used and the build takes more time
-. an automatic build is triggered by the change in the VCS
-. if the build fails a message must be sent to a group of people
+.. Implement own plugin for Bamboo.
+. Commit changes to VCS, because the change must be used and the build takes more time.
+. An automatic build is triggered due to the change in the VCS.
+. If a build fails a message must be sent to a group of people.
 
 == Development Workflow - Update External Libraries
-. Project with dependency decleration can be used
-.. for testing dependencies
-.. analyzing transitiv dependencies
-.. the result of this project can be published to a local repository
+. Project with dependency decleration can be used:
+.. For testing dependencies.
+.. Analyzing transitiv dependencies.
+.. The result of this project can be published to a local repository.
 
 . The result from step 1 can be used in the real projects for testing.
-.. The update of this configuration should be supported by special gradle tasks.
-.. It should be possible to unlock the version in a special file, so that an automatic update is practicable.
+.. The update of this configuration should be supported by special Gradle tasks.
+.. It should be possible to unlock the version in a special file. So that an automatic update is feasible.
 
 . After testing it is possible to use the same configuration for all projects.
 
@@ -135,7 +135,7 @@ https://github.com/ben-manes/gradle-versions-plugin[com.github.ben-manes.version
 
 https://github.com/4finance/uptodate-gradle-plugin[com.ofg.uptodate]
 
-- Gradle plugin that tells you what libs have new versions on the specified Maven repository
+- Gradle plugin that tells you what libs have new versions on the specified Maven repository.
 
 https://github.com/nebula-plugins/nebula-dependency-recommender[nebula.dependency-recommender]
 
@@ -143,7 +143,7 @@ https://github.com/nebula-plugins/nebula-dependency-recommender[nebula.dependenc
 
 https://github.com/nebula-plugins/gradle-dependency-lock-plugin[nebula.dependency-lock]
 
-- A plugin to allow people using dynamic dependency versions to lock them to specific versions.
+- A plugin that allows to use dynamic dependency versions to lock them to specific versions.
 
-Unfortunately there is no plugin which match all requirements. There are some good ideas and implementations in these
+Unfortunately there is no single plugin that matches all requirements. There are some good ideas and implementations in these
 plugins, but it is not possible to combine plugins.

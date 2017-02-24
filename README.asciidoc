@@ -11,11 +11,13 @@ the version number empty in your configuration. The following version recommenda
 * Properties file
 * Static properties
 
-Dependent on the kind of version provider it is possible to run automatic updates on request. This plugin
-provides furthermore an extension for the generation of Ivy or BOM file filters.
+Depending on the kind of version provider it is possible to run automatic updates on request. In addition this plugin
+provides an extension to create Ivy or BOM file filters.
+
+NOTE: This plugin should always be applied to the root project.
 
 == Usage
-To use the Version Recommender plugin provided by Intershop, include the following in your build script of your *root* project:
+To use the Version Recommender plugin provided by Intershop, include the following code snippet into the build script of your *root* project:
 
 [source,groovy]
 [subs=+attributes]
@@ -37,8 +39,6 @@ versionRecommendation {
 }
 ----
 
-This plugin will always applied to the root project.
-
 == Tasks
 The Version Recommender plugin adds the following tasks to the project:
 
@@ -55,18 +55,18 @@ can be started with this task. The update functionality can be configured in the
 |store__[ProviderName]__        |StoreUpdateVersion |Store the temporary changes to the configuration directory.
 |reset__[ProviderName]__        |ResetVersion       |The temporary changes will be removed.
 |update                         |Update             |An update for configured providers can be started with this task.
-The configuration of these providers can be done with `'defaultUpdateProvider'`.
+These providers can be configured with `'defaultUpdateProvider'`.
 |store                          |StoreUpdate        |Temporary changes of configured providers will be stored in the
-configuration directory with this task. The configuration of these providers can be done with `'defaultUpdateProvider'`.
+configuration directory with this task. These providers can be configured with `'defaultUpdateProvider'`.
 |reset                         |ResetAllVersion    |This task removes all temporary changes of all providers.
 |===
 
-All tasks are part of the package `'com.intershop.gradle.versionrecommender.tasks'`
+All tasks are part of the package `'com.intershop.gradle.versionrecommender.tasks'`.
 
 The tasks are only available for filters with an dependency configuration or for the property filter configuration if
 the file is located in the project directory. Temporary version configuration will be stored in files in a working
 directory, which is per default located in the build directory of the root project.
-The file name of this configuration is `'._[providerType][ProviderName]_.version'`, eg. `.ivyProviderName.version`.
+The file name of this configuration is `'._[providerType][ProviderName]_.version'`, e.g., `.ivyProviderName.version`.
 
 == Project Extension 'versionRecommendation'
 
@@ -86,7 +86,7 @@ The order of items depends on the order in the build configuration
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
 |Property                   | Type        | Default value | Description
-|*forceRecommenderVersion*  | `boolean`   | `false`       | If this variable is true, the version is always taken from
+|*forceRecommenderVersion*  | `boolean`   | `false`       | If set to `true`, the version is always taken from
 the version recommendation. This will override configured versions in dependencies.
 |===
 
@@ -94,11 +94,11 @@ the version recommendation. This will override configured versions in dependenci
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
 |Method                                 | Type                                | Description
-|*ivy*(String, Object, Closure)         | IvyRecommendationProvider           | Adds an Ivy based recommendation provider.
-|*pom*(String, Object, Closure)         | MavenRecommendationProvider         | Adds a Pom based recommendation provider.
-|*properties*(String, Object, Closure)  | PropertiesRecommendationProvider    | Adds a properties file base recommendation provider.
-|*properties*(String, Closure)          | PropertiesRecommendationProvider    | Adds a property configuration with a map.
-|*getVersion*(String, String)           | String                              | Returns a version from the provider list configuration or null.
+|*ivy*(String, Object, Closure)         | IvyRecommendationProvider           | Adds an Ivy based recommendation provider
+|*pom*(String, Object, Closure)         | MavenRecommendationProvider         | Adds a Pom based recommendation provider
+|*properties*(String, Object, Closure)  | PropertiesRecommendationProvider    | Adds a properties file base recommendation provider
+|*properties*(String, Closure)          | PropertiesRecommendationProvider    | Adds a property configuration with a map
+|*getVersion*(String, String)           | String                              | Returns a version from the provider list configuration or null
 |===
 
 The first parameter is always the name of the provider. It is used for project properties and tasks.
@@ -107,7 +107,7 @@ The second parameter is the input of the provider. The following inputs are poss
 
 - *Dependency*
 ** This can be a Map, eg. `[group: 'com.company', name: 'module', version: 'version']`, or +
-a String, eg. 'com.company:module:version'
+a String, e.g., `com.company:module:version`
 ** It is possible to leave the version empty, so that the provider is not used per default. With `'set[ProviderName]'`
 it is possible to enable this provider with a specific version.
 ** The version can be adapted for this input configuration, with `'set[ProviderName]'`, `'setLocal[ProviderName]'`,
@@ -118,10 +118,10 @@ it is possible to enable this provider with a specific version.
 - *File*
 ** This is the configuration for a special file. This file should be part of the project.
 ** If this is specified for a properties provider, the versions inside of the file are adaptable and
-selected properties can be exclude if necessary with a configuration.
+selected properties can be excluded with a configuration if necessary.
 
 ===== Ivy Recommendation Provider
-The Ivy recommendation provider uses an Ivy file for the creation of a map with modules and versions. All dependency
+The Ivy recommendation provider uses an Ivy file to create a map with modules and versions. All dependency
 configurations are used and Ivy configurations are not considered. Of course it is possible to configure this provider
 also with an URL or with a file definition, but a dependency definition should be the most common configuration for this provider.
 The dependency configuration of the provider is also added to the version map of the provider.
@@ -150,12 +150,12 @@ This provider can be used with additional properties.
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
 |Property                   | Type                  | Default value | Description
-|*transitive*               | `boolean`             | `false`       | All dependencies from the Ivy file will be resolved transitive.
-|*overrideTransitiveDeps*   | `boolean`             | `false`       | If a different version is found for a module in a transitive
-dependency, and this version is greater than the previous version, the first version is overwritten.
-|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
-existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
-|*workingDir*               | `File`                | buildDir/versionRecommendation | This directory is used for temporary version files.
+|*transitive*               | `boolean`             | `false`       | If set to `true`, all dependencies from the Ivy file will be resolved transitive.
+|*overrideTransitiveDeps*   | `boolean`             | `false`       | If set to `true`, the provider will override a previous version for a module if it 
+finds a later version of that very module via a transitive dependency.
+|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added at the end of the
+existing map. This version map can also contain patterns for the key, e.g., `'com.company:*'`.
+|*workingDir*               | `File`                | `buildDir/versionRecommendation` | This directory is used for temporary version files.
 The name of this file is `'.ivy[ProviderName].version'`. This version configuration will overwrite the build script and the
 configuration in the configuration directory.
 |*configDir*                | `File`                | projectDir | This directory is used for persistent version files. The name
@@ -163,7 +163,7 @@ of this file is `'.ivy[ProviderName].version'`. This version configuration will 
 |===
 
 ===== Pom Recommendation Provider
-The Maven recommendation provider uses a Maven Bom file for the creation of a map with modules and versions. All dependency
+The Maven recommendation provider uses a Maven Bom file to create a map with modules and versions. All dependency
 configurations are used and a scope is not considered. Of course it is possible to configure this provider
 also with an URL or with a file definition, but a dependency definition should be the most common configuration for this provider.
 All dependencies are resolved transitive and the dependency configuration of the provider is also added to the version map of the provider.
@@ -191,7 +191,7 @@ This provider can be used with additional properties.
 |===
 |Property                   | Type                  | Default value | Description
 |*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
-existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
+existing map. This version map can also contain patterns for the key, e.g., `'com.company:*'`.
 |*workingDir*               | `File`                | `buildDir/versionRecommendation` | This directory is used for temporary version files.
 The name of this file is `'.pom[ProviderName].version'`. This version configuration will overwrite the build script and the
 configuration in the configuration directory.
@@ -200,11 +200,11 @@ of this file is `'.pom[ProviderName].version'`. This version configuration will 
 |===
 
 ===== Properties Recommendation Provider
-The properties recommendation provider uses a properties file for the creation of a map with modules and versions. The format
-of this property file is special, because a colon is allowed in the keys. Furthermore the format and the order of all entries
+The properties recommendation provider uses a properties file to create a map with modules and versions. The format
+of this property file is special, because a colon is allowed in the keys. Furthermore, the format and the order of all entries
 will be preserved, if the file is changed by a task.
 
-The input of this provider can be also an URL or dependency, but this input types are not supported by the tasks for version adaptions.
+The input of this provider may also be an URL or dependency, but this input types are not supported by the tasks for version adaptions.
 
 [source,groovy]
 .build.gradle
@@ -223,7 +223,7 @@ versionRecommendation {
 }
 ----
 
-It is also possible to specify static properties only with an properties provider configuration
+It is also possible to specify static properties only with an properties provider configuration.
 
 [source,groovy]
 .build.gradle
@@ -245,42 +245,42 @@ This provider can be used with additional properties.
 |Property                   | Type                  | Default value | Description
 |*changeExcludes*           | `List<String>`        | `[]`          | The property keys that match to one of this items,
 are not changed by `'set[ProviderName]'`, `'setLocal[ProviderName]'`, `'setSnapshot[ProviderName]'` and `'update[ProviderName]'`.
-|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added on the end of the
-existing map. This version map can also contain patterns for the key, eg. 'com.company:*'.
-|*workingDir*               | `File`                | buildDir/versionRecommendation | This directory is used for temporary property files.
+|*versionMap*               | `Map<String, String>` | `[:]`         | The entries of this map will be added at the end of the
+existing map. This version map can also contain patterns for the key, e.g., `'com.company:*'`.
+|*workingDir*               | `File`                | `buildDir/versionRecommendation` | This directory is used for temporary property files.
 The name of this file is the configured one. This version configuration will overwrite the configuration in the configuration directory.
 |===
 
-==== [[updateConfiguration]]Update configuration 'updateConfiguration' (`UpdateConfiguration`)
+==== [[updateConfiguration]]Update Configuration 'updateConfiguration' (`UpdateConfiguration`)
 This configuration configures the update functionality.
 
 ===== Methods
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
 |Method                                         | Type   | Description
-|*updateConfigItemContainer*(Closure)           | <<updateConfigItemContainer,UpdateConfigurationItem>>       | Configures an item configuration container.
-|*addConfigurationItem*(UpdateConfigurationItem)|        | Adds an item to the configuration container.
+|*updateConfigItemContainer*(Closure)           | <<updateConfigItemContainer,UpdateConfigurationItem>>       | Configures an item configuration container
+|*addConfigurationItem*(UpdateConfigurationItem)|        | Adds an item to the configuration container
 |*getUpdate*(String, String, String)            | String | Returns an updated version for a specified group, module name and the original version.
-The paramters are group, name, version. It returns null if no newer version was found.
+The paramters are `group`, `name`, `version`. It returns null if no newer version was found.
 |===
 
 ===== Attributes
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
 |Property                   | Type              | Default value     | Description
-|*ivyPattern*               | `String`          | ''                | An ivy pattern for Ivy Repositories. See http://ant.apache.org/ivy/history/latest-milestone/concept.html.
-Without this pattern Ivy repositories will be not analyzed.
+|*ivyPattern*               | `String`          | ''                | An Ivy pattern for Ivy Repositories. See http://ant.apache.org/ivy/history/latest-milestone/concept.html.
+Without this pattern Ivy repositories will not be analyzed.
 |*updateLogFile*            | `File`            | `buildDir/ +
 versionRecommendation/ +
 update/update.log` |  This file contains more detailed information.
 |*defaultUpdateProvider*    | `List<String>`    | `[]`              | A list of providers which will be updated if the task `'update'` runs.
-|*defaultUpdate*            | `String`          | `HOTFIX`          | String representation of updatePos. This attribute is
+|*defaultUpdate*            | `String`          | `HOTFIX`          | String representation of `updatePos`. This attribute is
 readable and writable. The following values are possible `MAJOR`, `MINOR`, `PATCH`, `HOTFIX` and `NONE`.
-|*updatePos*                | `UpdatePos`       | `UpdatePos.HOTFIX`| This attribute gives the value of defaultUpdate as UpdatePos
-if the String can be converted. This is the default position for update tasks.
+|*updatePos*                | `UpdatePos`       | `UpdatePos.HOTFIX`| This attribute gives the value of `defaultUpdate` as `UpdatePos`
+if the string can be converted. This is the default position for update tasks.
 |===
 
-===== [[updateConfigItemContainer]]Update configuration item(`UpdateConfigurationItem`)
+===== [[updateConfigItemContainer]]Update Configuration Item(`UpdateConfigurationItem`)
 
 The order of the items is controlled by the container and is the alphabetical order of the names. The configuration is
 assigned to the dependencies over the group and module name. It is possible to use patterns.
@@ -309,33 +309,33 @@ versionRecommendation {
 }
 ----
 
-The example configuration `'updateJetty'` will be used for the update all dependencies with the organization `'org.eclipse.jetty'`.
-`'updateGoogleAPI' is used only for the update of 'com.google.apis:google-api-services-appsactivity'.
+The example configuration `'updateJetty'` will be used to update all dependencies to the organization `'org.eclipse.jetty'`.
+`'updateGoogleAPI'` is used only for the update of `'com.google.apis:google-api-services-appsactivity'`.
 
 ====== Attributes
 
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
 |Property                   | Type          | Default value     | Description
-|*org*                      | `String`      | `''`              | The pattern for the organization or group.
-If this attribute is empty this configuration matches to all.
-|*module*                   | `String`      | `''`              | The pattern for the module name or artifact id.
-If this attribute is empty this configuration matches to all.
+|*org*                      | `String`      | `''`              | The pattern for the organization or group
+If this attribute is empty this configuration matches in any case.
+|*module*                   | `String`      | `''`              | The pattern for the module name or artifact ID
+If this attribute is empty this configuration matches in any case.
 |*version*                  | `String`      | `''`              | This version is taken for the next update, if configured.
 4+<|The following property is used for the update of extended sematic versions. +
 See https://github.com/IntershopCommunicationsAG/extended-version
-|*update*                   | `String`      | `'HOTFIX'`        | String representation of updatePos. This attribute is
+|*update*                   | `String`      | `'HOTFIX'`        | String representation of `updatePos`. This attribute is
 readable and writable. The following values are possible `MAJOR`, `MINOR`, `PATCH`, `HOTFIX` and `NONE`.
-|*updatePos*                | `UpdatePos`   | `UpdatePos.HOTFIX`| This attribute gives the value of update as UpdatePos
-if the String can be converted. This is the default position for the update task.
-4+<|The next attributes are use for the configuration of semantic version with special extensions, eg. `2.0.0.201206130900-r`
-|*searchPattern*            | `String`      | `''`              | Search pattern for the extension, eg. `'\\.\\d+-r'`
+|*updatePos*                | `UpdatePos`   | `UpdatePos.HOTFIX`| This attribute gives the value of update as `UpdatePos`
+if the string can be converted. This is the default position for the update task.
+4+<|The next attributes are used to configure the semantic version with special extensions, e.g., `2.0.0.201206130900-r`
+|*searchPattern*            | `String`      | `''`              | Search pattern for the extension, e.g., `'\\.\\d+-r'`
 |*versionPattern*           | `String`      | `searchPattern`   | If the extension of the current version is different,
 it is possible to define a separate pattern.
-4+<|For very special versions like special Google libs, eg. `v1-rev12-1.21.0`, it is possible to use the next two attributes.
+4+<|For very special versions like special Google libs, e.g., `v1-rev12-1.21.0`, it is possible to use the next two attributes.
 |*patternForNextVersion*    | `String`      | `''`              | This pattern helps to identify a special part of the version string for
-comparison, eg. `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`
-|*sortStringPos*            | `int`         | `0`               | This number specifies the selected group for comparison, eg. 2.
+comparison, e.g., `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`
+|*sortStringPos*            | `int`         | `0`               | This number specifies the selected group for comparison, e.g., `2`.
 |===
 
 ====== Examples
@@ -346,8 +346,8 @@ comparison, eg. `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`
 [cols="25%,15%,60%", width="95%", options="header"]
 |===
 | Version Example           | Search Pattern | Comment
-| `'1.2.0.201112221803-r'`  | `'\\.\\d+-r'`  | '.201112221803-r' will be ignored and only '1.2.0' is used for comparison.
-| `'9.2.9.v20150224'`       | `'\\.v\\d+'`   | '.v20150224' will be ignored and only '9.2.9' is used for comparison.
+| `'1.2.0.201112221803-r'`  | `'\\.\\d+-r'`  | `'.201112221803-r'` will be ignored and only `'1.2.0'` is used for comparison.
+| `'9.2.9.v20150224'`       | `'\\.v\\d+'`   | `'.v20150224'` will be ignored and only `'9.2.9'` is used for comparison.
 |===
 
 - Special version strings
@@ -355,23 +355,23 @@ comparison, eg. `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`
 [cols="20%,35%,5%,40%", width="95%", options="header"]
 |===
 | Version Example           | Pattern | Pos | Comment
-|`'v1-rev12-1.21.0'`    | `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`  | 2 | Only 12 is used for comparison and update.
-|`'v1-rev12-1.21.0'`    | `'^(v1-rev12)(-1\\.)(\\d+)(\\.0)$'`| 3 | Only 21 is used for comparison and update.
+|`'v1-rev12-1.21.0'`    | `'^(v1-rev)(\\d+)(-1\\.21\\.0)$'`  | 2 | Only `12` is used for comparison and update.
+|`'v1-rev12-1.21.0'`    | `'^(v1-rev12)(-1\\.)(\\d+)(\\.0)$'`| 3 | Only `21` is used for comparison and update.
 |===
 
 == Project Extension 'versionManagement'
 
-This plugin adds an extension *`versionManagement`* to the root project. This extension contains methods which will
+This plugin adds an extension `versionManagement` to the root project. This extension contains methods that 
 add functionality to the publication configuration.
 
 === Methods
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
 |Method                         | Type                     | Description
-|*withSubProjects*(configure)   | List<Project> or Project | A list of sub projects or a single sub project, eg. `'subprojects'`
-|*fromConfigurations*(configure)| List<String> or String   | A list or a single configuration of the project, eg. `'compile'`.
+|*withSubProjects*(configure)   | List<Project> or Project | A list of sub projects or a single sub project, e.g., `'subprojects'`
+|*fromConfigurations*(configure)| List<String> or String   | A list or a single configuration of the project, e.g., `'compile'`.
 |*withDependencies*(configure)  | List<String> or String   | A list or a single string with a dependency configuration,
-eg.`` 'com.company:module:version'``.
+e.g., `'com.company:module:version'`.
 |===
 
 === Usage
@@ -433,7 +433,7 @@ repositories {
 }
 ----
 
-This will generate the following ivy.xml with publish.
+Executing the Gradle publishing task will generate the following _ivy.xml_ file.
 
 [source,xml]
 .ivy.xml
@@ -516,7 +516,7 @@ repositories {
 }
 ----
 
-This will generate the following pom file with publish.
+Executing the Gradle publishing task will generate the following _*.pom_ file.
 
 [source,xml]
 .mvn-filter.pom

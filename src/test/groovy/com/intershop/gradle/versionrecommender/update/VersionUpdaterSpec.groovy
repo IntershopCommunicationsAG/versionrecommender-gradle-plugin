@@ -105,6 +105,73 @@ class VersionUpdaterSpec extends Specification {
         uv == '1.0.1'
     }
 
+    def 'getUpdateVersion from Maven with non semantic versions from local directory with different update configs'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.0.ga') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0.ga'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.1.ga') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.1.ga'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.1.0.ga') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.1.0.ga'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '2.0.0.ga') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '2.0.0.ga'
+            }
+        }.writeTo(repoDir)
+
+        File metadata = new File(repoDir, 'com/intershop/gradle/jaxb/jaxb-gradle-plugin/maven-metadata.xml')
+
+        MarkupBuilder xmlMetadata = new MarkupBuilder(metadata.newWriter())
+        xmlMetadata.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
+        xmlMetadata.metadata {
+            groupId { mkp.yield('com.intershop.gradle.jaxb')}
+            artifactId { mkp.yield('jaxb-gradle-plugin')}
+            version { mkp.yield('2.0.0.ga')}
+            versioning {
+                latest { mkp.yield('2.0.0.ga')}
+                release { mkp.yield('2.0.0.ga')}
+                versions {
+                    version { mkp.yield('1.0.0.ga')}
+                    version { mkp.yield('1.0.1.ga')}
+                    version { mkp.yield('1.1.0.ga')}
+                    version { mkp.yield('2.0.0.ga')}
+                }
+                lastUpdated { mkp.yield('20160923190059')}
+            }
+        }
+
+        project.repositories.maven {
+            name 'mvnLocal'
+            url "file://${repoDir.absolutePath}"
+        }
+
+        VersionUpdater vu = new VersionUpdater(project)
+        String uv = vu.getUpdateVersion('com.intershop.gradle.jaxb','jaxb-gradle-plugin','1.0.0.ga')
+
+        then:
+        metadata.exists()
+        uv == null
+
+        when:
+        VersionUpdater vuwuc = new VersionUpdater(project)
+        String uvwuc = vuwuc.getUpdateVersion('com.intershop.gradle.jaxb','jaxb-gradle-plugin', '1.0.0.ga', '\\.ga')
+
+        then:
+        uvwuc == '1.0.1.ga'
+
+        when:
+        VersionUpdater vudu = new VersionUpdater(project)
+        String uvudu = vudu.getUpdateVersion('com.intershop.gradle.jaxb','jaxb-gradle-plugin', '1.0.0.ga', '\\.ga', UpdatePos.MINOR)
+
+        then:
+        uvudu == '1.1.0.ga'
+    }
+
     def 'getUpdateVersion from Maven with semantic versions from jcenter'() {
         when:
         project.repositories.add(project.repositories.jcenter())

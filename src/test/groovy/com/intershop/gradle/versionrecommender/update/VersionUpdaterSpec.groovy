@@ -105,6 +105,55 @@ class VersionUpdaterSpec extends Specification {
         uv == '1.0.1'
     }
 
+    def 'getUpdateVersion from Maven with semantic versions with different digits (apache) from local directory'() {
+        when:
+        File repoDir = new File(testProjectDir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.0.2') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.2'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.1') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.1'
+            }
+            project(groupId: 'com.intershop.gradle.jaxb', artifactId:'jaxb-gradle-plugin', version: '1.2') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.2'
+            }
+        }.writeTo(repoDir)
+
+        File metadata = new File(repoDir, 'com/intershop/gradle/jaxb/jaxb-gradle-plugin/maven-metadata.xml')
+
+        MarkupBuilder xmlMetadata = new MarkupBuilder(metadata.newWriter())
+        xmlMetadata.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
+        xmlMetadata.metadata {
+            groupId { mkp.yield('com.intershop.gradle.jaxb')}
+            artifactId { mkp.yield('jaxb-gradle-plugin')}
+            version { mkp.yield('1.2')}
+            versioning {
+                latest { mkp.yield('1.2')}
+                release { mkp.yield('1.2')}
+                versions {
+                    version { mkp.yield('1.0.2')}
+                    version { mkp.yield('1.1')}
+                    version { mkp.yield('1.2')}
+                }
+                lastUpdated { mkp.yield('20160923190059')}
+            }
+        }
+
+        project.repositories.maven {
+            name 'mvnLocal'
+            url "file://${repoDir.absolutePath}"
+        }
+
+        VersionUpdater vu = new VersionUpdater(project)
+        String uv = vu.getUpdateVersion('com.intershop.gradle.jaxb','jaxb-gradle-plugin','1.0.2', UpdatePos.MINOR)
+
+        then:
+        metadata.exists()
+        uv == '1.2'
+    }
+
     def 'getUpdateVersion from Maven with semantic versions and milestone builds from local directory'() {
         when:
         File repoDir = new File(testProjectDir, 'repo')

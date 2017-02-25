@@ -153,7 +153,7 @@ class VersionUpdater {
         if(versionList) {
             String uv = calculateUpdateVersion(filterVersion(versionList, version.trim(), pos), version)
             createVersionLog(group, name, version, uv, versionList)
-            if(uv && versionList.contains(uv)) {
+            if(uv) {
                 return uv
             }
         } else {
@@ -340,67 +340,14 @@ class VersionUpdater {
                 List<Version> filteredList2 = filteredList.findAll { it >= nextVersion }
 
                 if (filteredList2.isEmpty()) {
-                    return filteredList.collect { getStringFromVersion(it, digits) }
+                    return filteredList.collect { it.toStringFromOrg() }
                 }
-                return filteredList2.collect { getStringFromVersion(it, digits) }
+                return filteredList2.collect { it.toStringFromOrg() }
             }
         } catch (Exception ex) {
             log.info('Version {} is not a valid semantic version and list {} can not be filtered.', version, list)
         }
         return []
-    }
-
-    /**
-     * Calculates a string for a semantic version. This is important
-     * if on the minor or patch digits is empty.
-     *
-     * @see <a href="https://github.com/IntershopCommunicationsAG/extended-version">Library extended-version</a>
-     *
-     * @param v         Version object
-     * @param digits    Number of digits of the version
-     * @return          a version string
-     */
-    private static String getStringFromVersion(Version v, int digits) {
-        if(v.getNormalVersion().versionType == VersionType.fourDigits){
-            switch (digits) {
-                case 3:
-                    if(v.getHotfixVersion() == 0)
-                        return v.toStringFor(3)
-                    break
-                case 2:
-                    if(v.getHotfixVersion() == 0) {
-                        if(v.getPatchVersion() == 0)
-                            return v.toStringFor(2)
-                        return v.toStringFor(3)
-                    }
-                    break
-                case 1:
-                    if(v.getHotfixVersion() == 0) {
-                        if (v.getPatchVersion() == 0) {
-                            if (v.getMinorVersion() == 0)
-                                return v.toStringFor(1)
-                            return v.toStringFor(2)
-                        }
-                        return v.toStringFor(3)
-                    }
-                    break
-            }
-        } else {
-            switch (digits) {
-                case 2:
-                    if(v.getPatchVersion() == 0)
-                        return v.toStringFor(2)
-                    break
-                case 1:
-                    if(v.getPatchVersion() == 0) {
-                        if(v.getMinorVersion() == 0)
-                            return v.toStringFor(1)
-                        return v.toStringFor(2)
-                    }
-                    break
-            }
-        }
-        return v.toString()
     }
 
     /**

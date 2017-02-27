@@ -16,6 +16,7 @@
 
 package com.intershop.gradle.versionrecommender.scm
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.tmatesoft.svn.core.SVNCommitInfo
 import org.tmatesoft.svn.core.SVNDepth
@@ -28,6 +29,7 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
 import org.tmatesoft.svn.core.wc2.*
 
 @Slf4j
+@CompileStatic
 class SvnClient {
 
     private final SvnOperationFactory svnOpFactory
@@ -42,19 +44,12 @@ class SvnClient {
     SvnClient(File workingDir) {
         this.workingCopy = workingDir
         svnOpFactory = new SvnOperationFactory()
-
-        if(userName && userPassword) {
-            log.debug('Add username / password authentication manager')
-            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager(userName, userPassword.toCharArray()))
-        } else {
-            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager())
-        }
-
-        svnOpFactory.setOptions(new DefaultSVNOptions())
     }
 
     String commit(List<File> fileList) {
         try {
+            initSvnOpFactory()
+
             addMissingFiles(fileList)
 
             final SvnCommit commit = svnOpFactory.createCommit()
@@ -69,6 +64,17 @@ class SvnClient {
         } catch (SVNException ex) {
             throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
         }
+    }
+
+    private void initSvnOpFactory() {
+        if(userName && userPassword) {
+            log.debug('Add username / password authentication manager')
+            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager(userName, userPassword.toCharArray()))
+        } else {
+            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager())
+        }
+
+        svnOpFactory.setOptions(new DefaultSVNOptions())
     }
 
     private void addMissingFiles(List<File> fileList) throws SVNException{

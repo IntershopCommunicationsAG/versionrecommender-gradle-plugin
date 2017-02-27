@@ -55,7 +55,7 @@ test {
     systemProperty 'intershop.host.userpassword',  System.getenv('ISHKEY') ?: System.getProperty('ISHKEY')
 
     // Gradle versions for test
-    systemProperty 'intershop.gradle.versions', '2.11, 3.1'
+    systemProperty 'intershop.gradle.versions', '2.11, 3.4'
 }
 
 task copyAsciiDoc {

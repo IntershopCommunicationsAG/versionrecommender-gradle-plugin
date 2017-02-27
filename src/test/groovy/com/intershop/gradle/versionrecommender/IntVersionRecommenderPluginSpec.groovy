@@ -17,8 +17,11 @@ package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
+import spock.lang.Unroll
+
 import static org.gradle.testkit.runner.TaskOutcome.*
 
+@Unroll
 class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
     final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
@@ -79,7 +82,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -88,7 +92,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultTasks = getPreparedGradleRunner()
-                .withArguments('tasks', '-s') //, '--profile')
+                .withArguments('tasks', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -99,7 +104,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultSetLocal = getPreparedGradleRunner()
-                .withArguments('setLocalFilter', '-s') //, '--profile')
+                .withArguments('setLocalFilter', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -107,7 +113,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAfterSetLocal = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -115,7 +122,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultReset = getPreparedGradleRunner()
-                .withArguments('resetFilter', '-s') //, '--profile')
+                .withArguments('resetFilter', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -123,7 +131,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAfterReset = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -131,7 +140,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('updateFilter', '-s') //, '--profile')
+                .withArguments('updateFilter', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -139,11 +149,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAfterUpdate = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.1.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test with force recommendation version'() {
@@ -201,12 +215,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult') //, '--profile')
+                .withArguments('copyResult')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-9.1.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test with two filters'() {
@@ -265,12 +283,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-3.2.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test with two filters different order'() {
@@ -329,12 +351,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-3.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-3.2.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test with two filters, one without unspecified version'() {
@@ -392,11 +418,15 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test simple configuration with properties and without files'() {
@@ -459,12 +489,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         (new File(testProjectDir, 'result/ivy-10.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-11.0.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test complex properties update'() {
@@ -509,13 +543,17 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('updateComplex', '-s') //, '--profile')
+                .withArguments('updateComplex', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         resultUpdate.task(':updateComplex').outcome == SUCCESS
         (new File(testProjectDir, 'build/versionRecommendation/update/update.log')).exists()
         (new File(testProjectDir, 'build/versionRecommendation/properties.version')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test complex properties update with exclude configuration'() {
@@ -562,7 +600,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('updateComplex', '-s') //, '--profile')
+                .withArguments('updateComplex', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -570,6 +609,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         ! resultUpdate.output.contains('org.jboss.logging')
         ! resultUpdate.output.contains('No changes on properties')
 
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test update with a multi provider configuration'() {
@@ -620,7 +661,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('update', '-s') //, '--profile')
+                .withArguments('update', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File fileFilter5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
@@ -642,7 +684,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultStore = getPreparedGradleRunner()
-                .withArguments('store', '-s') //, '--profile')
+                .withArguments('store', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File storeFileFilter5 = new File(testProjectDir, '.ivyFilter5.version')
@@ -664,7 +707,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAltSet = getPreparedGradleRunner()
-                .withArguments('setLocalFilter5', '-s') //, '--profile')
+                .withArguments('setLocalFilter5', '-s')
+                .withGradleVersion(gradleVersion)
                 .buildAndFail()
 
         then:
@@ -672,7 +716,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAltSet2 = getPreparedGradleRunner()
-                .withArguments('setLocalFilter5', '-Pfilter5Version=1.0.0', '-s') //, '--profile')
+                .withArguments('setLocalFilter5', '-Pfilter5Version=1.0.0', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
         File updateFileFilter5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
 
@@ -683,7 +728,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultResetAll= getPreparedGradleRunner()
-                .withArguments('reset', '-s') //, '--profile')
+                .withArguments('reset', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
         File recFilter = new File(testProjectDir, 'build/versionRecommendation')
 
@@ -693,7 +739,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultSet = getPreparedGradleRunner()
-                .withArguments('setFilter5', '-Pfilter5Version=1.0.0', '-s') //, '--profile')
+                .withArguments('setFilter5', '-Pfilter5Version=1.0.0', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File updateFileFilter5set = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
@@ -705,13 +752,17 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultAlt = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
         File copyResult = new File(testProjectDir, 'result/ivy-3.0.0.xml')
 
         then:
         resultAlt.task(':copyResult').outcome == SUCCESS
         copyResult.exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test update and store with a multi provider configuration'() {
@@ -762,7 +813,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultStore = getPreparedGradleRunner()
-                .withArguments('store', 'update', '-s') //, '--profile')
+                .withArguments('store', 'update', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File storeFileFilter5 = new File(testProjectDir, '.ivyFilter5.version')
@@ -782,6 +834,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         storeFileFilter4.text == '1.0.1'
         storeFileFilter3.text == '1.0.1'
         storeFileFilter2.text == '1.0.1'
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
 
@@ -838,7 +893,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('update', '-s') //, '--profile')
+                .withArguments('update', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File fileFilter5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
@@ -860,7 +916,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultStore = getPreparedGradleRunner()
-                .withArguments('store', '-s') //, '--profile')
+                .withArguments('store', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File fileStoreFilter2 = new File(testProjectDir, 'filter2/.ivyFilter2.version')
@@ -869,6 +926,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultStore.task(':store').outcome == SUCCESS
         fileStoreFilter2.exists()
         fileStoreFilter2.text == '1.0.1'
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test override with a multi provider configuration and with different configuration'() {
@@ -926,7 +986,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s') //, '--profile')
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -934,6 +995,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-2.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-10.0.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test simple configuration for multiproject'() {
@@ -1047,7 +1111,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s', '-i') //, '--profile')
+                .withArguments('copyResult', '-s', '-i')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -1057,7 +1122,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultTasks = getPreparedGradleRunner()
-                .withArguments('tasks', '--all', '-i') //, '--profile')
+                .withArguments('tasks', '--all', '-i')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         then:
@@ -1066,7 +1132,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('updateFilter2', '-i') //, '--profile')
+                .withArguments('updateFilter2', '-i')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File fileFilter2 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter2.version')
@@ -1075,6 +1142,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultUpdate.task(':updateFilter2').outcome == SUCCESS
         fileFilter2.exists()
         fileFilter2.text == '1.1.0'
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing with ivy'() {
@@ -1159,7 +1229,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('publish', '-i') //, '--profile')
+                .withArguments('publish', '-i')
+                .withGradleVersion(gradleVersion)
                 .build()
         File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
 
@@ -1167,6 +1238,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         result.task(':publish').outcome == SUCCESS
         ivyFile.exists()
         ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" conf="runtime-&gt;default" rev="1.4"/>')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing with maven'() {
@@ -1247,12 +1321,16 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('publish', '-s') //, '--profile')
+                .withArguments('publish', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
         File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
 
         then:
         result.task(':publish').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing ivy filter with projects and specified versions'() {
@@ -1329,6 +1407,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments('publish', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File ivy = new File(testProjectDir, 'build/repo/com.intershop/ivy-filter/1.0.0/ivys/ivy-1.0.0.xml')
@@ -1338,6 +1417,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         ivy.text.contains('<dependency org="com.intershop" name="project1a" rev="1.0.0" conf="default"/>')
         ivy.text.contains('<dependency org="com.intershop" name="project2b" rev="1.0.0" conf="default"/>')
         ivy.text.contains('<dependency org="manual" name="dep" rev="1" conf="default"/>')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing maven filter with projects and specified versions'() {
@@ -1411,6 +1493,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments('publish', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File pom = new File(testProjectDir, 'build/repo/com/intershop/mvn-filter/1.0.0/mvn-filter-1.0.0.pom')
@@ -1423,6 +1506,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         pom.text.contains('<groupId>manual</groupId>')
         pom.text.contains('<artifactId>dep</artifactId>')
         pom.text.contains('<version>1</version>')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing ivy filter with projects and filter versions'() {
@@ -1502,6 +1588,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments('publish', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File ivy = new File(testProjectDir, 'build/repo/com.intershop/ivy-filter/1.0.0/ivys/ivy-1.0.0.xml')
@@ -1515,6 +1602,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         ivy.text.contains('<dependency org="com.intershop.test" name="testcomp1" rev="10.0.0" conf="default"/>')
         ivy.text.contains('<dependency org="com.intershop.testglob" name="testglob1" rev="11.0.0" conf="default"/>')
         ivy.text.contains('<dependency org="com.intershop.testglob" name="testglob10" rev="11.0.0" conf="default"/>')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test publishing maven filter with projects and filter versions'() {
@@ -1590,6 +1680,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         when:
         def result = getPreparedGradleRunner()
                 .withArguments('publish', '-s')
+                .withGradleVersion(gradleVersion)
                 .build()
 
         File pom = new File(testProjectDir, 'build/repo/com/intershop/mvn-filter/1.0.0/mvn-filter-1.0.0.pom')
@@ -1609,6 +1700,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         pom.text.contains('<artifactId>testglob1</artifactId>')
         pom.text.contains('<artifactId>testglob10</artifactId>')
         pom.text.contains('<version>11.0.0</version>')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     private String writeIvyRepo(File dir) {

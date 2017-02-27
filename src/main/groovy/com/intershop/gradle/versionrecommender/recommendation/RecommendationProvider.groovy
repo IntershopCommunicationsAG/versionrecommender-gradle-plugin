@@ -219,7 +219,10 @@ abstract class RecommendationProvider implements IRecommendationProvider {
      * @return
      */
     String getVersionFromProperty() {
-        String versionProperty = project.findProperty(getVersionPropertyName()) ?: ''
+        String versionProperty = ''
+        if(project.hasProperty(getVersionPropertyName())) {
+            versionProperty = project.property(getVersionPropertyName())
+        }
         return versionProperty
     }
 

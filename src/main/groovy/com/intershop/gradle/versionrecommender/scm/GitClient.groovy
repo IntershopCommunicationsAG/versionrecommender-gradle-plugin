@@ -29,8 +29,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
 @Slf4j
 @CompileStatic
-class GitClient {
-
+class GitClient implements ScmClient {
 
     /*
      * Git client for all operations

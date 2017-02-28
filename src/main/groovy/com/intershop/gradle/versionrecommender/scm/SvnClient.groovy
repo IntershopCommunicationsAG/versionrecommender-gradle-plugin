@@ -30,7 +30,7 @@ import org.tmatesoft.svn.core.wc2.*
 
 @Slf4j
 @CompileStatic
-class SvnClient {
+class SvnClient implements ScmClient {
 
     private final SvnOperationFactory svnOpFactory
     private final File workingCopy

@@ -49,8 +49,8 @@ if (project.version.endsWith('-SNAPSHOT')) {
 }
 
 test {
-    systemProperty 'intershop.host.ivy.url',          'https://repository.intershop.de:443/ivy-releases/'
-    systemProperty 'intershop.host.mvn.url',          'https://repository.intershop.de:443/mvn-releases/'
+    systemProperty 'intershop.host.ivy.url',       'https://repository.intershop.de:443/ivy-releases/'
+    systemProperty 'intershop.host.mvn.url',       'https://repository.intershop.de:443/mvn-releases/'
     systemProperty 'intershop.host.username',      System.getenv('ISHUSERNAME') ?: System.getProperty('ISHUSERNAME')
     systemProperty 'intershop.host.userpassword',  System.getenv('ISHKEY') ?: System.getProperty('ISHKEY')
 

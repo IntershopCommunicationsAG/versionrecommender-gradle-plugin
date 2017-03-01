@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -62,6 +63,7 @@ class Update extends DefaultTask {
      *
      * @return "Update Dependencies for configured default filters"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Update Dependencies for configured default filters"
@@ -72,6 +74,7 @@ class Update extends DefaultTask {
      *
      * @return "Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "Version Recommendation"

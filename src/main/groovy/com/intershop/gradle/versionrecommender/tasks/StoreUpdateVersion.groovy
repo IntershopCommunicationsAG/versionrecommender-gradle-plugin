@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -60,6 +61,7 @@ class StoreUpdateVersion extends DefaultTask {
      *
      * @return "Store changes from working dir for 'provider name'"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Store changes from working dir for ${provider.getName()}"
@@ -70,6 +72,7 @@ class StoreUpdateVersion extends DefaultTask {
      *
      * @return "Provider name - Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

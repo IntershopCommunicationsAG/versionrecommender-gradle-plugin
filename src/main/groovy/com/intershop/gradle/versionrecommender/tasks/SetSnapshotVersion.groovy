@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -54,6 +55,7 @@ class SetSnapshotVersion extends DefaultTask {
      *
      * @return "Extend filter configuration for 'provider name' with SNAPSHOT"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Extend filter configuration for ${provider.getName()} with SNAPSHOT"
@@ -64,6 +66,7 @@ class SetSnapshotVersion extends DefaultTask {
      *
      * @return "Provider name - Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

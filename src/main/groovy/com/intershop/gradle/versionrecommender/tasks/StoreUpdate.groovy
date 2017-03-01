@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -41,6 +42,7 @@ class StoreUpdate extends DefaultTask {
     /**
      * Input map for version files
      */
+    @Input
     Map<String,File> versionFiles = [:]
 
     /**
@@ -66,6 +68,7 @@ class StoreUpdate extends DefaultTask {
      *
      * @return "Store changes from working dir to configuration"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Store changes from working dir to configuration"
@@ -76,6 +79,7 @@ class StoreUpdate extends DefaultTask {
      *
      * @return "Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "Version Recommendation"

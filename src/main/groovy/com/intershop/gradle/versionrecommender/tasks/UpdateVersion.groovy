@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -37,8 +38,6 @@ class UpdateVersion extends DefaultTask {
      */
     @Input
     RecommendationProvider provider
-
-    File updateLogFile
 
     /**
      * Task action
@@ -60,6 +59,7 @@ class UpdateVersion extends DefaultTask {
      *
      * @return "Update Dependencies for 'provider name'"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Update Dependencies for ${provider.getName()}"
@@ -70,6 +70,7 @@ class UpdateVersion extends DefaultTask {
      *
      * @return "Provider name - Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

@@ -20,6 +20,7 @@ import com.intershop.gradle.versionrecommender.util.VersionExtension
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -49,6 +50,7 @@ class ResetVersion extends DefaultTask {
      *
      * @return "Reset filter configuration for 'provider name'"
      */
+    @Internal
     @Override
     String getDescription() {
         return "Reset filter configuration for ${provider.getName()}"
@@ -59,6 +61,7 @@ class ResetVersion extends DefaultTask {
      *
      * @return "Provider name - Version Recommendation"
      */
+    @Internal
     @Override
     String getGroup() {
         return "${provider.getName()} - Version Recommendation"

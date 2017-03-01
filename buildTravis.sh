@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the project.
 
-export JAVA_OPTS="-Xms64m -Xmx96m -XX:MaxPermSize=32m -XX:+CMSClassUnloadingEnabled"
+export JAVA_OPTS="-Xms96m -Xmx128m -XX:MaxPermSize=64m -XX:+CMSClassUnloadingEnabled"
 // export GRADLE_OPTS="-Dorg.gradle.daemon=false"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then

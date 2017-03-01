@@ -54,6 +54,13 @@ test {
     systemProperty 'intershop.host.username',      System.getenv('ISHUSERNAME') ?: System.getProperty('ISHUSERNAME')
     systemProperty 'intershop.host.userpassword',  System.getenv('ISHKEY') ?: System.getProperty('ISHKEY')
 
+    // set heap size for the test JVM(s)
+    minHeapSize = "64m"
+    maxHeapSize = "128m"
+
+    // set JVM arguments for the test JVM(s)
+    jvmArgs '-XX:MaxPermSize=96m'
+
     // Gradle versions for test
     systemProperty 'intershop.gradle.versions', '2.11, 3.4'
 }

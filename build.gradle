@@ -214,11 +214,11 @@ pluginBundle {
     website = "https://github.com/IntershopCommunicationsAG/${project.name}"
     vcsUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
     description = project.description
-    tags = ['intershop', 'gradle', 'plugin', 'nexus', 'staging', 'release']
+    tags = ['intershop', 'gradle', 'plugin', 'version', 'dependencies', 'versionrecommendation']
 
     plugins {
-        gradleTestPlugin {
-            id = 'com.intershop.gradle.nexusstaging'
+        gradleVersionRecommender {
+            id = 'com.intershop.gradle.versionrecommender'
             displayName = project.description
         }
     }

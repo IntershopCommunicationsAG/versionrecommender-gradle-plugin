@@ -34,7 +34,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
 @Slf4j
 @CompileStatic
-class GitClient implements ScmClient {
+class GitClient implements IScmClient {
 
     /*
      * Git client for all operations
@@ -44,37 +44,41 @@ class GitClient implements ScmClient {
     private final File workingCopy
     private final String remoteUrl
 
-    String userName
+    private final String username
+    private final String password
 
-    String userPassword
+    private final File keyfile
+    private final String passphrase
 
-    File keyfile
-
-    String passphrase
-
-    String commitMessage
-
-    GitClient(File workingDir) {
+    GitClient(File workingDir, String username = '', String password = '') {
         this.workingCopy = workingDir
+        this.username = username
+        this.password = password
 
         Repository gitRepo = new RepositoryBuilder()
-                                .readEnvironment()
-                                .findGitDir(workingDir)
-                                .build()
+                .readEnvironment()
+                .findGitDir(workingCopy)
+                .build()
         gitClient = new Git(gitRepo)
 
         Config config = gitRepo.getConfig()
         remoteUrl = config.getString('remote', 'origin', 'url')
-
     }
 
-    String commit(List<File> fileList) {
+    GitClient(File workingDir, File keyfile, String passphrase) {
+        this(workingDir, '', '')
+
+        this.keyfile = keyfile
+        this.passphrase = passphrase
+    }
+
+    String commit(List<File> fileList, String commitmessage) {
 
         try {
             addMissingFiles(fileList)
 
             CommitCommand commitCmd = gitClient.commit()
-            commitCmd.setMessage(commitMessage)
+            commitCmd.setMessage(commitmessage)
             commitCmd.call()
 
             PushCommand pushCmd = gitClient.push()
@@ -89,9 +93,7 @@ class GitClient implements ScmClient {
         } catch (GitAPIException ex) {
             throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
         }
-
     }
-
 
     private void addMissingFiles(List<File> fileList) throws GitAPIException {
         fileList.each {
@@ -109,9 +111,9 @@ class GitClient implements ScmClient {
 
     private void initGitCommand(TransportCommand cmd) {
 
-        if (remoteUrl.startsWith('http') && userName && userPassword) {
-            log.debug('User name {} and password is used.', userName)
-            CredentialsProvider credentials = new UsernamePasswordCredentialsProvider(userName, userPassword)
+        if (remoteUrl.startsWith('http') && username && password) {
+            log.debug('User name {} and password is used.', username)
+            CredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password)
             cmd.setCredentialsProvider(credentials)
         } else if (remoteUrl.startsWith('git@') && keyfile && keyfile.exists()) {
             log.debug('ssh connector is used with key {}.', keyfile.absolutePath)

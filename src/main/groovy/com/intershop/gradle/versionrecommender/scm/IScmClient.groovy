@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.intershop.gradle.versionrecommender.scm
 
-import org.gradle.api.Project
+/**
+ * Client Interface for SCM
+ */
+interface IScmClient {
 
-class ScmSupport {
-
-    ScmSupport(Project project) {
-
-    }
-
-    private String initScmType(Project project) {
-        File gitDir = new File(project.rootDir, '.git')
-        if (gitDir.exists() && gitDir.isDirectory()) {
-            return 'git'
-        }
-
-        File svnDir = new File(project.rootDir, '.svn')
-        if (svnDir.exists() && svnDir.isDirectory()) {
-            return 'svn'
-        }
-        return null
-    }
-
+    String commit(List<File> fileList, String commitmessage)
 }

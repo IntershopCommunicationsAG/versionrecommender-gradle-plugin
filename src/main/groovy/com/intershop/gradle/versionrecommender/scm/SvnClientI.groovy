@@ -30,31 +30,32 @@ import org.tmatesoft.svn.core.wc2.*
 
 @Slf4j
 @CompileStatic
-class SvnClient implements ScmClient {
+class SvnClientI implements IScmClient {
 
     private final SvnOperationFactory svnOpFactory
     private final File workingCopy
 
-    String userName
-
-    String userPassword
-
-    String commitMessage
-
-    SvnClient(File workingDir) {
+    SvnClientI(File workingDir, String username = '', String password = '') {
         this.workingCopy = workingDir
         svnOpFactory = new SvnOperationFactory()
+
+        if(username && password) {
+            log.debug('Add username / password authentication manager')
+            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager(username, password.toCharArray()))
+        } else {
+            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager())
+        }
+
+        svnOpFactory.setOptions(new DefaultSVNOptions())
     }
 
-    String commit(List<File> fileList) {
+    String commit(List<File> fileList, String commitmessage) {
         try {
-            initSvnOpFactory()
-
             addMissingFiles(fileList)
 
             final SvnCommit commit = svnOpFactory.createCommit()
             commit.setSingleTarget(SvnTarget.fromFile(workingCopy))
-            commit.setCommitMessage(commitMessage)
+            commit.setCommitMessage(commitmessage)
             final SVNCommitInfo commitInfo = commit.run()
             if(commitInfo.newRevision > 0) {
                 return Long.toString(commitInfo.newRevision)
@@ -64,17 +65,6 @@ class SvnClient implements ScmClient {
         } catch (SVNException ex) {
             throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
         }
-    }
-
-    private void initSvnOpFactory() {
-        if(userName && userPassword) {
-            log.debug('Add username / password authentication manager')
-            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager(userName, userPassword.toCharArray()))
-        } else {
-            svnOpFactory.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager())
-        }
-
-        svnOpFactory.setOptions(new DefaultSVNOptions())
     }
 
     private void addMissingFiles(List<File> fileList) throws SVNException{

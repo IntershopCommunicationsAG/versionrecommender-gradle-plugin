@@ -16,6 +16,8 @@
 package com.intershop.gradle.versionrecommender.tasks
 
 import com.intershop.gradle.versionrecommender.recommendation.RecommendationProvider
+import com.intershop.gradle.versionrecommender.scm.IScmClient
+import com.intershop.gradle.versionrecommender.scm.ScmClient
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -51,6 +53,12 @@ class StoreUpdateVersion extends DefaultTask {
     void storeUpdateVersion(){
         try {
             versionFile = provider.store(getVersionFile())
+            if(versionFile && project.hasProperty('scmCommit') && project.property('scmCommit').toString().toBoolean()) {
+                List<File> fileList = []
+                fileList.add(versionFile)
+                IScmClient client = new ScmClient(project)
+                client.commit(fileList, 'Commit update changes by Gradle plugin "com.intershop.gradle.versionrecommender"')
+            }
         }catch (IOException ex) {
             throw new GradleException('It was not possible to store changes!')
         }

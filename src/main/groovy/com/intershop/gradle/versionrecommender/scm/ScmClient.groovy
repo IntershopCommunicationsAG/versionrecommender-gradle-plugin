@@ -13,25 +13,85 @@
  * See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.intershop.gradle.versionrecommender.scm
 
-/**
- * Client Interface for SCM
- */
-interface ScmClient {
+import org.gradle.api.Project
 
-    void setUserName(String username)
+class ScmClient implements IScmClient {
 
-    String getUserName()
+    // scm user name / token (git,svn)
+    public final static String USERNAME_ENV = 'SCM_USERNAME'
+    public final static String USERNAME_PRJ = 'scmUserName'
 
-    void setUserPassword(String userpassword)
+    // scm password (git,svn)
+    public final static String PASSWORD_ENV = 'SCM_PASSWORD'
+    public final static String PASSWORD_PRJ = 'scmUserPasswd'
 
-    String getUserPassword()
+    // scm key file (git)
+    public final static String KEYFILE_ENV = 'SCM_KEYFILE'
+    public final static String KEYFILE_PRJ = 'scmKeyFile'
 
-    void setCommitMessage(String message)
+    // scm passphrase (git)
+    public final static String PASSPHRASE_ENV = 'SCM_KEYPASSPHRASE'
+    public final static String PASSPHRASE_PRJ = 'scmKeyPassphrase'
 
-    String getCommitMessage()
 
-    String commit(List<File> fileList)
+    private IScmClient internalClient
+
+    ScmClient(Project project) {
+        // check for username and password
+        String username = getVariable(project, USERNAME_ENV, USERNAME_PRJ, '')
+        String password = getVariable(project, PASSWORD_ENV, PASSWORD_PRJ, '')
+
+        // check for file and passphrase
+        String keyfileStr = getVariable(project, KEYFILE_ENV, KEYFILE_PRJ, '')
+        String passphrase = getVariable(project, PASSPHRASE_ENV, PASSWORD_PRJ, '')
+        File keyfile = keyfileStr ? new File(keyfileStr) : null
+
+        File gitDir = new File(project.rootDir, '.git')
+        if (gitDir.exists() && gitDir.isDirectory()) {
+            if(keyfile) {
+                internalClient = new GitClient(project.rootDir, keyfile, passphrase)
+            } else {
+                internalClient = new GitClient(project.rootDir, username, password)
+            }
+        }
+
+        File svnDir = new File(project.rootDir, '.svn')
+        if (svnDir.exists() && svnDir.isDirectory()) {
+            internalClient = new GitClient(project.rootDir, username, password)
+        }
+
+        project.logger.quiet('No SCM client can be configured!')
+        internalClient = null
+    }
+
+    String commit(List<File> fileList, String commitmessage) {
+        if(internalClient) {
+            internalClient.commit(fileList, commitmessage)
+        }
+    }
+
+    /**
+     * Calculates the setting for special configuration from the system
+     * or java environment or project properties.
+     *
+     * @param envVar        name of environment variable
+     * @param projectVar    name of project variable
+     * @param defaultValue  default value
+     * @return              the string configuration
+     */
+    static String getVariable(Project project, String envVar, String projectVar, String defaultValue) {
+        if(System.properties[envVar]) {
+            project.logger.debug('Specified from system property {}.', envVar)
+            return System.properties[envVar].toString().trim()
+        } else if(System.getenv(envVar)) {
+            project.logger.debug('Specified from system environment property {}.', envVar)
+            return System.getenv(envVar).toString().trim()
+        } else if(project.hasProperty(projectVar) && project."${projectVar}") {
+            project.logger.debug('Specified from project property {}.', projectVar)
+            return project."${projectVar}".toString().trim()
+        }
+        return defaultValue
+    }
 }

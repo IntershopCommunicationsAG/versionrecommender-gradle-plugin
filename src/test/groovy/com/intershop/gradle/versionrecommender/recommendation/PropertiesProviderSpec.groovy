@@ -152,7 +152,7 @@ class PropertiesProviderSpec extends Specification {
         project.repositories.add(project.repositories.jcenter())
 
         then:
-        provider.getVersion('org.apache.commons', 'commons-lang3') == '3.3'
+        provider.getVersion('org.apache.commons', 'commons-lang3').startsWith('3.3')
         provider.getVersion('org.eclipse.jetty', 'jetty-server') == '9.3.11.v20160721'
         provider.getVersion('org.apache.logging.log4j', 'log4j-core') == '2.4'
 

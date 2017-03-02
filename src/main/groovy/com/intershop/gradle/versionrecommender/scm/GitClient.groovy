@@ -27,6 +27,11 @@ import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.Transport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
+//import org.eclipse.jgit.transport.CredentialsProvider
+//import org.eclipse.jgit.transport.SshTransport
+//import org.eclipse.jgit.transport.Transport
+//import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+
 @Slf4j
 @CompileStatic
 class GitClient implements ScmClient {
@@ -50,12 +55,13 @@ class GitClient implements ScmClient {
     String commitMessage
 
     GitClient(File workingDir) {
+        this.workingCopy = workingDir
+
         Repository gitRepo = new RepositoryBuilder()
                                 .readEnvironment()
                                 .findGitDir(workingDir)
                                 .build()
         gitClient = new Git(gitRepo)
-
 
         Config config = gitRepo.getConfig()
         remoteUrl = config.getString('remote', 'origin', 'url')
@@ -63,6 +69,7 @@ class GitClient implements ScmClient {
     }
 
     String commit(List<File> fileList) {
+
         try {
             addMissingFiles(fileList)
 
@@ -82,16 +89,26 @@ class GitClient implements ScmClient {
         } catch (GitAPIException ex) {
             throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
         }
+
     }
 
 
     private void addMissingFiles(List<File> fileList) throws GitAPIException {
         fileList.each {
-            gitClient.add().addFilepattern(it.absolutePath)
+            gitClient.add().addFilepattern(calculatePattern(workingCopy, it)).call()
         }
     }
 
+    private static String calculatePattern(File dir, File file) {
+        String dirStr = dir.absolutePath.replace('\\', '/')
+        dirStr += dirStr.endsWith('/') ? '' : '/'
+        String fileStr = file.absolutePath.replace('\\', '/')
+
+        return (fileStr - dirStr)
+    }
+
     private void initGitCommand(TransportCommand cmd) {
+
         if (remoteUrl.startsWith('http') && userName && userPassword) {
             log.debug('User name {} and password is used.', userName)
             CredentialsProvider credentials = new UsernamePasswordCredentialsProvider(userName, userPassword)

@@ -15,14 +15,15 @@
  */
 package com.intershop.gradle.versionrecommender.update
 
-import com.intershop.gradle.versionrecommender.util.ConfigurationException
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.NodeChild
-import groovyx.net.http.ContentType
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.HttpResponseException
+import groovy.util.slurpersupport.NodeChildren
 
-import java.util.regex.Matcher
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+import java.security.SecureRandom
 
 /**
  * This class provides methods to collect all available version in remote based repositories.
@@ -45,27 +46,28 @@ class HTTPVersionProvider {
      */
     public static List<String> getVersionFromMavenMetadata(String repo, String group, String artifactid, String username = '', String password = '') {
         List<String> versions = []
-        Map<String, String> hostPath = getHostPath(repo)
-
-        HTTPBuilder http = getHttpBuilder(hostPath.host , username, password)
-        http.parser.'application/unknown' = http.parser.'application/xml'
-
+        String url = "${repo}${(repo.endsWith("/") ? '' : '/')}${group.replace('.', '/')}/${artifactid}/maven-metadata.xml"
         try {
-            versions = http.get(
-                    path: "${hostPath.path ?: ''}/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml",
-                    contentType: ContentType.XML) { resp, xml ->
-                if (!xml) {
-                    return []
+            def conn = getUrlConnection(url)
+            setAuthorization(conn, username, password)
+            conn.setRequestProperty("Content-Type", "application/xml")
+
+            if (conn.responseCode == 200) {
+                def metadata = new XmlSlurper().parseText(conn.content.text)
+                if (metadata) {
+                    try {
+                        NodeChildren nc = metadata.versioning.versions.version
+                        return nc.collect {it.toString()}
+                    } catch (Exception e) {
+                        log.error("Exception occurred while trying to fetch versions. The fetched XML is [$metadata]".toString(), e)
+                        return []
+                    }
                 }
-                try {
-                    return xml.versioning.versions.version
-                } catch (Exception e) {
-                    log.error("Exception occurred while trying to fetch versions. The fetched XML is [$xml]".toString(), e)
-                    return []
-                }
-            }.collect { it.toString() }
-        } catch (HttpResponseException respEx) {
-            log.info('{}:{} not found in {}', group, artifactid, repo )
+            } else {
+                log.info('{}:{} not found in {} - http return code was {}', group, artifactid, repo, conn.responseCode)
+            }
+        } catch (IOException ex) {
+            log.info('{}:{} not found in {} - IOException: {}', group, artifactid, repo, ex.getMessage() )
         }
 
         return versions
@@ -87,13 +89,14 @@ class HTTPVersionProvider {
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         List<String> versions = []
 
-        HTTPBuilder http = getHttpBuilder("${repo}${(repo.endsWith("/") ? '' : '/')}${path}", username, password)
-
+        String url = "${repo}${(repo.endsWith("/") ? '' : '/')}${path}"
         try {
-            versions = http.get(contentType: ContentType.HTML) { resp, html ->
-                if(!html) {
-                    return []
-                }
+            def conn = getUrlConnection(url)
+            setAuthorization(conn, username, password)
+            conn.setRequestProperty("Content-Type", "application/html")
+
+            if (conn.responseCode == 200) {
+                def html = new XmlSlurper(new org.cyberneko.html.parsers.SAXParser()).parseText(conn.content.text)
                 try {
                     return html."**".findAll { it.@href.toString().endsWith('/') && ! it.@href.toString().startsWith('..')}.collect {
                         ((NodeChild)it).text().replace('/','')
@@ -102,9 +105,9 @@ class HTTPVersionProvider {
                     log.error("Exception occurred while trying to fetch versions. The fetched HTML is [$html]".toString(), e)
                     return []
                 }
-            }.collect { it.toString() }
-        } catch (HttpResponseException respEx) {
-            log.info('{}:{} not found in {}', org, name, repo )
+            }
+        }catch (IOException ex) {
+            log.info('{}:{} not found in {} - IOException: {}', org, name, repo, ex.getMessage() )
         }
 
         return versions
@@ -113,55 +116,47 @@ class HTTPVersionProvider {
     /**
      * Provides an configured HTTP(S) client
      *
-     * @param repo          Repository URL (http/https based)
+     * @param conn          Url connection for further configuration
      * @param username      Username of repository credentials (Default is an empty string.)
      * @param password      Password of repository credentials (Default is an empty string.)
      * @return              configured http(s) client
      */
-    private static HTTPBuilder getHttpBuilder(String repo, String username = '', String password = '') {
-        HTTPBuilder http = new HTTPBuilder(repo)
-        http.ignoreSSLIssues()
-
-        setProxySettings(http)
-
+    private static void setAuthorization(URLConnection conn, String username = '', String password = '') {
         if(username && password) {
             log.info('User {} is used for access.', username)
-            http.setHeaders([Authorization: "Basic ${"${username}:${password}".bytes.encodeBase64().toString()}"])
+
+            String authString = "${username}:${password}".getBytes().encodeBase64().toString()
+            conn.setRequestProperty( "Authorization", "Basic ${authString}" )
         }
-        return http
     }
 
     /**
-     * Adds a proxy configuration if system variables are available.
+     * Creates the connection, adds a proxy configuration if system variables are available
+     * and configureds https if necessary
      *
-     * @param http pre cconfigured http(s) client
+     * @param url  URL of the download artifact
      */
-    private static void setProxySettings(HTTPBuilder http) {
+    private static URLConnection getUrlConnection(String url) throws IOException {
 
-        String scheme = new URL(http.uri.toString()).getProtocol().toString()
+        URL urlInternal = url.toURL()
+
+        String scheme = urlInternal.getProtocol()
         String hostname = System.getProperty("${scheme}.proxyHost")
         String port =  System.getProperty("${scheme}.proxyPort")
 
+        if(scheme == 'https') {
+            SSLContext sc = SSLContext.getInstance("SSL")
+            Map trustAll = [getAcceptedIssuers: {}, checkClientTrusted: { a, b -> }, checkServerTrusted: { a, b -> }]
+            sc.init(null, [trustAll as X509TrustManager] as TrustManager[], new SecureRandom())
+            HttpsURLConnection.defaultSSLSocketFactory = sc.socketFactory
+        }
+
         if(port && hostname) {
             log.info('Proxy host is used: {}://{}:{}', scheme, hostname, port)
-            http.setProxy(hostname, port, scheme)
-        }
-    }
-
-    /**
-     * Calculates the host url and the path from a given String.
-     *
-     * @param repodef
-     * @return Map with two keys - host and path
-     */
-    private static Map<String, String> getHostPath(repodef) {
-        Matcher hostPathMatcher = repodef =~ /^(.*:)\/\/([A-Za-z0-9\-\.]+)(:[0-9]+)?(.*)$/
-        if(hostPathMatcher.matches()){
-            String hostPath = hostPathMatcher.group(4) != '/' ? hostPathMatcher.group(4) : ''
-            return [host: "${hostPathMatcher.group(1)}//${hostPathMatcher.group(2)}${hostPathMatcher.group(3) ?: ''}",
-                    path: hostPath]
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(hostname, port))
+            return urlInternal.openConnection(proxy)
         } else {
-            throw new ConfigurationException("${repodef} is not a host url!")
+            return urlInternal.openConnection()
         }
     }
 }

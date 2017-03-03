@@ -102,7 +102,7 @@ class ScmUtil {
 
     static void removeAllFiles(File projectDir) {
         projectDir.listFiles().each {
-            if(it.isDirectory()) {
+            if(it.isDirectory() && (it.getName() != '.git' || it.getName() != '.svn')) {
                 it.deleteDir()
             }
             if(it.isFile() && it.getName() != '.gitignore') {

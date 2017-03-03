@@ -1,6 +1,7 @@
 package com.intershop.gradle.versionrecommender.scm
 
 import com.intershop.gradle.test.util.TestDir
+import spock.lang.Requires
 import spock.lang.Specification
 
 class ScmSpec extends Specification {
@@ -8,6 +9,9 @@ class ScmSpec extends Specification {
     @TestDir
     File testDir
 
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
     def 'git - simple project with simple new file'() {
         setup:
             ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'master')
@@ -29,6 +33,9 @@ class ScmSpec extends Specification {
             ScmUtil.gitCommitChanges(testDir)
     }
 
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
     def 'git - simple project with simple changed file'() {
         setup:
         ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'master')
@@ -65,6 +72,9 @@ class ScmSpec extends Specification {
         ScmUtil.gitCommitChanges(testDir)
     }
 
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
     def 'git - simple project with changed configuration dir and new files'() {
         setup:
         ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'master')
@@ -87,6 +97,9 @@ class ScmSpec extends Specification {
         ScmUtil.gitCommitChanges(testDir)
     }
 
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
     def 'git - simple project with changed configuration dir and changed files'() {
         setup:
         ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'master')
@@ -124,7 +137,27 @@ class ScmSpec extends Specification {
         ScmUtil.gitCommitChanges(testDir)
     }
 
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
     def 'git - simple project with simple new file on a branch'() {
+        setup:
+        ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'newBranch')
+        File tf = new File(testDir, '.test.version')
+        tf.setText('1.0.0')
+        List<File> fileList = []
+        fileList.add(tf)
 
+        when:
+        GitClient client = new GitClient(testDir, System.properties['gituser'], System.properties['gitpasswd'])
+        client.commit(fileList, 'new file added')
+
+        then:
+        ScmUtil.gitCheckResult(testDir)
+        tf.exists()
+
+        cleanup:
+        ScmUtil.removeAllFiles(testDir)
+        ScmUtil.gitCommitChanges(testDir)
     }
 }

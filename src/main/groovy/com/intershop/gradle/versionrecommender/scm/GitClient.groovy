@@ -59,6 +59,7 @@ class GitClient implements IScmClient {
                 .readEnvironment()
                 .findGitDir(workingCopy)
                 .build()
+
         gitClient = new Git(gitRepo)
 
         Config config = gitRepo.getConfig()

@@ -111,10 +111,10 @@ class ScmUtil {
         }
     }
 
-    static void gitCommitChanges(File projectDir, String filepattern = '.') {
-        Git git = getGit(projectDir)
+    static void gitCommitChanges(File target, String filepattern ='.') {
+        Git git = getGit(target)
         try {
-            git.add().addFilepattern('.').call()
+            git.add().addFilepattern(filepattern).call()
 
             CommitCommand commitCmd = git.commit()
             commitCmd.setMessage('rollback after test')

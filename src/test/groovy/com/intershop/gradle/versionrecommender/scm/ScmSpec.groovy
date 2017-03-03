@@ -12,6 +12,7 @@ class ScmSpec extends Specification {
         setup:
             ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'master')
             File tf = new File(testDir, '.test.version')
+            tf.setText('1.0.0')
             List<File> fileList = []
             fileList.add(tf)
 
@@ -21,10 +22,12 @@ class ScmSpec extends Specification {
 
         then:
             ScmUtil.gitCheckResult(testDir)
+            tf.exists()
 
         cleanup:
             ScmUtil.removeAllFiles(testDir)
             ScmUtil.gitCommitChanges(testDir)
+
     }
 
     def 'git - simple project with simple changed file'() {

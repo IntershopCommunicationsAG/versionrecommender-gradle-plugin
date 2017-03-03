@@ -160,4 +160,67 @@ class ScmSpec extends Specification {
         ScmUtil.removeAllFiles(testDir)
         ScmUtil.gitCommitChanges(testDir)
     }
+
+    @Requires({ System.properties['svnurl'] &&
+            System.properties['svnuser'] &&
+            System.properties['svnpasswd'] })
+    def 'svn - simple project with simple new file'() {
+        setup:
+        ScmUtil.svnCheckOut(testDir, System.properties['svnurl'])
+        File tf = new File(testDir, '.test.version')
+        tf.setText('1.0.0')
+        List<File> fileList = []
+        fileList.add(tf)
+
+        when:
+        SvnClient client = new SvnClient(testDir, System.properties['svnuser'], System.properties['svnpasswd'])
+        client.commit(fileList, 'new file added')
+
+        then:
+        ScmUtil.svnCheckResult(testDir)
+        tf.exists()
+
+        cleanup:
+        ScmUtil.removeAllFiles(testDir)
+        ScmUtil.svnCommitChanges(testDir)
+    }
+
+    @Requires({ System.properties['svnurl'] &&
+            System.properties['svnuser'] &&
+            System.properties['svnpasswd'] })
+    def 'svn - simple project with simple changed file'() {
+        setup:
+        ScmUtil.svnCheckOut(testDir, System.properties['svnurl'])
+        File tf = new File(testDir, '.test.version')
+        tf.setText('1.0.0')
+        List<File> fileList = []
+        fileList.add(tf)
+        ScmUtil.svnCommitChanges(testDir)
+
+        when:
+        SvnClient client = new SvnClient(testDir, System.properties['svnuser'], System.properties['svnpasswd'])
+        client.commit(fileList, 'new file added')
+
+        then:
+        ScmUtil.svnCheckResult(testDir)
+        tf.exists()
+        tf.text == '1.0.0'
+
+        when:
+        File tfu = new File(testDir, '.test.version')
+        tfu.setText('2.0.0')
+        List<File> fileListU = []
+        fileListU.add(tfu)
+        client = new SvnClient(testDir, System.properties['svnuser'], System.properties['svnpasswd'])
+        client.commit(fileListU, 'file changed')
+
+        then:
+        ScmUtil.svnCheckResult(testDir)
+        tfu.exists()
+        tfu.text == '2.0.0'
+
+        cleanup:
+        ScmUtil.removeAllFiles(testDir)
+        ScmUtil.svnCommitChanges(testDir)
+    }
 }

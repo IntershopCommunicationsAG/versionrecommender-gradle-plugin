@@ -23,8 +23,6 @@ import org.tmatesoft.svn.core.SVNDepth
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.internal.wc.DefaultSVNOptions
 import org.tmatesoft.svn.core.internal.wc17.SVNWCContext
-import org.tmatesoft.svn.core.internal.wc2.compat.SvnCodec
-import org.tmatesoft.svn.core.wc.SVNStatus
 import org.tmatesoft.svn.core.wc.SVNWCUtil
 import org.tmatesoft.svn.core.wc2.*
 
@@ -80,7 +78,6 @@ class SvnClient implements IScmClient {
 
         getStatus.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
             public void receive(SvnTarget target, SvnStatus status) throws SVNException {
-                final SVNStatus oldStatus = SvnCodec.status(context, status)
                 if(! status.versioned && fileList.findAll { it.absolutePath.startsWith(status.path.absolutePath) }.size() > 0) {
                     missingFiles.add(status.path)
                 }
@@ -90,7 +87,6 @@ class SvnClient implements IScmClient {
 
         if(missingFiles.size() > 0) {
             SvnScheduleForAddition addclient = svnOpFactory.createScheduleForAddition()
-            addclient.setAddParents(true)
             addclient.setDepth(SVNDepth.INFINITY)
             addclient.setAddParents(true)
 

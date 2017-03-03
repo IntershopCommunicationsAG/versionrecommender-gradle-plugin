@@ -24,6 +24,7 @@ import org.tmatesoft.svn.core.SVNDepth
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
+import org.tmatesoft.svn.core.internal.wc17.SVNWCContext
 import org.tmatesoft.svn.core.wc.SVNStatusType
 import org.tmatesoft.svn.core.wc.SVNWCUtil
 import org.tmatesoft.svn.core.wc2.*
@@ -83,14 +84,14 @@ class ScmUtil {
             statusCmd.setDepth(SVNDepth.INFINITY);
             statusCmd.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
                 public void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_DELETED
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_ADDED
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_MISSING
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_MODIFIED
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_NONE
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_INCOMPLETE
-                    returnValue &= status.getNodeStatus() == SVNStatusType.STATUS_UNVERSIONED
-                }
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_DELETED
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_ADDED
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_MISSING
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_MODIFIED
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_NONE
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_INCOMPLETE
+                    returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_UNVERSIONED
+                 }
             })
             statusCmd.run()
 
@@ -145,19 +146,70 @@ class ScmUtil {
         }
     }
 
-    static void svnCommitChanges(File projectDir) {
+    static void svnCommitChanges(File target) {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
         final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
         svnOperationFactory.setAuthenticationManager(authenticationManager)
 
         try {
+            checkFiles(target, svnOperationFactory)
+
             final SvnCommit commit = svnOperationFactory.createCommit()
-            commit.setSingleTarget(SvnTarget.fromFile(projectDir))
+            commit.setSingleTarget(SvnTarget.fromFile(target))
             commit.setCommitMessage('rollback after test')
             final SVNCommitInfo commitInfo = commit.run()
             println "Commit info was ${commitInfo}"
         } catch (Exception ex) {
             ex.printStackTrace()
+        }
+    }
+
+    private static void checkFiles(File target, SvnOperationFactory svnOperationFactory) throws SVNException{
+        List<File> addedFiles = []
+        List<File> missingFiles = []
+
+        final SVNWCContext context = new SVNWCContext(svnOperationFactory.getOptions(), svnOperationFactory.getEventHandler());
+
+        SvnGetStatus getStatus = svnOperationFactory.createGetStatus()
+        getStatus.setSingleTarget(SvnTarget.fromFile(target))
+        getStatus.setDepth(SVNDepth.INFINITY)
+        getStatus.setRemote(true)
+        getStatus.setReportAll(true)
+
+        getStatus.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
+            public void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
+                if(! status.versioned) {
+                    addedFiles.add(status.path)
+                }
+                if(status.getNodeStatus() == SVNStatusType.STATUS_MISSING) {
+                    missingFiles.add(status.path)
+                }
+            }
+        })
+        getStatus.run()
+
+        if(addedFiles.size() > 0) {
+            SvnScheduleForAddition addclient = svnOperationFactory.createScheduleForAddition()
+            addclient.setDepth(SVNDepth.INFINITY)
+            addclient.setAddParents(true)
+
+            addedFiles.each { File addFile ->
+                addclient.addTarget(SvnTarget.fromFile(addFile))
+            }
+
+            addclient.run()
+        }
+        if(missingFiles.size() > 0) {
+            SvnScheduleForRemoval rmclient = svnOperationFactory.createScheduleForRemoval()
+            rmclient.setDepth(SVNDepth.INFINITY)
+            rmclient.setDeleteFiles(true)
+            rmclient.setForce(true)
+
+            missingFiles.each { File missingFile ->
+                rmclient.addTarget(SvnTarget.fromFile(missingFile))
+            }
+
+            rmclient.run()
         }
     }
 

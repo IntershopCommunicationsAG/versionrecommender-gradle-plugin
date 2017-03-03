@@ -142,7 +142,7 @@ class ScmSpec extends Specification {
             System.properties['gitpasswd'] })
     def 'git - simple project with simple new file on a branch'() {
         setup:
-        ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'newBranch')
+        ScmUtil.gitCheckOut(testDir, System.properties['giturl'], 'newbranch')
         File tf = new File(testDir, '.test.version')
         tf.setText('1.0.0')
         List<File> fileList = []

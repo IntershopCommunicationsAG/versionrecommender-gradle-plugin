@@ -102,11 +102,13 @@ class ScmUtil {
 
     static void removeAllFiles(File projectDir) {
         projectDir.listFiles().each {
-            if(it.isDirectory() && (it.getName() != '.git' || it.getName() != '.svn')) {
-                it.deleteDir()
-            }
-            if(it.isFile() && it.getName() != '.gitignore') {
-                it.delete()
+            if(it.getName() != '.git' && it.getName() != '.svn' && it.getName() != '.gitignore') {
+                if (it.isDirectory()) {
+                    it.deleteDir()
+                }
+                if (it.isFile()) {
+                    it.delete()
+                }
             }
         }
     }
@@ -114,6 +116,18 @@ class ScmUtil {
     static void gitCommitChanges(File target, String filepattern ='.') {
         Git git = getGit(target)
         try {
+            Status status = git.status().call()
+            if (!status.getMissing().isEmpty() || !status.getRemoved().isEmpty()) {
+                RmCommand rm = git.rm()
+                status.getMissing().each {
+                    rm.addFilepattern(it)
+                }
+                status.getRemoved().each {
+                    rm.addFilepattern(it)
+                }
+                rm.call()
+            }
+
             git.add().addFilepattern(filepattern).call()
 
             CommitCommand commitCmd = git.commit()
@@ -126,6 +140,8 @@ class ScmUtil {
 
         } catch (Exception ex) {
             ex.printStackTrace()
+        } finally {
+            git.close()
         }
     }
 

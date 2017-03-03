@@ -73,30 +73,38 @@ class GitClient implements IScmClient {
     }
 
     String commit(List<File> fileList, String commitmessage) {
+        if(! fileList.isEmpty()) {
+            try {
+                StatusCommand statusCmd = gitClient.status()
+                Status status = statusCmd.call()
 
-        try {
-            addMissingFiles(fileList)
+                if(status.untrackedFolders.size() != 0 || status.untracked.size() != 0) {
+                    fileList.each {
+                        gitClient.add().addFilepattern(calculatePattern(workingCopy, it)).call()
+                    }
+                }
 
-            CommitCommand commitCmd = gitClient.commit()
-            commitCmd.setMessage(commitmessage)
-            commitCmd.call()
+                status = statusCmd.call()
 
-            PushCommand pushCmd = gitClient.push()
+                if(status.hasUncommittedChanges()) {
+                    CommitCommand commitCmd = gitClient.commit()
+                    commitCmd.setMessage(commitmessage)
+                    commitCmd.call()
 
-            initGitCommand(pushCmd)
-            pushCmd.setPushAll()
-            pushCmd.remote =  'origin'
-            pushCmd.force = true
-            pushCmd.call()
+                    PushCommand pushCmd = gitClient.push()
 
-        } catch (GitAPIException ex) {
-            throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
-        }
-    }
-
-    private void addMissingFiles(List<File> fileList) throws GitAPIException {
-        fileList.each {
-            gitClient.add().addFilepattern(calculatePattern(workingCopy, it)).call()
+                    initGitCommand(pushCmd)
+                    pushCmd.setPushAll()
+                    pushCmd.remote = 'origin'
+                    pushCmd.force = true
+                    pushCmd.call()
+                }
+            } catch (GitAPIException ex) {
+                throw new ScmCommitException("Commit of changes failed (${ex.getMessage()})", ex.cause)
+            }
+            finally {
+                gitClient.close()
+            }
         }
     }
 

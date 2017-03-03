@@ -30,12 +30,12 @@ import org.tmatesoft.svn.core.wc2.*
 
 @Slf4j
 @CompileStatic
-class SvnClientI implements IScmClient {
+class SvnClient implements IScmClient {
 
     private final SvnOperationFactory svnOpFactory
     private final File workingCopy
 
-    SvnClientI(File workingDir, String username = '', String password = '') {
+    SvnClient(File workingDir, String username = '', String password = '') {
         this.workingCopy = workingDir
         svnOpFactory = new SvnOperationFactory()
 

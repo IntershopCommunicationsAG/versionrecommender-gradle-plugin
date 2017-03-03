@@ -85,7 +85,6 @@ class GitClient implements IScmClient {
 
             initGitCommand(pushCmd)
             pushCmd.setPushAll()
-            pushCmd.setPushTags()
             pushCmd.remote =  'origin'
             pushCmd.force = true
             pushCmd.call()

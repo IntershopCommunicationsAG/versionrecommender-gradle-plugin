@@ -54,6 +54,14 @@ test {
     systemProperty 'intershop.host.username',      System.getenv('ISHUSERNAME') ?: System.getProperty('ISHUSERNAME')
     systemProperty 'intershop.host.userpassword',  System.getenv('ISHKEY') ?: System.getProperty('ISHKEY')
 
+    systemProperty 'giturl',        System.getenv('GITURL') ?: System.getProperty('GITURL')
+    systemProperty 'gituser',       System.getenv('GITUSER') ?: System.getProperty('GITUSER')
+    systemProperty 'gitpasswd',     System.getenv('GITPASSWD') ?: System.getProperty('GITPASSWD')
+
+    systemProperty 'svnurl',        System.getenv('SVNURL') ?: System.getProperty('SVNURL')
+    systemProperty 'svnuser',       System.getenv('SVNUSER') ?: System.getProperty('SVNUSER')
+    systemProperty 'svnpasswd',     System.getenv('SVNPASSWD') ?: System.getProperty('SVNPASSWD')
+
     // set heap size for the test JVM(s)
     minHeapSize = "64m"
     maxHeapSize = "128m"

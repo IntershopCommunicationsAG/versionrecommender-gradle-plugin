@@ -146,6 +146,16 @@ class ScmUtil {
         }
     }
 
+    static void svnUpdate(File target) {
+        final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
+        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
+        svnOperationFactory.setAuthenticationManager(authenticationManager)
+
+        SvnUpdate updateCmd = svnOperationFactory.createUpdate()
+        updateCmd.setSingleTarget(SvnTarget.fromFile(target))
+        updateCmd.run()
+    }
+
     static void svnCommitChanges(File target) {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
         final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())

@@ -39,6 +39,8 @@ class ScmClient implements IScmClient {
     private IScmClient internalClient
 
     ScmClient(Project project) {
+        internalClient = null
+
         // check for username and password
         String username = getVariable(project, USERNAME_ENV, USERNAME_PRJ, '')
         String password = getVariable(project, PASSWORD_ENV, PASSWORD_PRJ, '')
@@ -59,11 +61,12 @@ class ScmClient implements IScmClient {
 
         File svnDir = new File(project.rootDir, '.svn')
         if (svnDir.exists() && svnDir.isDirectory()) {
-            internalClient = new GitClient(project.rootDir, username, password)
+            internalClient = new SvnClient(project.rootDir, username, password)
         }
 
-        project.logger.quiet('No SCM client can be configured!')
-        internalClient = null
+        if(internalClient == null) {
+            project.logger.quiet('No SCM client can be configured!')
+        }
     }
 
     String commit(List<File> fileList, String commitmessage) {

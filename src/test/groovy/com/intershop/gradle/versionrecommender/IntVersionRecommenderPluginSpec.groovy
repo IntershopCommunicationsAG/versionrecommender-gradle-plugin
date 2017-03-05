@@ -1711,6 +1711,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             System.properties['gitpasswd'] })
     def 'test udpate with ivy Dependency and store in GIT repository'() {
         setup:
+        buildFile.delete()
         ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
         buildFile << """
             plugins {
@@ -1749,7 +1750,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 from configurations.testConfig
             }
             
-            ${writeIvyRepo(testProjectDir)}
+            ${writeIvyRepo(new File(testProjectDir, 'build'))}
 
             repositories {
                 jcenter()
@@ -1759,7 +1760,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultStore = getPreparedGradleRunner()
-                .withArguments('store', 'update', '-s', 'PscmCommit=true', "-PscmUserName=${System.properties['gituser']}", "-PscmUserPasswd=${System.properties['gitpasswd']}")
+                .withArguments('store', 'update', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['gituser']}", "-PscmUserPasswd=${System.properties['gitpasswd']}")
                 .withGradleVersion(gradleVersion)
                 .build()
         File storeFileFilter4 = new File(testProjectDir, '.ivyFilter4.version')
@@ -1777,7 +1778,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         storeFileFilter2.text == '1.0.1'
         ScmUtil.gitCheckResult(testProjectDir)
 
-
         cleanup:
         ScmUtil.removeAllFiles(testProjectDir)
         ScmUtil.gitCommitChanges(testProjectDir)
@@ -1791,6 +1791,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             System.properties['svnpasswd'] })
     def 'test udpate with ivy Dependency and store in SVN repository'() {
         setup:
+        buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
         buildFile << """
             plugins {
@@ -1829,13 +1830,33 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 from configurations.testConfig
             }
             
-            ${writeIvyRepo(testProjectDir)}
+            ${writeIvyRepo(new File(testProjectDir, 'build'))}
 
             repositories {
                 jcenter()
             }
         """.stripIndent()
         ScmUtil.svnCommitChanges(testProjectDir)
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', 'update', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['svnuser']}", "-PscmUserPasswd=${System.properties['svnpasswd']}")
+                .withGradleVersion(gradleVersion)
+                .build()
+        File storeFileFilter4 = new File(testProjectDir, '.ivyFilter4.version')
+        File storeFileFilter3 = new File(testProjectDir, '.ivyFilter3.version')
+        File storeFileFilter2 = new File(testProjectDir, '.ivyFilter2.version')
+
+        then:
+        resultStore.task(':store').outcome == SUCCESS
+        resultStore.task(':update').outcome == SUCCESS
+        storeFileFilter4.exists()
+        storeFileFilter3.exists()
+        storeFileFilter2.exists()
+        storeFileFilter4.text == '1.0.1'
+        storeFileFilter3.text == '1.0.1'
+        storeFileFilter2.text == '1.0.1'
+        ScmUtil.svnCheckResult(testProjectDir)
 
         cleanup:
         ScmUtil.svnUpdate(testProjectDir)
@@ -1851,6 +1872,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             System.properties['gitpasswd'] })
     def 'test udpate with ivy Dependency and store in GIT repository and different configDir'() {
         setup:
+        buildFile.delete()
         ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
         buildFile << """
             plugins {
@@ -1899,13 +1921,33 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 from configurations.testConfig
             }
             
-            ${writeIvyRepo(testProjectDir)}
+            ${writeIvyRepo(new File(testProjectDir, 'build'))}
 
             repositories {
                 jcenter()
             }
         """.stripIndent()
         ScmUtil.gitCommitChanges(testProjectDir)
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', 'update', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['gituser']}", "-PscmUserPasswd=${System.properties['gitpasswd']}")
+                .withGradleVersion(gradleVersion)
+                .build()
+        File storeFileFilter4 = new File(testProjectDir, 'filter/.ivyFilter4.version')
+        File storeFileFilter3 = new File(testProjectDir, 'filter/.ivyFilter3.version')
+        File storeFileFilter2 = new File(testProjectDir, 'filter/.ivyFilter2.version')
+
+        then:
+        resultStore.task(':store').outcome == SUCCESS
+        resultStore.task(':update').outcome == SUCCESS
+        storeFileFilter4.exists()
+        storeFileFilter3.exists()
+        storeFileFilter2.exists()
+        storeFileFilter4.text == '1.0.1'
+        storeFileFilter3.text == '1.0.1'
+        storeFileFilter2.text == '1.0.1'
+        ScmUtil.gitCheckResult(testProjectDir)
 
         cleanup:
         ScmUtil.removeAllFiles(testProjectDir)
@@ -1920,6 +1962,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             System.properties['svnpasswd'] })
     def 'test udpate with ivy Dependency and store in SVN repository and different configDir'() {
         setup:
+        buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
         buildFile << """
             plugins {
@@ -1968,13 +2011,33 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 from configurations.testConfig
             }
             
-            ${writeIvyRepo(testProjectDir)}
+            ${writeIvyRepo(new File(testProjectDir, 'build'))}
 
             repositories {
                 jcenter()
             }
         """.stripIndent()
         ScmUtil.svnCommitChanges(testProjectDir)
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', 'update', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['svnuser']}", "-PscmUserPasswd=${System.properties['svnpasswd']}")
+                .withGradleVersion(gradleVersion)
+                .build()
+        File storeFileFilter4 = new File(testProjectDir, 'filter/.ivyFilter4.version')
+        File storeFileFilter3 = new File(testProjectDir, 'filter/.ivyFilter3.version')
+        File storeFileFilter2 = new File(testProjectDir, 'filter/.ivyFilter2.version')
+
+        then:
+        resultStore.task(':store').outcome == SUCCESS
+        resultStore.task(':update').outcome == SUCCESS
+        storeFileFilter4.exists()
+        storeFileFilter3.exists()
+        storeFileFilter2.exists()
+        storeFileFilter4.text == '1.0.1'
+        storeFileFilter3.text == '1.0.1'
+        storeFileFilter2.text == '1.0.1'
+        ScmUtil.svnCheckResult(testProjectDir)
 
         cleanup:
         ScmUtil.svnUpdate(testProjectDir)

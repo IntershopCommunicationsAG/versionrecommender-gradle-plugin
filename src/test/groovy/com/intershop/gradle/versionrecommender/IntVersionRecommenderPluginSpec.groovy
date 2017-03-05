@@ -17,6 +17,8 @@ package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
+import com.intershop.gradle.versionrecommender.scm.ScmUtil
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -838,7 +840,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         where:
         gradleVersion << supportedGradleVersions
     }
-
 
     def 'test update with a multi provider configuration and with different update configuration'() {
         given:
@@ -1700,6 +1701,285 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         pom.text.contains('<artifactId>testglob1</artifactId>')
         pom.text.contains('<artifactId>testglob10</artifactId>')
         pom.text.contains('<version>11.0.0</version>')
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
+    def 'test udpate with ivy Dependency and store in GIT repository'() {
+        setup:
+        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') {}
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+        ScmUtil.gitCommitChanges(testProjectDir)
+
+        when:
+        def resultStore = getPreparedGradleRunner()
+                .withArguments('store', 'update', '-s', 'PscmCommit=true', "-PscmUserName=${System.properties['gituser']}", "-PscmUserPasswd=${System.properties['gitpasswd']}")
+                .withGradleVersion(gradleVersion)
+                .build()
+        File storeFileFilter4 = new File(testProjectDir, '.ivyFilter4.version')
+        File storeFileFilter3 = new File(testProjectDir, '.ivyFilter3.version')
+        File storeFileFilter2 = new File(testProjectDir, '.ivyFilter2.version')
+
+        then:
+        resultStore.task(':store').outcome == SUCCESS
+        resultStore.task(':update').outcome == SUCCESS
+        storeFileFilter4.exists()
+        storeFileFilter3.exists()
+        storeFileFilter2.exists()
+        storeFileFilter4.text == '1.0.1'
+        storeFileFilter3.text == '1.0.1'
+        storeFileFilter2.text == '1.0.1'
+        ScmUtil.gitCheckResult(testProjectDir)
+
+
+        cleanup:
+        ScmUtil.removeAllFiles(testProjectDir)
+        ScmUtil.gitCommitChanges(testProjectDir)
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Requires({ System.properties['svnurl'] &&
+            System.properties['svnuser'] &&
+            System.properties['svnpasswd'] })
+    def 'test udpate with ivy Dependency and store in SVN repository'() {
+        setup:
+        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') {}
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+        ScmUtil.svnCommitChanges(testProjectDir)
+
+        cleanup:
+        ScmUtil.svnUpdate(testProjectDir)
+        ScmUtil.removeAllFiles(testProjectDir)
+        ScmUtil.svnCommitChanges(testProjectDir)
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Requires({ System.properties['giturl'] &&
+            System.properties['gituser'] &&
+            System.properties['gitpasswd'] })
+    def 'test udpate with ivy Dependency and store in GIT repository and different configDir'() {
+        setup:
+        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {
+                        configDir = file('altfilter')
+                    }
+                    ivy('filter4',  'com.intershop:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+        ScmUtil.gitCommitChanges(testProjectDir)
+
+        cleanup:
+        ScmUtil.removeAllFiles(testProjectDir)
+        ScmUtil.gitCommitChanges(testProjectDir)
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Requires({ System.properties['svnurl'] &&
+            System.properties['svnuser'] &&
+            System.properties['svnpasswd'] })
+    def 'test udpate with ivy Dependency and store in SVN repository and different configDir'() {
+        setup:
+        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {
+                        configDir = file('altfilter')
+                    }
+                    ivy('filter4',  'com.intershop:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {
+                        configDir = file('filter')
+                    }
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4','filter3','filter2']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+                     
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+        ScmUtil.svnCommitChanges(testProjectDir)
+
+        cleanup:
+        ScmUtil.svnUpdate(testProjectDir)
+        ScmUtil.removeAllFiles(testProjectDir)
+        ScmUtil.svnCommitChanges(testProjectDir)
 
         where:
         gradleVersion << supportedGradleVersions

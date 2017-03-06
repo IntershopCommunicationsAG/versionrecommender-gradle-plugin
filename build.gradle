@@ -70,7 +70,7 @@ test {
     jvmArgs '-XX:MaxPermSize=96m'
 
     // Gradle versions for test
-    systemProperty 'intershop.gradle.versions', '2.11, 3.4'
+    systemProperty 'intershop.gradle.versions', '2.11, 3.4.1'
 }
 
 task copyAsciiDoc {

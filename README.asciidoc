@@ -1,5 +1,5 @@
 = Version Recommender Plugin
-:latestRevision: 1.0.0
+:latestRevision: 1.1.0
 :toc:
 
 == Summary
@@ -67,6 +67,23 @@ The tasks are only available for filters with an dependency configuration or for
 the file is located in the project directory. Temporary version configuration will be stored in files in a working
 directory, which is per default located in the build directory of the root project.
 The file name of this configuration is `'._[providerType][ProviderName]_.version'`, e.g., `.ivyProviderName.version`.
+
+== Save update changes to the source control system
+If the tasks `store` or `store__[ProviderName]__` should save the changes also to the used version control system, it is
+necessary to set a project property `*scmCommit*` to `true`. This plugin supports Subversion with over http(s) with basic
+authentication and Git over http(s) with basic authenticationand and over ssh with an authentication with an private key.
+The required credentials must be provided. It is possible to specify project properties, system variables or Java system properties.
+
+[cols="17%,17%,65%", width="95%", options="header"]
+|===
+| System variable or Java system property | Project property  | Description
+
+| *SCM_USERNAME*      | *scmUserName*      | This is the username of a basic authentication for Subversion or Git over http(s).
+| *SCM_PASSWORD*      | *scmUserPasswd*    | This is the password of a basic authentication for Subversion or Git over http(s).
+| *SCM_KEYFILE*       | *scmKeyFile*       | This is the path to the keyfile of an authentication for Git over ssh.
+| *SCM_KEYPASSPHRASE* | *scmKeyPassphrase* | This is the optional passphrase for the keyfile of an authentication for Git over ssh.
+
+|===
 
 == Project Extension 'versionRecommendation'
 
@@ -588,6 +605,27 @@ Executing the Gradle publishing task will generate the following _*.pom_ file.
   <description>A demonstration of maven customization</description>
 </project>
 ----
+
+=== Test
+The integration tests using a test repositories. Therefore it is necessary to specify project properties for the test execution.
+
+.Table Subversion test configuration
+|===
+|Test Property |Description | Value
+
+|*svnurl*    | Root URL of the test project        | Must be specified with environment variable *`SVNURL`*
+|*svnuser*   | User name of Subversion test user   | Must be specified with environment variable *`SVNUSER`*
+|*svnpasswd* | Password for Subversion test user   | Must be specified with environment variable *`SVNPASSWD`*
+|===
+
+.Table Git test configuration
+|===
+|Test Property |Description | Value
+
+|*giturl*    | URL of the test project      | Must be specified with environment variable *`GITURL`*
+|*gituser*   | User name of Git test user   | Must be specified with environment variable *`GITUSER`*
+|*gitpasswd* | Password for Git test user   | Must be specified with environment variable *`GITPASSWD`*
+|===
 
 == Thanks
 

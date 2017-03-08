@@ -162,6 +162,138 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'test simple configuration with ivy and dependency to filter'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    updateConfigItemContainer {
+                        testUpdate1 {
+                            module = 'org.eclipse.jetty'
+                            searchPattern = '\\\\.v\\\\d+'
+                        }
+                    }
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:filter@ivy'
+                testConfig 'org.apache.tomcat:tomcat-catalina:8.5.5'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writeIvyRepo(testProjectDir)}
+            
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+        (new File(testProjectDir, 'result/tomcat-catalina-8.5.5.jar')).exists()
+
+        when:
+        def resultTasks = getPreparedGradleRunner()
+                .withArguments('tasks', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultTasks.output.contains('setLocalFilter')
+        resultTasks.output.contains('setSnapshotFilter')
+        resultTasks.output.contains('resetFilter')
+        resultTasks.output.contains('updateFilter')
+
+        when:
+        def resultSetLocal = getPreparedGradleRunner()
+                .withArguments('setLocalFilter', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultSetLocal.task(':setLocalFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterSetLocal = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0-LOCAL.xml')).exists()
+
+        when:
+        def resultReset = getPreparedGradleRunner()
+                .withArguments('resetFilter', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultReset.task(':resetFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterReset = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('updateFilter', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        resultUpdate.task(':updateFilter').outcome == SUCCESS
+
+        when:
+        def resultAfterUpdate = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        (new File(testProjectDir, 'result/ivy-1.0.1.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'test with force recommendation version'() {
         given:
         buildFile << """

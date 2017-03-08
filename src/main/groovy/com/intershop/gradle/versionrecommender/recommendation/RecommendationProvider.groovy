@@ -35,6 +35,8 @@ import java.util.regex.Pattern
 @Slf4j
 abstract class RecommendationProvider implements IRecommendationProvider {
 
+    private int fillStatus = 0
+
     private String name
     private File workingDir
     private File configDir
@@ -237,27 +239,46 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     @Override
     String getVersion(String org, String name) {
         String version = ''
-        if(versions == null) {
-            versions = [:]
 
-            fillVersionMap()
+        synchronized (this) {
+            if (versions == null && fillStatus == 0) {
+                project.logger.info('Start reading version recommendations.')
+                fillStatus = 1
 
-            if (versionMap) {
-                versionMap.each { String k, String v ->
-                    if(k.contains('*')) {
-                        globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
-                    } else {
-                        versions.put(k, v)
-                    }
-                    if (transitive && !k.contains('*')) {
-                        calculateDependencies(k, v)
+                versions = [:]
+
+                fillVersionMap()
+
+                if (versionMap) {
+                    versionMap.each { String k, String v ->
+                        if (k.contains('*')) {
+                            globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
+                        } else {
+                            versions.put(k, v)
+                        }
+                        if (transitive && !k.contains('*')) {
+                            calculateDependencies(k, v)
+                        }
                     }
                 }
+
+                fillStatus = 0
+                project.logger.info('Reading version recommendations finished.')
             }
         }
 
-        if(versions != null)
-            version = versions.get("${org}:${name}".toString())
+        if(versions != null) {
+            if(fillStatus == 1) {
+                project.logger.debug('Reading version recommendations is still in progress.')
+                while (fillStatus == 1 && version == '') {
+                    project.logger.debug('Try to get version from "{};{}" but reading is still in progress', org, name)
+                    version = versions.get("${org}:${name}".toString())
+                }
+            } else {
+                project.logger.debug('Try to get version from "{};{}"', org, name)
+                version = versions.get("${org}:${name}".toString())
+            }
+        }
 
         if(version)
             return version

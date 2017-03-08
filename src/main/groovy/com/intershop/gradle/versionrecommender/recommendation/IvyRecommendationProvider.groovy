@@ -64,7 +64,7 @@ class IvyRecommendationProvider extends FileBasedRecommendationProvider {
      * and the name or artifact id. The value is the version.
      */
     @Override
-    synchronized void fillVersionMap() {
+    void fillVersionMap() {
         InputStream stream = getStream()
         if(stream) {
             log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())

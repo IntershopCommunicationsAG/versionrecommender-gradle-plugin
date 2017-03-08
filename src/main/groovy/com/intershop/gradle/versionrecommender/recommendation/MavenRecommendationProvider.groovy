@@ -83,7 +83,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
      * and the name or artifact id. The value is the version.
      */
     @Override
-    synchronized void fillVersionMap() {
+    void fillVersionMap() {
         log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
 
         DefaultModelBuildingRequest request = new DefaultModelBuildingRequest()

@@ -279,19 +279,20 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
      * @return
      */
     protected File getFileFromModule() {
+        Map dMap = new HashMap(inputDependency)
         // adapt version
         String version = getVersionFromConfig()
         if(version) {
-            inputDependency.put('version', version)
+            dMap.put('version', version)
             // adapt extension
-            if (!inputDependency['ext']) {
-                inputDependency.put('ext', getShortTypeName())
+            if (!dMap['ext']) {
+                dMap.put('ext', getShortTypeName())
             }
 
             // create a temporary configuration to resolve the file
-            Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(inputDependency))
+            Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
             ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
-            log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), inputDependency)
+            log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
 
             return artifactId?.getFile()
         }

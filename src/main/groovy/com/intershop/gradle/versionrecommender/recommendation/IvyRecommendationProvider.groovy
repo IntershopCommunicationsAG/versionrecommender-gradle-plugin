@@ -78,8 +78,8 @@ class IvyRecommendationProvider extends FileBasedRecommendationProvider {
                     calculateDependencies(descr, version)
                 }
             }
-            if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
-                versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
+            if(inputType == FileInputType.DEPENDENCYMAP) {
+                versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
             }
         } else {
             project.logger.info('It is not possible to identify versions for {}. Please check your configuration.', getName())

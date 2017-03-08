@@ -240,42 +240,40 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     String getVersion(String org, String name) {
         String version = ''
 
-        synchronized (this) {
-            if (versions == null && fillStatus == 0) {
-                project.logger.info('Start reading version recommendations.')
-                fillStatus = 1
+        if (versions == null && fillStatus == 0) {
+            project.logger.info('Start reading version recommendations.')
+            fillStatus = 1
 
-                versions = [:]
+            versions = [:]
 
-                fillVersionMap()
+            fillVersionMap()
 
-                if (versionMap) {
-                    versionMap.each { String k, String v ->
-                        if (k.contains('*')) {
-                            globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
-                        } else {
-                            versions.put(k, v)
-                        }
-                        if (transitive && !k.contains('*')) {
-                            calculateDependencies(k, v)
-                        }
+            if (versionMap) {
+                versionMap.each { String k, String v ->
+                    if (k.contains('*')) {
+                        globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
+                    } else {
+                        versions.put(k, v)
+                    }
+                    if (transitive && !k.contains('*')) {
+                        calculateDependencies(k, v)
                     }
                 }
-
-                fillStatus = 0
-                project.logger.info('Reading version recommendations finished.')
             }
+
+            fillStatus = 0
+            project.logger.info('Reading version recommendations finished.')
         }
 
         if(versions != null) {
             if(fillStatus == 1) {
                 project.logger.debug('Reading version recommendations is still in progress.')
                 while (fillStatus == 1 && version == '') {
-                    project.logger.debug('Try to get version from "{};{}" but reading is still in progress', org, name)
+                    project.logger.debug('Try to get version from "{}:{}" but reading is still in progress', org, name)
                     version = versions.get("${org}:${name}".toString())
                 }
             } else {
-                project.logger.debug('Try to get version from "{};{}"', org, name)
+                project.logger.debug('Try to get version from "{}:{}"', org, name)
                 version = versions.get("${org}:${name}".toString())
             }
         }

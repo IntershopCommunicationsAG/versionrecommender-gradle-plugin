@@ -118,7 +118,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
             }
         }
         if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
-            versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), inputDependency.get('version').toString())
+            versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
         }
     }
 

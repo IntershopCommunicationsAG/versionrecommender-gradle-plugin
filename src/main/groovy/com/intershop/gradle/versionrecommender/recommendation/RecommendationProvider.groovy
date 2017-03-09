@@ -252,8 +252,8 @@ abstract class RecommendationProvider implements IRecommendationProvider {
             fillThread = new Thread(r)
             fillThread.start()
 
-            while(fillThread != null && fillThread.alive){
-                log.debug('Waiting for version map complete.')
+            while(fillThread.alive){
+                log.debug('Waiting for version map complete after start.')
             }
         }
 
@@ -277,27 +277,25 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     }
 
     private void versionMapInit() {
+        project.logger.info('Start reading version recommendations.')
 
-            project.logger.info('Start reading version recommendations.')
+        versions = [:]
 
-            versions = [:]
+        fillVersionMap()
 
-            fillVersionMap()
-
-            if (versionMap) {
-                versionMap.each { String k, String v ->
-                    if (k.contains('*')) {
-                        globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
-                    } else {
-                        versions.put(k, v)
-                    }
-                    if (transitive && !k.contains('*')) {
-                        calculateDependencies(k, v)
-                    }
+        if (versionMap) {
+            versionMap.each { String k, String v ->
+                if (k.contains('*')) {
+                    globs.put(Pattern.compile(k.replaceAll("\\*", ".*?")), v)
+                } else {
+                    versions.put(k, v)
+                }
+                if (transitive && !k.contains('*')) {
+                    calculateDependencies(k, v)
                 }
             }
-            project.logger.info('Reading version recommendations finished.')
-
+        }
+        project.logger.info('Reading version recommendations finished.')
     }
 
     /**

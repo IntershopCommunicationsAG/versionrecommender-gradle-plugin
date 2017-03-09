@@ -48,7 +48,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     protected UpdatePos updatePos
     protected Map<String, String> versions = null
 
-    private int fillStatus = 0
+    private int fillStatus
     private int waitingTime = 10
 
 
@@ -69,6 +69,8 @@ abstract class RecommendationProvider implements IRecommendationProvider {
 
         versionMap = [:]
         globs = new HashMap<Pattern, String>()
+
+        fillStatus = 0
     }
 
     /**
@@ -242,11 +244,16 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         String version = null
 
         if (versions == null) {
+            fillStatus = 1
             versionMapInit()
+            fillStatus = 0
         }
 
+        project.logger.debug('Try to get version from "{}:{}" - fill status is ({})', org, name, fillStatus)
         if(fillStatus == 1) {
+            project.logger.debug('Try to get version from "{}:{}" - fill status is 1', org, name)
             sleep(waitingTime * 1000)
+            project.logger.debug('Try to get version from "{}:{}" - after sleep', org, name)
         }
 
         project.logger.debug('Try to get version from "{}:{}"', org, name)
@@ -270,7 +277,6 @@ abstract class RecommendationProvider implements IRecommendationProvider {
 
     private void versionMapInit() {
         project.logger.info('Start reading version recommendations.')
-        fillStatus = 1
         versions = [:]
 
         fillVersionMap()
@@ -287,7 +293,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
                 }
             }
         }
-        fillStatus = 0
+
         project.logger.info('Reading version recommendations finished.')
     }
 

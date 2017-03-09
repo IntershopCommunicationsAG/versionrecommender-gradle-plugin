@@ -247,6 +247,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         }
 
         while(fillStatus == 1) {
+            sleep(2000)
             log.debug('waiting for changes on version map')
         }
 

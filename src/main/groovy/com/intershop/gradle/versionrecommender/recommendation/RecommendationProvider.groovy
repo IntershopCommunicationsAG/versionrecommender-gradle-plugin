@@ -34,7 +34,7 @@ import java.util.regex.Pattern
 @Slf4j
 abstract class RecommendationProvider implements IRecommendationProvider {
 
-    private int fillStatus = 0
+    private Thread fillThread
 
     private String name
     private File workingDir
@@ -239,7 +239,23 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     String getVersion(String org, String name) {
         String version = null
 
-        versionMapInit()
+        while(fillThread != null && fillThread.alive){
+            log.debug('Waiting for version map complete.')
+        }
+
+        if (versions == null) {
+            Runnable r = new Runnable() {
+                void run() {
+                    versionMapInit()
+                }
+            }
+            fillThread = new Thread(r)
+            fillThread.start()
+
+            while(fillThread != null && fillThread.alive){
+                log.debug('Waiting for version map complete.')
+            }
+        }
 
         project.logger.debug('Try to get version from "{}:{}"', org, name)
         version = versions.get("${org}:${name}".toString())
@@ -260,8 +276,8 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         return version
     }
 
-    private synchronized versionMapInit() {
-        if (versions == null) {
+    private void versionMapInit() {
+
             project.logger.info('Start reading version recommendations.')
 
             versions = [:]
@@ -280,9 +296,8 @@ abstract class RecommendationProvider implements IRecommendationProvider {
                     }
                 }
             }
-
             project.logger.info('Reading version recommendations finished.')
-        }
+
     }
 
     /**

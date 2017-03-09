@@ -30,7 +30,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
 
 
-    def 'test simple configuration with ivy'() {
+    def 'test simple configuration with ivy - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -162,7 +162,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test simple configuration with ivy and dependency to filter'() {
+    def 'test simple configuration with ivy and dependency to filter - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -294,7 +294,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test with force recommendation version'() {
+    def 'test with force recommendation version - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -361,7 +361,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test with two filters'() {
+    def 'test with two filters - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -429,7 +429,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test with two filters different order'() {
+    def 'test with two filters different order - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -497,7 +497,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test with two filters, one without unspecified version'() {
+    def 'test with two filters, one without unspecified version - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -563,7 +563,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test simple configuration with properties and without files'() {
+    def 'test simple configuration with properties and without files - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -635,7 +635,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test complex properties update'() {
+    def 'test complex properties update - #gradleVersion'(gradleVersion) {
         given:
         copyResources('updatetest/test.version', 'properties.version')
 
@@ -690,7 +690,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test complex properties update with exclude configuration'() {
+    def 'test complex properties update with exclude configuration - #gradleVersion'(gradleVersion) {
         given:
         copyResources('updatetest/test.version', 'properties.version')
 
@@ -747,7 +747,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test update with a multi provider configuration'() {
+    def 'test update with a multi provider configuration - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -899,7 +899,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test update and store with a multi provider configuration'() {
+    def 'test update and store with a multi provider configuration - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -973,7 +973,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test update with a multi provider configuration and with different update configuration'() {
+    def 'test update with a multi provider configuration and with different update configuration - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1064,7 +1064,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test override with a multi provider configuration and with different configuration'() {
+    def 'test override with a multi provider configuration and with different configuration - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1133,7 +1133,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test simple configuration for multiproject'() {
+    def 'test simple configuration for multiproject - #gradleVersion'(gradleVersion) {
         given:
 
         String repo = writeIvyRepo(testProjectDir)
@@ -1280,7 +1280,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing with ivy'() {
+    def 'test publishing with ivy - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1376,7 +1376,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing with maven'() {
+    def 'test publishing with maven - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1466,7 +1466,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing ivy filter with projects and specified versions'() {
+    def 'test publishing ivy filter with projects and specified versions - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1555,7 +1555,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing maven filter with projects and specified versions'() {
+    def 'test publishing maven filter with projects and specified versions - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1644,7 +1644,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing ivy filter with projects and filter versions'() {
+    def 'test publishing ivy filter with projects and filter versions - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1740,7 +1740,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test publishing maven filter with projects and filter versions'() {
+    def 'test publishing maven filter with projects and filter versions - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {
@@ -1812,7 +1812,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('publish', '-s')
+                .withArguments('publish', '-d')
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -1833,6 +1833,95 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         pom.text.contains('<artifactId>testglob1</artifactId>')
         pom.text.contains('<artifactId>testglob10</artifactId>')
         pom.text.contains('<version>11.0.0</version>')
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'test multiproject with large ivy file - #gradleVersion'(gradleVersion) {
+
+        copyResources('largeIvy/ivy-LARGE.xml', 'ivy-LARGE.xml')
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.versionrecommender'
+        }
+            
+        group = 'com.intershop'
+        version = '1.0.0'
+        
+        versionRecommendation {
+            provider {
+                ivy('filter', file('ivy-LARGE.xml')) {}
+            }
+        }
+        
+        allprojects {
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+                
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            repositories {
+                jcenter()
+            }
+        }
+        
+        project(':project1a') {
+            dependencies {
+                compile 'org.eclipse.emf:org.eclipse.emf.common'
+                compile 'org.eclipse.emf:org.eclipse.emf.ecore'
+                compile 'com.google.guava:guava'
+                compile 'joda-time:joda-time'            
+            }
+        }
+        
+        project(':project2b') {
+            dependencies {
+                compile 'com.fasterxml.jackson.core:jackson-annotations'
+                compile 'com.fasterxml.jackson.core:jackson-core'
+                compile 'com.fasterxml.jackson.core:jackson-databind'
+                
+                compile 'org.eclipse.emf:org.eclipse.emf.common'
+                compile 'org.eclipse.emf:org.eclipse.emf.ecore'
+            }
+        }
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File gradleProps = file('gradle.properties')
+        gradleProps << """
+        # build configuration
+        org.gradle.parallel = true
+        org.gradle.workers.max = 2
+        org.gradle.configureondemand = false
+        """.stripIndent()
+
+        File proj1Dir = createSubProject('project1a', settingsfile, '')
+        File proj2Dir = createSubProject('project2b', settingsfile, '')
+
+        writeJavaTestClass('com.intershop.project1', proj1Dir)
+        writeJavaTestClass('com.intershop.project2', proj2Dir)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('compileJava', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':project1a:compileJava').outcome == SUCCESS
+        result.task(':project2b:compileJava').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

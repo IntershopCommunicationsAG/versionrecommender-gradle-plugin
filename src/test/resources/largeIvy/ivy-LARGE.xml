@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+  <info organisation="com.intershop.platform" module="platform" revision="13.0.0-ISTOOLS-2037-SNAPSHOT" status="integration" publication="20170308120621" e:productName="Intershop 7" e:copyrightOwner="Intershop Communications" e:copyrightFrom="2005">
+    <e:requiresJdk vendor="^Oracle .*" version="1\.8\.0_\d+"/>
+    <e:hostType name="appserver" includeCartridges="false" includeShare="false" includeLocal="true" includeJavadoc="false"/>
+    <e:hostType name="discoveryserver" includeCartridges="false" includeShare="false" includeLocal="true" includeJavadoc="false"/>
+    <e:hostType name="share" includeCartridges="true" includeShare="true" includeLocal="false" includeJavadoc="false"/>
+    <e:hostType name="webserver" includeCartridges="false" includeShare="false" includeLocal="true" includeJavadoc="false"/>
+    <e:environment name="development"/>
+    <e:environment name="production"/>
+    <e:environment name="test"/>
+    <e:initType name="init"/>
+    <e:created-by>1.8.0_112-b15 (Oracle Corporation)</e:created-by>
+    <e:build-java-version>1.8.0_112</e:build-java-version>
+    <e:java-source-compatibility>1.8</e:java-source-compatibility>
+    <e:java-target-compatibility>1.8</e:java-target-compatibility>
+    <e:implementation-title>com.intershop.platform:platform:13.0.0-ISTOOLS-2037-SNAPSHOT</e:implementation-title>
+    <e:implementation-version>13.0.0-ISTOOLS-2037-SNAPSHOT</e:implementation-version>
+    <e:build-status>integration</e:build-status>
+    <e:built-by>isbldas</e:built-by>
+    <e:built-os>Linux</e:built-os>
+    <e:build-date>2017-03-08_12:06:21</e:build-date>
+    <e:gradle-version>2.11</e:gradle-version>
+    <e:gradle-rootproject>p_platform</e:gradle-rootproject>
+    <e:module-origin>https://rnd-svn.intershop.de/esuite/componentsets/p_platform/branches/FB_13-ISTOOLS-2037/platform</e:module-origin>
+    <e:scm-change-info>238450</e:scm-change-info>
+    <e:scm-change-time>-</e:scm-change-time>
+    <e:scm-branch-name>branches/FB_13-ISTOOLS-2037</e:scm-branch-name>
+    <e:scm-type>svn</e:scm-type>
+    <e:ci-build-host>jdevbuildops19.rnd.j.intershop.de</e:ci-build-host>
+    <e:ci-build-url>https://bamboo.intershop.de/browse/CS-PLATFORM144-JOB1-12</e:ci-build-url>
+    <e:ci-build-number>12</e:ci-build-number>
+    <e:ci-build-job>CS-PLATFORM144</e:ci-build-job>
+    <e:ci-build-time>2017-03-08T11:19:06.984+01:00</e:ci-build-time>
+  </info>
+  <configurations>
+    <conf name="appserver" visibility="public"/>
+    <conf name="default" visibility="public"/>
+    <conf name="deploy-plugins" visibility="public"/>
+    <conf name="development-cartridges" visibility="public"/>
+    <conf name="discoveryserver" visibility="public"/>
+    <conf name="init-cartridges" visibility="public"/>
+    <conf name="production-cartridges" visibility="public"/>
+    <conf name="share" visibility="public"/>
+    <conf name="test-cartridges" visibility="public"/>
+    <conf name="webserver" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="deploy-settings" type="deploy-settings-gradle" ext="gradle" conf="default"/>
+    <artifact name="platform" type="deploy-gradle" ext="gradle" conf="default"/>
+    <artifact name="database-dump" type="dump" ext="dmp" conf="default"/>
+    <artifact name="encryption-config" type="encryption-config" ext="zip" conf="default"/>
+    <artifact name="staging" type="staging-properties" ext="properties" conf="default"/>
+  </publications>
+  <dependencies defaultconfmapping="*-&gt;default">
+    <dependency org="com.intershop.infrastructure" name="runtime" rev="2.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver, development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop" name="3rd_oracle" rev="12.1.0.2.0.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_cartridge" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_objectgraph" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_objectgraph_guice" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="servletengine" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="component" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="file" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="emf" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_extension" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_property" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="jmx" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="app" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="messaging" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="cache" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pipeline" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="isml" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="orm" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="configuration" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="businessobject" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="core" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver, development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="wsrp" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="rest" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_repository" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_spreadsheet" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_foundation" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_i18n" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_application" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_auditing" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_region" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_service" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_mail" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_ruleengine" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="report" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_auditing_orm" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_organization" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_approval" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_validation" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_address" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_address_orm" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_user" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_user_orm" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_captcha" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_pdf" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_processchain" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_processchain_orm" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ui_web_library" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_captcha_recaptcha" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_mail" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_ruleengine_drools" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_pdf_flyingsaucer" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_axis2" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_eureka" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, share, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_jrockit" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_swagger" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="dev_lilith" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="etest" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_webtest" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver, development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_objectgraph_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_businessobject_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_core_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_rest_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_orm_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_property_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_messaging_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_foundation_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_service_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_auditing_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_application_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_i18n_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_validation_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_user_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_address_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_approval_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_ruleengine_drools_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="bc_processchain_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ui_web_library_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.platform" name="pf_axis2_test" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="aopalliance" name="aopalliance" rev="1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="bouncycastle" name="bcmail-jdk14" rev="138" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="ch.qos.logback" name="logback-classic" rev="1.1.9" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="ch.qos.logback" name="logback-core" rev="1.1.9" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.amazonaws" name="aws-java-sdk-core" rev="1.11.22" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.amazonaws" name="aws-java-sdk-sns" rev="1.11.22" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.amazonaws" name="aws-java-sdk-sqs" rev="1.11.22" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml" name="classmate" rev="1.3.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.dataformat" name="jackson-dataformat-cbor" rev="2.6.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.dataformat" name="jackson-dataformat-yaml" rev="2.8.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-jdk8" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-jsr310" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.jaxrs" name="jackson-jaxrs-base" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.jaxrs" name="jackson-jaxrs-json-provider" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.fasterxml.jackson.module" name="jackson-module-jaxb-annotations" rev="2.8.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.code.findbugs" name="jsr305" rev="2.0.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.code.gson" name="gson" rev="2.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.guava" name="guava" rev="21.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.inject" name="guice" rev="4.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.inject.extensions" name="guice-assistedinject" rev="4.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.inject.extensions" name="guice-multibindings" rev="4.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.inject.extensions" name="guice-servlet" rev="4.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.google.protobuf" name="protobuf-java" rev="3.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.googlecode.owasp-java-html-sanitizer" name="owasp-java-html-sanitizer" rev="r136" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop.common" name="encryption" rev="2.0.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.jayway.restassured" name="json-path" rev="2.9.0" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.jayway.restassured" name="rest-assured" rev="2.9.0" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.jayway.restassured" name="rest-assured-common" rev="2.9.0" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.jayway.restassured" name="xml-path" rev="2.9.0" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.lowagie" name="itext" rev="2.1.7" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.mycila.guice.extensions" name="mycila-guice-closeable" rev="4.0.rc1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.mycila.guice.extensions" name="mycila-guice-injection" rev="4.0.rc1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.mycila.guice.extensions" name="mycila-guice-jsr250" rev="4.0.rc1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.netflix.archaius" name="archaius-core" rev="0.7.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.netflix.eureka" name="eureka-client" rev="1.6.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.netflix.netflix-commons" name="netflix-eventbus" rev="0.3.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.netflix.netflix-commons" name="netflix-infix" rev="0.3.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.netflix.servo" name="servo-core" rev="0.12.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.rometools" name="rome" rev="1.7.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.rometools" name="rome-fetcher" rev="1.7.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.rometools" name="rome-utils" rev="1.7.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.sun.jersey" name="jersey-core" rev="1.19.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.sun.jersey.contribs" name="jersey-apache-client4" rev="1.19.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.thoughtworks.xstream" name="xstream" rev="1.4.9" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.yahoo.platform.yui" name="yuicompressor" rev="2.4.8" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-beanutils" name="commons-beanutils" rev="1.9.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-codec" name="commons-codec" rev="1.10" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-collections" name="commons-collections" rev="3.2.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-configuration" name="commons-configuration" rev="1.8" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-dbcp" name="commons-dbcp" rev="1.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-digester" name="commons-digester" rev="1.4.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-discovery" name="commons-discovery" rev="0.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-fileupload" name="commons-fileupload" rev="1.3.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-httpclient" name="commons-httpclient" rev="3.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-io" name="commons-io" rev="2.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-jxpath" name="commons-jxpath" rev="1.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-lang" name="commons-lang" rev="2.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-logging" name="commons-logging" rev="1.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-modeler" name="commons-modeler" rev="2.0.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-net" name="commons-net" rev="3.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="commons-pool" name="commons-pool" rev="1.5.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.data.converter" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.data.eventsource" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.data.logging" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.data.logging.protobuf" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.logback.appender.multiplex-classic" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.logback.appender.multiplex-core" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.logback.classic" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.logback.converter-classic" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.lilith" name="de.huxhorn.lilith.sender" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.sulky" name="de.huxhorn.sulky.codec" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.sulky" name="de.huxhorn.sulky.formatting" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="de.huxhorn.sulky" name="de.huxhorn.sulky.io" rev="8.0.0" conf="development-cartridges" transitive="false"/>
+    <dependency org="io.swagger" name="swagger-annotations" rev="1.5.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="io.swagger" name="swagger-core" rev="1.5.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="io.swagger" name="swagger-jaxrs" rev="1.5.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="io.swagger" name="swagger-jersey2-jaxrs" rev="1.5.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="io.swagger" name="swagger-models" rev="1.5.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.annotation" name="javax.annotation-api" rev="1.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.inject" name="javax.inject" rev="1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.jms" name="jms" rev="1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.mail" name="mail" rev="1.4.7" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.servlet" name="javax.servlet-api" rev="3.1.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.transaction" name="jta" rev="1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.validation" name="validation-api" rev="1.1.0.Final" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="javax.ws.rs" name="javax.ws.rs-api" rev="2.0.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="joda-time" name="joda-time" rev="2.9.7" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="junit" name="junit" rev="4.12" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="net.sf.jtidy" name="jtidy" rev="r938" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.antlr" name="antlr-runtime" rev="3.5.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ant" name="ant" rev="1.10.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ant" name="ant-launcher" rev="1.10.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis" name="axis" rev="1.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis" name="axis-jaxrpc" rev="1.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis2" name="axis2-adb" rev="1.7.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis2" name="axis2-kernel" rev="1.7.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis2" name="axis2-saaj" rev="1.7.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis2" name="axis2-transport-http" rev="1.7.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.axis2" name="axis2-transport-local" rev="1.7.4" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.commons" name="commons-lang3" rev="3.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.commons" name="commons-math" rev="2.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.httpcomponents" name="httpclient" rev="4.5.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.httpcomponents" name="httpcore" rev="4.4.5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.httpcomponents" name="httpmime" rev="4.5.2" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ivy" name="ivy" rev="2.4.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.james" name="apache-mime4j-core" rev="0.8.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.neethi" name="neethi" rev="3.0.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.rampart" name="rampart-core" rev="1.7.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.rampart" name="rampart-policy" rev="1.7.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.rampart" name="rampart-trust" rev="1.7.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.santuario" name="xmlsec" rev="1.5.8" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.tomcat" name="tomcat-el-api" rev="8.5.9" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.woden" name="woden-core" rev="1.0M10" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ws.commons.axiom" name="axiom-api" rev="1.2.20" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ws.commons.axiom" name="axiom-jaxb" rev="1.2.20" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ws.security" name="wss4j" rev="1.6.19" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.apache.ws.xmlschema" name="xmlschema-core" rev="2.2.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.bouncycastle" name="bcprov-jdk15on" rev="1.49" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ccil.cowan.tagsoup" name="tagsoup" rev="1.2.1" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.groovy" name="groovy" rev="2.4.8" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.groovy" name="groovy-json" rev="2.4.8" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.groovy" name="groovy-xml" rev="2.4.8" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.janino" name="commons-compiler" rev="3.0.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.janino" name="janino" rev="3.0.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.jettison" name="jettison" rev="1.3.8" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.woodstox" name="stax2-api" rev="3.1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.codehaus.woodstox" name="woodstox-core-asl" rev="4.2.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.drools" name="drools-compiler" rev="7.0.0.Beta5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.drools" name="drools-core" rev="7.0.0.Beta5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.eclipse.emf" name="org.eclipse.emf.common" rev="2.12.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.eclipse.emf" name="org.eclipse.emf.ecore" rev="2.12.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.eclipse.emf" name="org.eclipse.emf.ecore.xmi" rev="2.12.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.eclipse.jdt.core.compiler" name="ecj" rev="4.6.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.eclipse.platform" name="org.eclipse.equinox.common" rev="3.8.0" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.hk2" name="hk2-api" rev="2.5.0-b32" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.hk2" name="hk2-locator" rev="2.5.0-b32" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.hk2" name="hk2-utils" rev="2.5.0-b32" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.hk2" name="osgi-resource-locator" rev="1.0.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.bundles.repackaged" name="jersey-guava" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.containers" name="jersey-container-servlet-core" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.core" name="jersey-client" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.core" name="jersey-common" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.core" name="jersey-server" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.media" name="jersey-media-jaxb" rev="2.25.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.jersey.media" name="jersey-media-multipart" rev="2.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.glassfish.main.external" name="ldapbp-repackaged" rev="4.1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.hamcrest" name="hamcrest-core" rev="1.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.hamcrest" name="hamcrest-library" rev="1.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.hibernate" name="hibernate-validator" rev="5.3.1.Final" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.javassist" name="javassist" rev="3.21.0-GA" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.jboss.logging" name="jboss-logging" rev="3.3.0.Final" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.jdom" name="jdom2" rev="2.0.6" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.jvnet.mimepull" name="mimepull" rev="1.8" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.kie" name="kie-api" rev="7.0.0.Beta5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.kie" name="kie-internal" rev="7.0.0.Beta5" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.kohsuke.metainf-services" name="metainf-services" rev="1.7" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.mockito" name="mockito-core" rev="1.10.19" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.mvel" name="mvel2" rev="2.2.8.Final" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.objenesis" name="objenesis" rev="2.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ow2.asm" name="asm" rev="5.2" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ow2.asm" name="asm-analysis" rev="5.0.4" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ow2.asm" name="asm-commons" rev="5.0.4" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ow2.asm" name="asm-tree" rev="5.0.4" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.ow2.asm" name="asm-util" rev="5.0.4" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.perf4j" name="perf4j" rev="0.9.16" conf="development-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.reflections" name="reflections" rev="0.9.10" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.slf4j" name="log4j-over-slf4j" rev="1.7.22" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.slf4j" name="slf4j-api" rev="1.7.22" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.xhtmlrenderer" name="flying-saucer-core" rev="9.1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.xhtmlrenderer" name="flying-saucer-pdf" rev="9.1.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="org.yaml" name="snakeyaml" rev="1.17" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="sshtools" name="j2ssh-core" rev="0.2.9" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="wsdl4j" name="wsdl4j" rev="1.6.3" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="xmlpull" name="xmlpull" rev="1.1.3.1" conf="development-cartridges, production-cartridges, test-cartridges" transitive="false"/>
+    <dependency org="com.intershop" name="3rd_ant" rev="1.8.4.3" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop" name="3rd_apache" rev="2.4.23.1" conf="webserver" transitive="false"/>
+    <dependency org="com.intershop" name="3rd_tomcat" rev="7.0.42.3" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop" name="webadapter" rev="1.0.6" conf="webserver" transitive="false"/>
+    <dependency org="com.intershop" name="webadapteragent" rev="2.1.0" conf="webserver" transitive="false"/>
+    <dependency org="com.intershop.infrastructure" name="loaderapp" rev="2.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver, share" transitive="false"/>
+    <dependency org="com.intershop.infrastructure" name="tcm" rev="2.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver, share" transitive="false"/>
+    <dependency org="com.intershop.infrastructure" name="toolbox" rev="2.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.microservice" name="DiscoveryServer" rev="3.0.8" conf="discoveryserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="ac_eureka_solr" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="assembly_operations" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="deploy-plugins" transitive="false"/>
+    <dependency org="com.intershop.platform" name="dbdelta" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="deploy_platform" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="deploy-plugins" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_clc" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_dbinit" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_testrunner" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_webtest_htmlunit" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+    <dependency org="com.intershop.platform" name="tool_webtest_selenium" rev="13.0.0-ISTOOLS-2037-SNAPSHOT" conf="appserver" transitive="false"/>
+  </dependencies>
+</ivy-module>

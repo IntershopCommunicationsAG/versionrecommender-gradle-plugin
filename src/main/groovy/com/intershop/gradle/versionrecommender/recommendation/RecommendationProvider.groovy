@@ -48,6 +48,10 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     protected UpdatePos updatePos
     protected Map<String, String> versions = null
 
+    private int fillStatus = 0
+    private int waitingTime = 10
+
+
     /**
      * Constructor is called by configur(Closure)
      *
@@ -234,11 +238,15 @@ abstract class RecommendationProvider implements IRecommendationProvider {
      * @return the version of the dependency from the provider.
      */
     @Override
-    synchronized String getVersion(String org, String name) {
+    String getVersion(String org, String name) {
         String version = null
 
         if (versions == null) {
             versionMapInit()
+        }
+
+        if(fillStatus == 1) {
+            sleep(waitingTime * 1000)
         }
 
         project.logger.debug('Try to get version from "{}:{}"', org, name)
@@ -262,7 +270,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
 
     private void versionMapInit() {
         project.logger.info('Start reading version recommendations.')
-
+        fillStatus = 1
         versions = [:]
 
         fillVersionMap()
@@ -279,6 +287,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
                 }
             }
         }
+        fillStatus = 0
         project.logger.info('Reading version recommendations finished.')
     }
 

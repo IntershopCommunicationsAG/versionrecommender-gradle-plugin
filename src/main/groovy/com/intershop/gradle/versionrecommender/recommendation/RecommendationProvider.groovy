@@ -26,7 +26,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 import java.util.regex.Pattern
-
 /**
  * This class implements the main methods and
  * attributes for the configuration of providers.
@@ -240,9 +239,30 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     String getVersion(String org, String name) {
         String version = null
 
-        if (versions == null && fillStatus == 0) {
+        versionMapInit()
+
+        project.logger.debug('Try to get version from "{}:{}"', org, name)
+        version = versions.get("${org}:${name}".toString())
+
+        if(version)
+            return version
+
+        if(!globs.isEmpty()) {
+            String key = "${org}:${name}"
+            globs.any { Pattern p, String gv ->
+                if (p.matcher(key).matches()) {
+                    version = gv
+                    return true
+                }
+            }
+        }
+
+        return version
+    }
+
+    private synchronized versionMapInit() {
+        if (versions == null) {
             project.logger.info('Start reading version recommendations.')
-            fillStatus = 1
 
             versions = [:]
 
@@ -261,39 +281,8 @@ abstract class RecommendationProvider implements IRecommendationProvider {
                 }
             }
 
-            fillStatus = 0
             project.logger.info('Reading version recommendations finished.')
         }
-
-        if(versions != null) {
-            if(fillStatus == 1) {
-                project.logger.debug('Reading version recommendations is still in progress.')
-                while (fillStatus == 1 && ! version) {
-                    project.logger.debug('Try to get version from "{}:{}" but reading is still in progress', org, name)
-                    sleep(100)
-                    version = versions.get("${org}:${name}".toString())
-                }
-                project.logger.debug('Find version from "{}:{}" but reading is still in progress ({})', org, name, version)
-            } else {
-                project.logger.debug('Try to get version from "{}:{}"', org, name)
-                version = versions.get("${org}:${name}".toString())
-            }
-        }
-
-        if(version)
-            return version
-
-        if(!globs.isEmpty()) {
-            String key = "${org}:${name}"
-            globs.any { Pattern p, String gv ->
-                if (p.matcher(key).matches()) {
-                    version = gv
-                    return true
-                }
-            }
-        }
-
-        return version
     }
 
     /**

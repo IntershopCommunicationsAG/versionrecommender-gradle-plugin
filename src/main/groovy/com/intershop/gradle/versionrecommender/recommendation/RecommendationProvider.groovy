@@ -238,7 +238,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
      */
     @Override
     String getVersion(String org, String name) {
-        String version = ''
+        String version = null
 
         if (versions == null && fillStatus == 0) {
             project.logger.info('Start reading version recommendations.')
@@ -268,10 +268,12 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         if(versions != null) {
             if(fillStatus == 1) {
                 project.logger.debug('Reading version recommendations is still in progress.')
-                while (fillStatus == 1 && version == '') {
+                while (fillStatus == 1 && ! version) {
                     project.logger.debug('Try to get version from "{}:{}" but reading is still in progress', org, name)
+                    sleep(100)
                     version = versions.get("${org}:${name}".toString())
                 }
+                project.logger.debug('Find version from "{}:{}" but reading is still in progress ({})', org, name, version)
             } else {
                 project.logger.debug('Try to get version from "{}:{}"', org, name)
                 version = versions.get("${org}:${name}".toString())

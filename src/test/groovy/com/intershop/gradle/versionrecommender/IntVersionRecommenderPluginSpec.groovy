@@ -84,7 +84,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-s')
+                .withArguments('copyResult', '-d')
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -1863,21 +1863,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             group = 'com.intershop'
             version = '1.0.0'
             
-            repositories {
-                jcenter()
-            }
-        }
-        
-        project(':project1a') {
-            dependencies {
-                compile 'org.eclipse.emf:org.eclipse.emf.common'
-                compile 'org.eclipse.emf:org.eclipse.emf.ecore'
-                compile 'com.google.guava:guava'
-                compile 'joda-time:joda-time'            
-            }
-        }
-        
-        project(':project2b') {
             dependencies {
                 compile 'com.fasterxml.jackson.core:jackson-annotations'
                 compile 'com.fasterxml.jackson.core:jackson-core'
@@ -1885,6 +1870,19 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 
                 compile 'org.eclipse.emf:org.eclipse.emf.common'
                 compile 'org.eclipse.emf:org.eclipse.emf.ecore'
+            }
+            
+            repositories {
+                jcenter()
+            }
+        }
+        
+        project(':project1') {
+            dependencies {
+                compile 'org.eclipse.emf:org.eclipse.emf.common'
+                compile 'org.eclipse.emf:org.eclipse.emf.ecore'
+                compile 'com.google.guava:guava'
+                compile 'joda-time:joda-time'            
             }
         }
         
@@ -1907,21 +1905,18 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         org.gradle.configureondemand = false
         """.stripIndent()
 
-        File proj1Dir = createSubProject('project1a', settingsfile, '')
-        File proj2Dir = createSubProject('project2b', settingsfile, '')
-
-        writeJavaTestClass('com.intershop.project1', proj1Dir)
-        writeJavaTestClass('com.intershop.project2', proj2Dir)
+        (1..10).each {
+            writeJavaTestClass("com.intershop.project${it}", createSubProject("project${it}", settingsfile, ''))
+        }
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('compileJava', '-s')
+                .withArguments('compileJava', '-i')
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        result.task(':project1a:compileJava').outcome == SUCCESS
-        result.task(':project2b:compileJava').outcome == SUCCESS
+        result.task(':project1:compileJava').outcome == SUCCESS
 
         where:
         gradleVersion << supportedGradleVersions

@@ -84,7 +84,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('copyResult', '-d')
+                .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -1911,7 +1911,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('compileJava', '-i')
+                .withArguments('compileJava', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
 

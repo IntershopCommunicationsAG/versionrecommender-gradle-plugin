@@ -51,6 +51,9 @@ class ResetAllVersion extends DefaultTask {
             wd.deleteDir()
             wd.mkdir()
         }
+        providers.each { RecommendationProvider p ->
+            p.initializeVersion()
+        }
     }
 
     /**

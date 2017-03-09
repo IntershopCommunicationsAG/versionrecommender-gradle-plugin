@@ -73,7 +73,6 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
     public <T extends RecommendationProvider> T add(T provider, Closure closure) {
         // initialize and configure the recommendation provider
         ConfigureUtil.configure(closure, provider);
-
         // check, that the name is unique
         assertCanAdd(provider.getName());
 
@@ -199,5 +198,11 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             }
         }
         return null;
+    }
+
+    public void initializeVersions() {
+        for (int i = 0; i < size(); i++) {
+            get(i).initializeVersion();
+        }
     }
 }

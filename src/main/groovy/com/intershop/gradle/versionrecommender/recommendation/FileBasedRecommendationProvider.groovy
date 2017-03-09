@@ -135,7 +135,6 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
                 String updateVersion = updateConfig.getUpdate(g, n, v)
                 if(updateVersion) {
                     writeVersionToFile(updateVersion, new File(getWorkingDir(), getFileName('version')))
-                    versions = null
                 }
             }
         } else {
@@ -218,14 +217,12 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
             if (version) {
                 version += "-${versionExtension}"
                 writeVersionToFile(version, new File(getWorkingDir(), getFileName('version')))
-                versions = null
             } else {
                 throw new GradleException("There is no version for ${inputDependency.get('group')}:${inputDependency.get('name')} specified. Please check your version recommender configuration.")
             }
         }
         if (versionExtension == VersionExtension.NONE && inputType == FileInputType.DEPENDENCYMAP) {
             removeVersionFile()
-            versions = null
         }
     }
 

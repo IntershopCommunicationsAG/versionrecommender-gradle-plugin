@@ -59,6 +59,7 @@ class StoreUpdate extends DefaultTask {
             if(ext.updateConfiguration.defaultUpdateProvider.contains(p.getName())) {
                 try {
                     File vf = p.store(versionFiles.get(p.getName()))
+                    p.initializeVersion()
                     if(vf)
                         fileList.add(vf)
                 }catch (IOException ex) {

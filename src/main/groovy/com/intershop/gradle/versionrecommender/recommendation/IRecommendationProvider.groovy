@@ -61,6 +61,14 @@ interface IRecommendationProvider extends Named {
     File store(File outputFile) throws java.io.IOException
 
     /**
+     * Initialize the list of a map with
+     * coordinates and version.
+     *
+     * This must me called for an update of the list.
+     */
+    void initializeVersion()
+
+    /**
      * Get file object with version information
      *
      * @return file with version information

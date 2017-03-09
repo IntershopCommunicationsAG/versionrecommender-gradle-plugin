@@ -51,6 +51,7 @@ class UpdateVersion extends DefaultTask {
 
         ext.updateConfiguration.updateLogFile.delete()
         provider.update(ext.updateConfiguration)
+        provider.initializeVersion()
         println "See for more information in update log: ${ext.updateConfiguration.updateLogFile}"
     }
 

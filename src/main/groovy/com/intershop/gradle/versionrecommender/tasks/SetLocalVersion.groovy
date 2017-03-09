@@ -48,6 +48,7 @@ class SetLocalVersion extends DefaultTask {
             throw new GradleException("It is necessary to specify a version property with -P${provider.getVersionPropertyName()} = <version>.")
         }
         provider.setVersionExtension(VersionExtension.LOCAL)
+        provider.initializeVersion()
     }
 
     /**

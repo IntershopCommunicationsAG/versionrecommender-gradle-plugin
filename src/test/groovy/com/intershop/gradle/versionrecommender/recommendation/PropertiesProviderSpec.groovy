@@ -56,11 +56,13 @@ class PropertiesProviderSpec extends Specification {
     }
 
     def 'Properties provider from file'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
+        when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop.business','businesscomp') == '2.4.5'
@@ -69,23 +71,24 @@ class PropertiesProviderSpec extends Specification {
     def 'Properties provider with properties only'() {
         when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, new File('empty.properties'))
-
         provider.setVersionMap(['com.intershop.platform:platformcomp':'1.2.3',
                                 'com.intershop.business:businesscomp':'2.4.5'])
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop.business','businesscomp') == '2.4.5'
     }
 
     def 'Properties provider with properties and file'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
+        when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
-
         provider.setVersionMap(['com.intershop.content:contentcomp':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop.business','businesscomp') == '2.4.5'
@@ -93,14 +96,15 @@ class PropertiesProviderSpec extends Specification {
     }
 
     def 'Properties provider from file with placeholders'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test.properties').getFile())
 
+        when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, file)
-
         provider.setVersionMap(['com.intershop.content:*':'1.1.1',
                                  'com.intershop.test:testcomp':'1.1.2'])
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop.content','testcompa') == '1.1.1'
@@ -110,11 +114,10 @@ class PropertiesProviderSpec extends Specification {
     def 'Properties provider from file and properties with dependencies'() {
         when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, new File('empty.properties'))
-
         provider.setVersionMap(['org.hibernate:hibernate-validator':'5.3.0.Final',
                                  'org.tmatesoft.svnkit:svnkit':'1.8.14'])
-
         provider.setTransitive(true)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'
@@ -122,22 +125,24 @@ class PropertiesProviderSpec extends Specification {
     }
 
     def 'Properties provider from file with LOCAL extension'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('propertiestest/test3.properties').getFile())
 
         File confFile = new File(project.projectDir, 'version.properties')
         confFile << file.getText()
 
+        when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, confFile)
         provider.setVersionExtension(VersionExtension.LOCAL)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop.platform', 'platformcomp') == '1.2.3-LOCAL'
     }
 
     def 'Properties provider version update'() {
-        when:
+        setup:
         String propertiesContent = """
         # external properties
         org.apache.commons:commons-lang3 = 3.3
@@ -148,8 +153,10 @@ class PropertiesProviderSpec extends Specification {
         File confFile = new File(project.projectDir, 'version.properties')
         confFile.setText(propertiesContent)
 
+        when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, confFile)
         project.repositories.add(project.repositories.jcenter())
+        provider.initializeVersion()
 
         then:
         provider.getVersion('org.apache.commons', 'commons-lang3').startsWith('3.3')
@@ -166,6 +173,7 @@ class PropertiesProviderSpec extends Specification {
         uc.addConfigurationItem(uci_2)
 
         provider.update(uc)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('org.apache.commons', 'commons-lang3') == '3.3.2'
@@ -174,6 +182,7 @@ class PropertiesProviderSpec extends Specification {
 
         when:
         provider.store()
+        provider.initializeVersion()
 
         then:
         confFile.text.contains('org.apache.commons:commons-lang3 = 3.3.2')

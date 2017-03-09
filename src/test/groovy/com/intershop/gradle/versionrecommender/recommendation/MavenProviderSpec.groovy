@@ -64,13 +64,14 @@ class MavenProviderSpec extends Specification {
         File file = new File(classLoader.getResource('mvntest/hibernate-validator-5.3.0.Final.pom').getFile())
 
         MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, file)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'
     }
 
     def 'Maven provider with dependency configuration'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
 
         new TestMavenRepoBuilder().repository {
@@ -85,14 +86,16 @@ class MavenProviderSpec extends Specification {
             url "file://${repoDir.absolutePath}"
         }
 
+        when:
         MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
     }
 
     def 'Maven provider with local dependency configuration'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
         File localRepoDir = new File(testProjectDir, 'repo')
 
@@ -121,8 +124,10 @@ class MavenProviderSpec extends Specification {
             }
         }
 
+        when:
         MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
         provider.setVersionExtension(VersionExtension.LOCAL)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -130,6 +135,7 @@ class MavenProviderSpec extends Specification {
 
         when:
         provider.setVersionExtension(VersionExtension.NONE)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -137,7 +143,7 @@ class MavenProviderSpec extends Specification {
     }
 
     def 'Maven provider with updated version from local repo'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
 
         new TestMavenRepoBuilder().repository {
@@ -188,7 +194,9 @@ class MavenProviderSpec extends Specification {
             }
         }
 
+        when:
         MavenRecommendationProvider provider = new MavenRecommendationProvider('test', project, 'com.intershop:filter:1.0.0')
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -199,6 +207,7 @@ class MavenProviderSpec extends Specification {
         UpdateConfigurationItem uci = new UpdateConfigurationItem('filter', 'com.intershop', 'filter')
         uc.addConfigurationItem(uci)
         provider.update(uc)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.1'
@@ -206,12 +215,14 @@ class MavenProviderSpec extends Specification {
         when:
         uci.update = UpdatePos.MAJOR.toString()
         provider.update(uc)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '2.0.0'
 
         when:
         provider.store(provider.getVersionFile())
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '2.0.0'

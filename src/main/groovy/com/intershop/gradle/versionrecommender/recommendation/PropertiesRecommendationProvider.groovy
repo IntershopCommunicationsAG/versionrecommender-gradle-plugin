@@ -151,7 +151,6 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
             }
             if(propertiesChanged) {
                 writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
-                versions = null
             } else {
                 log.warn('No update changes on properties {}', inputFile.getAbsolutePath())
             }
@@ -221,7 +220,6 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
                 if(propertiesChanged) {
                     writeVersionProperties(svp, new File(workingDir, inputFile.getName()))
                     log.info('Versions of {} are extended with {} and written to {}.', getName(), versionExtension.toString(), workingDir.absolutePath)
-                    versions = null
                 } else {
                     log.warn('No changes on properties {}', inputFile.getAbsolutePath())
                 }

@@ -53,6 +53,7 @@ class Update extends DefaultTask {
                     throw new GradleException("It is necessary to specify a version property with -P${p.getVersionPropertyName()} = <version>.")
                 }
                 p.update(ext.updateConfiguration)
+                p.initializeVersion()
             }
         }
         println "See for more information in update log: ${ext.updateConfiguration.updateLogFile}"

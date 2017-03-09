@@ -48,9 +48,6 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     protected UpdatePos updatePos
     protected Map<String, String> versions = null
 
-    private int fillStatus
-    private int waitingTime = 10
-
 
     /**
      * Constructor is called by configur(Closure)
@@ -69,8 +66,6 @@ abstract class RecommendationProvider implements IRecommendationProvider {
 
         versionMap = [:]
         globs = new HashMap<Pattern, String>()
-
-        fillStatus = 0
     }
 
     /**
@@ -232,50 +227,12 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     }
 
     /**
-     * Main method of the provider. This method should
-     * return a version for an given module with name.
+     * Initialize the list of a map with
+     * coordinates and version.
      *
-     * @param org Organisiation or Group of the dependency
-     * @param name Name or artifact id of the dependency
-     * @return the version of the dependency from the provider.
+     * This must me called for an update of the list.
      */
-    @Override
-    String getVersion(String org, String name) {
-        String version = null
-
-        if (versions == null) {
-            fillStatus = 1
-            versionMapInit()
-            fillStatus = 0
-        }
-
-        project.logger.debug('Try to get version from "{}:{}" - fill status is ({})', org, name, fillStatus)
-        if(fillStatus == 1) {
-            project.logger.debug('Try to get version from "{}:{}" - fill status is 1', org, name)
-            sleep(waitingTime * 1000)
-            project.logger.debug('Try to get version from "{}:{}" - after sleep', org, name)
-        }
-
-        project.logger.debug('Try to get version from "{}:{}"', org, name)
-        version = versions.get("${org}:${name}".toString())
-
-        if(version)
-            return version
-
-        if(!globs.isEmpty()) {
-            String key = "${org}:${name}"
-            globs.any { Pattern p, String gv ->
-                if (p.matcher(key).matches()) {
-                    version = gv
-                    return true
-                }
-            }
-        }
-
-        return version
-    }
-
-    private void versionMapInit() {
+    void initializeVersion() {
         project.logger.info('Start reading version recommendations.')
         versions = [:]
 
@@ -295,6 +252,37 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         }
 
         project.logger.info('Reading version recommendations finished.')
+    }
+
+    /**
+     * Main method of the provider. This method should
+     * return a version for an given module with name.
+     *
+     * @param org Organisiation or Group of the dependency
+     * @param name Name or artifact id of the dependency
+     * @return the version of the dependency from the provider.
+     */
+    @Override
+    String getVersion(String org, String name) {
+        String version = null
+
+        project.logger.debug('Try to get version from "{}:{}"', org, name)
+        version = versions.get("${org}:${name}".toString())
+
+        if(version)
+            return version
+
+        if(!globs.isEmpty()) {
+            String key = "${org}:${name}"
+            globs.any { Pattern p, String gv ->
+                if (p.matcher(key).matches()) {
+                    version = gv
+                    return true
+                }
+            }
+        }
+
+        return version
     }
 
     /**

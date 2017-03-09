@@ -58,30 +58,34 @@ class IvyProviderSpec extends Specification {
     }
 
     def 'Ivy provider spec'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('ivytest/ivy.xml').getFile())
 
+        when:
         IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, file)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('javax.inject','javax.inject') == '1'
     }
 
     def 'Ivy provider with dependencies'() {
-        when:
+        setup:
         ClassLoader classLoader = getClass().getClassLoader()
         File file = new File(classLoader.getResource('ivytest/ivy.xml').getFile())
 
+        when:
         IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, file)
         provider.transitive = true
+        provider.initializeVersion()
 
         then:
         provider.getVersion('aopalliance', 'aopalliance') == '1.0'
     }
 
     def 'Ivy provider with dependency configuration'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
         String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
         String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
@@ -103,14 +107,16 @@ class IvyProviderSpec extends Specification {
             }
         }
 
+        when:
         IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
     }
 
     def 'Ivy provider with local dependency configuration'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
         File localRepoDir = new File(testProjectDir, 'localrepo')
         String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
@@ -151,8 +157,10 @@ class IvyProviderSpec extends Specification {
             }
         }
 
+        when:
         IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:2.0.0')
         provider.setVersionExtension(VersionExtension.LOCAL)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -160,6 +168,7 @@ class IvyProviderSpec extends Specification {
 
         when:
         provider.setVersionExtension(VersionExtension.NONE)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -167,7 +176,7 @@ class IvyProviderSpec extends Specification {
     }
 
     def 'Ivy provider with updated version from local repo'() {
-        when:
+        setup:
         File repoDir = new File(testProjectDir, 'repo')
         String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
         String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
@@ -205,7 +214,9 @@ class IvyProviderSpec extends Specification {
             }
         }
 
+        when:
         IvyRecommendationProvider provider = new IvyRecommendationProvider('test', project, 'com.intershop:filter:1.0.0')
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.0'
@@ -217,6 +228,7 @@ class IvyProviderSpec extends Specification {
         UpdateConfigurationItem uci = new UpdateConfigurationItem('filter', 'com.intershop', 'filter')
         uc.addConfigurationItem(uci)
         provider.update(uc)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '1.0.1'
@@ -224,12 +236,14 @@ class IvyProviderSpec extends Specification {
         when:
         uci.update = UpdatePos.MAJOR.toString()
         provider.update(uc)
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '2.0.0'
 
         when:
         provider.store(provider.getVersionFile())
+        provider.initializeVersion()
 
         then:
         provider.getVersion('com.intershop', 'component1') == '2.0.0'

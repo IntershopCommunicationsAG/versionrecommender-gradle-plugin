@@ -53,6 +53,7 @@ class StoreUpdateVersion extends DefaultTask {
     void storeUpdateVersion(){
         try {
             versionFile = provider.store(getVersionFile())
+            provider.initializeVersion()
             if(versionFile && project.hasProperty('scmCommit') && project.property('scmCommit').toString().toBoolean()) {
                 List<File> fileList = []
                 fileList.add(versionFile)

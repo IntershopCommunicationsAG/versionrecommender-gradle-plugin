@@ -43,6 +43,7 @@ class ResetVersion extends DefaultTask {
     @TaskAction
     void resetVersion() {
         provider.setVersionExtension(VersionExtension.NONE)
+        provider.initializeVersion()
     }
 
     /**

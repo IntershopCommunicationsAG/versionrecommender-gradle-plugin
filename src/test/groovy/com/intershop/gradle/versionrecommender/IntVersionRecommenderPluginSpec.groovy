@@ -21,7 +21,8 @@ import com.intershop.gradle.versionrecommender.scm.ScmUtil
 import spock.lang.Requires
 import spock.lang.Unroll
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.FAILED
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Unroll
 class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
@@ -1128,6 +1129,135 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         (new File(testProjectDir, 'result/ivy-1.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-2.0.0.xml')).exists()
         (new File(testProjectDir, 'result/ivy-10.0.0.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'test set all versions with a multi provider configuration - #gradleVersion'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') { }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4', 'filter3']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop.other:component1@ivy'
+                testConfig 'com.intershop.other:component2@ivy'
+                testConfig 'com.intershop.other:depcomponent1@ivy'
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('setVersion', '-PstaticVersion=2.0.0')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File version3 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter3.version')
+        File version4 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter4.version')
+
+        then:
+        resultUpdate.task(':setVersion').outcome == SUCCESS
+        version3.exists()
+        version4.exists()
+        version3.text == '2.0.0'
+        version4.text == '2.0.0'
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'test set all versions with a multi provider configuration and one special property - #gradleVersion'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') { }
+                    ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter5', 'filter4', 'filter3']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop.other:component1@ivy'
+                testConfig 'com.intershop.other:component2@ivy'
+                testConfig 'com.intershop.other:depcomponent1@ivy'
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('setVersion', '-PstaticVersion=2.0.0', '-Pfilter5Version=2.0.0-SNAPSHOT')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File version3 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter3.version')
+        File version4 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter4.version')
+        File version5 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter5.version')
+
+        then:
+        resultUpdate.task(':setVersion').outcome == SUCCESS
+        version3.exists()
+        version4.exists()
+        version5.exists()
+        version3.text == '2.0.0'
+        version4.text == '2.0.0'
+        version5.text == '2.0.0-SNAPSHOT'
 
         where:
         gradleVersion << supportedGradleVersions

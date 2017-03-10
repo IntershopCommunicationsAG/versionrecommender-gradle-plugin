@@ -15,60 +15,61 @@
  */
 package com.intershop.gradle.versionrecommender.tasks
 
+import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.recommendation.RecommendationProvider
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-
 /**
- * <p>Set version</p>
- * <p>Set the version, provided by a special property, to the provider.
- * The property name is composed of the provider name and 'Version'. </p>
+ * <p>Set version for all configured providers if property exists and command is supported</p>
+ * <p>The property name is composed of the provider name and 'Version'. </p>
  * <p>The main functionality is implemented in the connected providers.</p>
  */
 @CompileStatic
-class SetVersion extends DefaultTask {
+class SetAllVersion  extends DefaultTask {
 
     /**
-     * Version recommendation provider of this task
+     * Provider list of this task
      */
     @Input
-    RecommendationProvider provider
+    List<RecommendationProvider> providers = []
 
     /**
      * Task action
      */
     @TaskAction
-    void runSetLocalExtension() {
-        if(! (provider.getVersionFromProperty())) {
-            throw new GradleException("It is necessary to specify a version property with '-P${provider.getVersionPropertyName()} = <version>' or with '-PstaticVersion = <version>'.")
+    void setVersion() {
+        VersionRecommenderExtension ext = project.extensions.findByType(VersionRecommenderExtension)
+
+        providers.each { RecommendationProvider p ->
+            if(ext.updateConfiguration.defaultUpdateProvider.contains(p.getName()) && p.getVersionFromProperty()) {
+                p.setVersion()
+                p.initializeVersion()
+            }
         }
-        provider.setVersion()
-        provider.initializeVersion()
     }
 
     /**
      * Description
      *
-     * @return "Set special version for 'provider name'"
+     * @return "Reset all filter configurations"
      */
     @Internal
     @Override
     String getDescription() {
-        return "Set special version for ${provider.getName()}"
+        return 'Set special version for all providers with configuration.'
     }
 
     /**
      * Group
      *
-     * @return "Provider name - Version Recommendation"
+     * @return "Version Recommendation"
      */
     @Internal
     @Override
     String getGroup() {
-        return "${provider.getName()} - Version Recommendation"
+        return "Version Recommendation"
     }
 }

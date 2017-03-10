@@ -45,17 +45,20 @@ The Version Recommender plugin adds the following tasks to the project:
 [cols="20%,15%,65%", width="95%", options="header"]
 |===
 |Task name                      |Type               |Description
-|setLocal__[ProviderName]__     |setLocalVersion    |This task adds 'LOCAL' to the version of an dependency configuration
-of a provider _'[ProviderName]'_. For a properties file provider all configured versions will be extended with LOCAL.
-|setSnapshot__[ProviderName]__  |setSnapshotVersion |Does the same as setLocal__[ProviderName]__ but with SNAPSHOT.
+|setLocal__[ProviderName]__     |setLocalVersion    |This task adds `'LOCAL'` to the version of an dependency configuration
+of a provider _`'[ProviderName]'`_. For a properties file provider all configured versions will be extended with `'LOCAL'`.
+|setSnapshot__[ProviderName]__  |setSnapshotVersion |Does the same as `'setLocal__[ProviderName]__'` but with `'SNAPSHOT'`.
 |set__[ProviderName]__          |setVersion         |This sets a version from a project property to the
-dependency of the provider _'[ProviderName]'_. The project property is: '__[ProviderName]__Version'.
-|update__[ProviderName]__       |UpdateVersion      |An update of the version of a dependency of provider _'[ProviderName]'_
+dependency of the provider _`'[ProviderName]'`_. The project property is: `'__[ProviderName]__Version'`.
+|update__[ProviderName]__       |UpdateVersion      |An update of the version of a dependency of provider _`'[ProviderName]'`_
 can be started with this task. The update functionality can be configured in the closure `updateConfiguration`.
 |store__[ProviderName]__        |StoreUpdateVersion |Store the temporary changes to the configuration directory.
 |reset__[ProviderName]__        |ResetVersion       |The temporary changes will be removed.
 |update                         |Update             |An update for configured providers can be started with this task.
 These providers can be configured with `'defaultUpdateProvider'`.
+|setVersion                     |SetAllVersion      |This task sets a version from a project property to a provider which is
+configured in `'defaultUpdateProvider'`. If a project property `'__[ProviderName]__Version'` is configured, this setting is
+used. Otherwise the value of the project property `'staticVersion'` is taken for the configuration. **Do not `store` this configuration.**
 |store                          |StoreUpdate        |Temporary changes of configured providers will be stored in the
 configuration directory with this task. These providers can be configured with `'defaultUpdateProvider'`.
 |reset                         |ResetAllVersion    |This task removes all temporary changes of all providers.

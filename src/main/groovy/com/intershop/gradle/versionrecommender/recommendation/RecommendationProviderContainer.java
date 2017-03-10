@@ -111,6 +111,9 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             Update defaultUpdateTask = project.getTasks().maybeCreate("update", Update.class);
             defaultUpdateTask.getProviders().add(provider);
 
+            SetAllVersion defaultSetAllVersionTask = project.getTasks().maybeCreate("setVersion", SetAllVersion.class);
+            defaultSetAllVersionTask.getProviders().add(provider);
+
             // store the temporary version of all configured tasks (default update task list)
             StoreUpdate defaultStoreTask = project.getTasks().maybeCreate("store", StoreUpdate.class);
             defaultStoreTask.getProviders().add(provider);

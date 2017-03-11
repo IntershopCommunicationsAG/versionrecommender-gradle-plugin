@@ -197,7 +197,7 @@ bintray {
         websiteUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
         issueTrackerUrl = "https://github.com/IntershopCommunicationsAG/${project.name}/issues"
 
-        labels = ['intershop', 'gradle', 'plugin', 'nexus', 'staging', 'release']
+        labels = ['intershop', 'gradle', 'plugin', 'version', 'dependencies', 'versionrecommendation']
         publicDownloadNumbers = true
 
         version {

@@ -44,7 +44,7 @@ class SetVersion extends DefaultTask {
     @TaskAction
     void runSetLocalExtension() {
         if(! (provider.getVersionFromProperty())) {
-            throw new GradleException("It is necessary to specify a version property with '-P${provider.getVersionPropertyName()} = <version>' or with '-PstaticVersion = <version>'.")
+            throw new GradleException("It is necessary to specify a version property with '-P${provider.getVersionPropertyName()} = <version>'.")
         }
         provider.setVersion()
         provider.initializeVersion()

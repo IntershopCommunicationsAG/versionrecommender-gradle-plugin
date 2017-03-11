@@ -178,11 +178,6 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            url "file://c:/Users/mraab/.gradle/.localRepo"
-        }
-    }
 }
 
 publish.dependsOn asciidoctor

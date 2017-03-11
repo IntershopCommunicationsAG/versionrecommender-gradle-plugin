@@ -222,8 +222,6 @@ abstract class RecommendationProvider implements IRecommendationProvider {
         String versionProperty = ''
         if(project.hasProperty(getVersionPropertyName())) {
             versionProperty = project.property(getVersionPropertyName())
-        } else if(project.hasProperty('staticVersion')) {
-            versionProperty = project.property('staticVersion')
         }
         return versionProperty
     }

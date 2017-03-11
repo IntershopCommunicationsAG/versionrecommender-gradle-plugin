@@ -1,5 +1,5 @@
 = Version Recommender Plugin
-:latestRevision: 1.1.0
+:latestRevision: 1.3.1
 :toc:
 
 == Summary
@@ -58,7 +58,7 @@ can be started with this task. The update functionality can be configured in the
 These providers can be configured with `'defaultUpdateProvider'`.
 |setVersion                     |SetAllVersion      |This task sets a version from a project property to a provider which is
 configured in `'defaultUpdateProvider'`. If a project property `'__[ProviderName]__Version'` is configured, this setting is
-used. Otherwise the value of the project property `'staticVersion'` is taken for the configuration. **Do not `store` this configuration.**
+used. **Do not `store` this configuration.**
 |store                          |StoreUpdate        |Temporary changes of configured providers will be stored in the
 configuration directory with this task. These providers can be configured with `'defaultUpdateProvider'`.
 |reset                         |ResetAllVersion    |This task removes all temporary changes of all providers.

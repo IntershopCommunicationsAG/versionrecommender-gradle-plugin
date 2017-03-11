@@ -1179,7 +1179,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('setVersion', '-PstaticVersion=2.0.0')
+                .withArguments('setVersion', '-Pfilter3Version=2.0.0', '-Pfilter4Version=2.0.0')
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -1242,7 +1242,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultUpdate = getPreparedGradleRunner()
-                .withArguments('setVersion', '-PstaticVersion=2.0.0', '-Pfilter5Version=2.0.0-SNAPSHOT')
+                .withArguments('setVersion', '-Pfilter3Version=2.0.0', '-Pfilter5Version=2.0.0-SNAPSHOT')
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -1253,10 +1253,9 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         resultUpdate.task(':setVersion').outcome == SUCCESS
         version3.exists()
-        version4.exists()
+        ! version4.exists()
         version5.exists()
         version3.text == '2.0.0'
-        version4.text == '2.0.0'
         version5.text == '2.0.0-SNAPSHOT'
 
         where:

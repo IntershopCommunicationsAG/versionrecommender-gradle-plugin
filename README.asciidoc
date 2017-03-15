@@ -3,8 +3,7 @@
 :toc:
 
 == Summary
-With this plugin it is possible to maintain the version of dependencies in other sources. This will help to handle the version
-of dependencies in large projects with a lot of multi projects consistent. It allows to leave the version number empty in your 
+With this plugin it is possible to maintain the version of dependencies in other sources. This plugin helps to handle the version of dependencies in large projects with a lot of multi projects consistent It allows to leave the version number empty in your 
 project configuration. The following version recommendation providers are available:
 
 * Ivy file

@@ -124,9 +124,10 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
         if(inputType == FileInputType.DEPENDENCYMAP) {
             String g = inputDependency.get('group').toString()
             String n = inputDependency.get('name').toString()
-            String v = inputDependency.get('version').toString()
+            String v = getVersionFromConfig()
 
             UpdateConfigurationItem ucItem = updateConfig.getConfigItem(g, n)
+
             if(ucItem.getVersion()) {
                 writeVersionToFile(ucItem.getVersion(), new File(getWorkingDir(), getFileName('version')))
             } else if(getVersionFromProperty()) {

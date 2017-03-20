@@ -900,6 +900,56 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'test update with a single configuration but with an local config file'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@ivy'
+            }
+            
+            ${writeSimpleIvyRepo(testProjectDir)}
+        """.stripIndent()
+
+        File vFile = new File(testProjectDir, '.ivyFilter.version')
+        vFile << '1.0.0-dev11'
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('update', 'store', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        ! resultUpdate.output.contains('com.intershop:filter was not updated.')
+        vFile.text == '1.0.0-dev16'
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'test update and store with a multi provider configuration - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
@@ -2633,6 +2683,48 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 dependency org: 'commons-io', name: 'commons-io', rev: '2.5'
                 dependency org: 'commons-codec', name: 'commons-codec', rev: '1.10'
             }
+        }.writeTo(repoDir)
+
+        String repostr = """
+            repositories {
+                ivy {
+                    name 'ivyLocal'
+                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                    layout('pattern') {
+                        ivy "${ivyPattern}"
+                        artifact "${artifactPattern}"
+                        artifact "${ivyPattern}"
+                    }
+                }
+            }""".stripIndent()
+
+        return repostr
+    }
+
+    private String writeSimpleIvyRepo(File dir) {
+        File repoDir = new File(dir, 'repo')
+
+        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
+            module(org: 'com.intershop', name:'filter', rev: '1.0.0-dev11') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0-dev11'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.0-dev11'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.0-dev11')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.0-dev11')
+
+            module(org: 'com.intershop', name:'filter', rev: '1.0.0-dev14') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0-dev14'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.0-dev14'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.0-dev14')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.0-dev14')
+
+            module(org: 'com.intershop', name:'filter', rev: '1.0.0-dev16') {
+                dependency org: 'com.intershop', name: 'component1', rev: '1.0.0-dev16'
+                dependency org: 'com.intershop', name: 'component2', rev: '1.0.0-dev16'
+            }
+            module(org: 'com.intershop', name: 'component1', rev: '1.0.0-dev16')
+            module(org: 'com.intershop', name: 'component2', rev: '1.0.0-dev16')
         }.writeTo(repoDir)
 
         String repostr = """

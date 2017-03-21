@@ -266,7 +266,11 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     String getVersion(String org, String name) {
         String version = null
 
-        project.logger.debug('Try to get version from "{}:{}"', org, name)
+        if(versions == null || versions.isEmpty()) {
+            initializeVersion()
+        }
+
+        project.logger.debug('Try to get version from "{}:{} in {}"', org, name, this.getName())
         version = versions.get("${org}:${name}".toString())
 
         if(version)

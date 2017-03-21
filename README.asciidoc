@@ -1,5 +1,5 @@
 = Version Recommender Plugin
-:latestRevision: 1.3.1
+:latestRevision: 1.3.3
 :toc:
 
 == Summary

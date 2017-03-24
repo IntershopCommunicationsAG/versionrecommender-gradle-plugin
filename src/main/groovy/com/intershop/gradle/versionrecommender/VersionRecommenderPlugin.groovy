@@ -78,6 +78,7 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         // create extension on root project
         extension = project.extensions.findByType(VersionRecommenderExtension) ?: project.extensions.create(VersionRecommenderExtension.EXTENSIONNAME, VersionRecommenderExtension, project)
 
+
         // add version recommendation to to root project.
         applyRecommendation(project)
         applyIvyVersionRecommendation(project)
@@ -212,20 +213,24 @@ class VersionRecommenderPlugin implements Plugin<Project> {
             extension.provider.initializeVersions()
         }
         project.getConfigurations().all { Configuration conf ->
-            conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->
-                if(! details.requested.version || extension.forceRecommenderVersion) {
+            if(! extension.getExcludeProjectsbyName().contains(project.getName())) {
+                conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->
+                    if (!details.requested.version || extension.forceRecommenderVersion) {
 
-                    String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
+                        String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
 
-                    if(details.requested.version && !(rv))
-                        rv = details.requested.version
+                        if (details.requested.version && !(rv))
+                            rv = details.requested.version
 
-                    if(rv) {
-                        details.useVersion(rv)
-                    } else {
-                        throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
+                        if (rv) {
+                            details.useVersion(rv)
+                        } else {
+                            throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
+                        }
                     }
                 }
+            } else {
+                project.logger.warn('Project "{}" is not handled by this version recommender plugin.', project.getName())
             }
         }
     }

@@ -84,4 +84,13 @@ class VersionRecommenderExtension {
      * versions in dependencies.
      */
     boolean forceRecommenderVersion
+
+    /**
+     * This plugin applies the version recommendation to all
+     * sub projects. Some times it is necessary to handle projects
+     * different. Therefore it is possible to exclude projects by name.
+     * With this configuration it is also possible to exclude the
+     * root project.
+     */
+    List<String> excludeProjectsbyName = []
 }

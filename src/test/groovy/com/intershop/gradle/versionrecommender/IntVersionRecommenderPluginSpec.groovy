@@ -1459,6 +1459,109 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'test simple configuration for multiproject with excluded projects - #gradleVersion'(gradleVersion) {
+        given:
+
+        String repo = writeIvyRepo(testProjectDir)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.versionrecommender'
+        }
+            
+        group = 'com.intershop'
+        version = '1.0.0'
+        
+        versionRecommendation {
+            provider {
+                ivy('filter4',  'com.intershop:filter:2.0.0') {}
+                ivy('filter3',  'com.intershop.other:filter:1.0.0') {}
+                ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+            }
+
+            excludeProjectsbyName = ['project2b']
+        }
+        
+        configurations {
+            create('testConfig')
+        }
+        
+        dependencies {
+            testConfig 'com.intershop:component1@ivy'
+        }
+                 
+        task copyResult(type: Copy) {
+            into new File(projectDir, 'result')
+            from configurations.testConfig
+        }
+
+        ${repo}
+
+        repositories {
+            jcenter()
+        }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'p_testProject'
+        """.stripIndent()
+
+        String subBuildFile1 = """            
+        configurations {
+            create('testConfig1')
+        }
+        
+        task copyResult(type: Copy) {
+            into new File(projectDir, 'result')
+            from configurations.testConfig1
+        }
+            
+        dependencies {
+            testConfig1 'com.intershop.other:component1@ivy'
+        }
+
+        ${repo}
+        """
+
+        String subBuildFile2 = """            
+        configurations {
+            create('testConfig2')
+        }
+        
+        task copyResult(type: Copy) {
+            into new File(projectDir, 'result')
+            from configurations.testConfig2
+        }
+        
+        dependencies {
+            testConfig2 'com.intershop.another:component1@ivy'
+            testConfig2 'com.intershop:component2@ivy'
+        }
+        
+        ${repo}
+        """
+
+        createSubProject('project1a', settingsfile, subBuildFile1)
+        createSubProject('project2b', settingsfile, subBuildFile2)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult', '-s', '-i')
+                .withGradleVersion(gradleVersion)
+                .buildAndFail()
+
+        then:
+        result.task(':copyResult').outcome == SUCCESS
+        result.task(':project1a:copyResult').outcome == SUCCESS
+        result.output.contains('Could not find com.intershop.another:component1:')
+        result.output.contains('com.intershop:component2:')
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'test publishing with ivy - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """

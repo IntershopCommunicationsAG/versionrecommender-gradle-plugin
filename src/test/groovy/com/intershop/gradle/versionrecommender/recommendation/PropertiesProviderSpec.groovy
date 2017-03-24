@@ -177,7 +177,7 @@ class PropertiesProviderSpec extends Specification {
 
         then:
         provider.getVersion('org.apache.commons', 'commons-lang3') == '3.3.2'
-        provider.getVersion('org.eclipse.jetty', 'jetty-server') == '9.3.16.v20170120'
+        provider.getVersion('org.eclipse.jetty', 'jetty-server') != '9.3.11.v20160721'
         provider.getVersion('org.apache.logging.log4j', 'log4j-core') == '2.4.1'
 
         when:

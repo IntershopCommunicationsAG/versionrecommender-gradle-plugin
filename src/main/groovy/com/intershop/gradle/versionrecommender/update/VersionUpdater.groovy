@@ -232,7 +232,7 @@ class VersionUpdater {
         if(versionList) {
             if (updateVersion && versionList.contains(updateVersion)) {
                 writeToUpdateLog("${group}:${name} has been updated from ${version} to ${updateVersion}.")
-                writeToUpdateLog("${group}:${name} was updated from ${versionList}")
+                writeToUpdateLog("${group}:${name} was using ${versionList}")
                 writeToUpdateLog("------------------------------------------------------------")
                 project.logger.quiet('{}:{} has been updated from {} to {}', group, name, version, updateVersion)
             } else {

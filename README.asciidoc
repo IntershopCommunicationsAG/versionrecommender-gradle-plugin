@@ -1,5 +1,5 @@
 = Version Recommender Plugin
-:latestRevision: 1.3.3
+:latestRevision: 1.3.4
 :toc:
 
 == Summary
@@ -105,9 +105,10 @@ The order of items depends on the order in the build configuration
 === Attributes
 [cols="20%,15%,15%,50%", width="95%", options="header"]
 |===
-|Property                   | Type        | Default value | Description
-|*forceRecommenderVersion*  | `boolean`   | `false`       | If set to `true`, the version is always taken from
+|Property                   | Type         | Default value | Description
+|*forceRecommenderVersion*  | `boolean`    | `false`       | If set to `true`, the version is always taken from
 the version recommendation. This will override configured versions in dependencies.
+|*excludeProjectsbyName*    | List<String> | []            | This projects are excluded from the version recommendation configuration.
 |===
 
 ==== [[provider]]Provider configuration 'provider' (`RecommendationProviderContainer`)

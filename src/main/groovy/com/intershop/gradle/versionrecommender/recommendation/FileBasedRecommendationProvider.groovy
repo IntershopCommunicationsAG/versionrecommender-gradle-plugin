@@ -289,6 +289,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
 
             // create a temporary configuration to resolve the file
             Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
+            conf.setDescription("Calculation of dependency '${dMap.get('group')}:${dMap.get('name')}'")
             ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
             log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
 

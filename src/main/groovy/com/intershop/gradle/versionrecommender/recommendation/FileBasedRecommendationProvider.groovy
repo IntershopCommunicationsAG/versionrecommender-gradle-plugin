@@ -359,15 +359,19 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
      * @return a version string, if no version was found null.
      */
     private String getVersionFromConfig() {
-        String rVersion = null
+        String rVersion = getVersionFromProperty()
 
-        File adaptedVersionFile = new File(workingDir, getFileName('version'))
-        if(adaptedVersionFile.exists()) {
-            rVersion = getVersionFromFile(adaptedVersionFile)
+        if(! rVersion) {
+            File adaptedVersionFile = new File(workingDir, getFileName('version'))
+            if (adaptedVersionFile.exists()) {
+                rVersion = getVersionFromFile(adaptedVersionFile)
+            }
         }
+
         if(! rVersion) {
             rVersion = getVersionFromFile(getVersionFile()) ?: inputDependency.get('version')
         }
+
         return rVersion
     }
 

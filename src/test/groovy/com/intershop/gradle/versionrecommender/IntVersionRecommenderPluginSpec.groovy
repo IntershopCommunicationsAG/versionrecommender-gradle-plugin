@@ -1247,6 +1247,67 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'test set all versions with a multi provider configuration and a non existing version - #gradleVersion'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                forceRecommenderVersion = true
+                
+                provider {
+                    ivy('filter5',  'com.intershop:altfilter') {}
+                    ivy('filter4',  'com.intershop:filter:1.0.0') { }
+                    ivy('filter3',  'com.intershop.other:filter:14.0.0') {}
+                    ivy('filter2',  'com.intershop.another:filter:1.0.0') {}
+                    ivy('filter1',  'com.intershop.woupdate:filter:1.0.0') {}
+                }
+                updateConfiguration {
+                    ivyPattern = '${ivyPattern}'
+                    defaultUpdateProvider = ['filter4', 'filter3']
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop.other:component1@ivy'
+                testConfig 'com.intershop.other:component2@ivy'
+                testConfig 'com.intershop.other:depcomponent1@ivy'
+            }
+            
+            ${writeIvyRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        when:
+        def resultUpdate = getPreparedGradleRunner()
+                .withArguments('setVersion', '-Pfilter3Version=2.0.0')
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        File version3 = new File(testProjectDir, 'build/versionRecommendation/.ivyFilter3.version')
+
+        then:
+        ! resultUpdate.output.contains('It was not possible to create stream')
+        resultUpdate.task(':setVersion').outcome == SUCCESS
+        version3.exists()
+        version3.text == '2.0.0'
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'test set all versions with a multi provider configuration and one special property - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """

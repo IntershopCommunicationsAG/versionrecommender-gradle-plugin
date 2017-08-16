@@ -300,6 +300,7 @@ abstract class RecommendationProvider implements IRecommendationProvider {
     protected void calculateDependencies(String module, String version) {
         // create a temporary configuration to resolve the file
         Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create("${module}:${version}"))
+        conf.setDescription("Calculate dependency of '${module}:${version}'")
         conf.setTransitive(true)
         conf.getResolvedConfiguration().firstLevelModuleDependencies.each { dependency ->
             dependency.children.each { child ->

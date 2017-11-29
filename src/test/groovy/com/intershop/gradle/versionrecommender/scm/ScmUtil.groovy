@@ -37,13 +37,13 @@ class ScmUtil {
                 .setURI(source)
                 .setBranch(branch)
                 .setDirectory(target)
-                .setCredentialsProvider( new UsernamePasswordCredentialsProvider( System.properties['gituser'], System.properties['gitpasswd']) )
+                .setCredentialsProvider( new UsernamePasswordCredentialsProvider( System.properties['gituser'].toString(), System.properties['gitpasswd'].toString()) )
         cmd.call()
     }
 
     static void svnCheckOut(File target, String source) {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
-        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
+        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'].toString(), System.properties['svnpasswd'].toString().toCharArray())
         try {
             svnOperationFactory.setAuthenticationManager(authenticationManager)
             final SvnCheckout checkout = svnOperationFactory.createCheckout()
@@ -88,7 +88,7 @@ class ScmUtil {
         boolean returnValue = true
 
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
-        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
+        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'].toString(), System.properties['svnpasswd'].toString().toCharArray())
         try {
             svnOperationFactory.setAuthenticationManager(authenticationManager)
             SvnGetStatus statusCmd = svnOperationFactory.createGetStatus()
@@ -96,7 +96,7 @@ class ScmUtil {
             statusCmd.setDepth(SVNDepth.INFINITY);
             statusCmd.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
                 public void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
-                    if(! ['build', 'gradle'].contains(status.path.name)) {
+                    if(! ['build', 'gradle', '.gradle'].contains(status.path.name)) {
                         if(status.path.isDirectory() && status.path.listFiles().size() > 0) {
                             returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_DELETED
                             returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_ADDED
@@ -165,7 +165,7 @@ class ScmUtil {
             commitCmd.call()
 
             git.push()
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(System.properties['gituser'], System.properties['gitpasswd']))
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(System.properties['gituser'].toString(), System.properties['gitpasswd'].toString()))
                     .setRemote('origin').call()
 
         } catch (Exception ex) {
@@ -177,7 +177,7 @@ class ScmUtil {
 
     static void svnUpdate(File target) {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
-        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
+        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'].toString(), System.properties['svnpasswd'].toString().toCharArray())
         svnOperationFactory.setAuthenticationManager(authenticationManager)
 
         SvnUpdate updateCmd = svnOperationFactory.createUpdate()
@@ -187,7 +187,7 @@ class ScmUtil {
 
     static void svnCommitChanges(File target) {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory()
-        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'], System.properties['svnpasswd'].toCharArray())
+        final ISVNAuthenticationManager authenticationManager = SVNWCUtil.createDefaultAuthenticationManager(System.properties['svnuser'].toString(), System.properties['svnpasswd'].toString().toCharArray())
         svnOperationFactory.setAuthenticationManager(authenticationManager)
 
         try {
@@ -196,8 +196,6 @@ class ScmUtil {
             final SvnCommit commit = svnOperationFactory.createCommit()
             commit.setSingleTarget(SvnTarget.fromFile(target))
             commit.setCommitMessage('commit all changes')
-            final SVNCommitInfo commitInfo = commit.run()
-            println "Commit info was ${commitInfo}"
         } catch (Exception ex) {
             ex.printStackTrace()
         }
@@ -207,8 +205,6 @@ class ScmUtil {
         List<File> addedFiles = []
         List<File> missingFiles = []
 
-        final SVNWCContext context = new SVNWCContext(svnOperationFactory.getOptions(), svnOperationFactory.getEventHandler());
-
         SvnGetStatus getStatus = svnOperationFactory.createGetStatus()
         getStatus.setSingleTarget(SvnTarget.fromFile(target))
         getStatus.setDepth(SVNDepth.INFINITY)
@@ -216,7 +212,7 @@ class ScmUtil {
         getStatus.setReportAll(true)
 
         getStatus.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
-            public void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
+            void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
                 if(! status.versioned) {
                     addedFiles.add(status.path)
                 }
@@ -264,6 +260,6 @@ class ScmUtil {
                 .readEnvironment()
                 .findGitDir(dir)
                 .build()
-        Git git = new Git(repo)
+        return new Git(repo)
     }
 }

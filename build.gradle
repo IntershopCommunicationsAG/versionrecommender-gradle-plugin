@@ -2,30 +2,26 @@ plugins {
     // project plugins
     id 'java-gradle-plugin'
     id 'groovy'
-
     // test coverage
     id 'jacoco'
 
     // ide plugin
     id 'idea'
 
-    // intershop test plugin
-    id 'com.intershop.gradle.test' version '2.2.0'
-
-    // plugin for documentation
-    id 'org.asciidoctor.convert' version '1.5.3'
-
     // publish plugin
     id 'maven-publish'
 
     // intershop version plugin
-    id 'com.intershop.gradle.scmversion' version '2.3.4'
+    id 'com.intershop.gradle.scmversion' version '3.2.0'
+
+    // plugin for documentation
+    id 'org.asciidoctor.convert' version '1.5.3'
 
     // plugin for publishing to Gradle Portal
-    id 'com.gradle.plugin-publish' version '0.9.7'
+    id 'com.gradle.plugin-publish' version '0.9.9'
 
     // plugin for publishing to jcenter
-    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.jfrog.bintray' version '1.8.0'
 }
 
 scm {
@@ -38,10 +34,8 @@ group 'com.intershop.gradle.versionrecommender'
 description 'Gradle Version Recommendation Plugin'
 version = scm.version.version
 
-// plugins should work with JDK 1.7 aslong
-// older INTERSHOP version use this version of JDK
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // set correct project status
 if (project.version.endsWith('-SNAPSHOT')) {
@@ -70,7 +64,7 @@ test {
     jvmArgs '-XX:MaxPermSize=96m'
 
     // Gradle versions for test
-    systemProperty 'intershop.gradle.versions', '2.11, 3.4.1'
+    systemProperty 'intershop.gradle.versions', '4.3.1'
 }
 
 task copyAsciiDoc {
@@ -121,7 +115,7 @@ jacocoTestReport {
         xml.enabled = true // coveralls plugin depends on xml format report
         html.enabled = true
 
-        html.destination "${buildDir}/jacocoHtml"
+        html.setDestination(new File(project.buildDir, 'jacocoHtml'))
     }
 }
 
@@ -158,7 +152,7 @@ publishing {
             }
 
             pom.withXml {
-                def Node root = asNode();
+                def Node root = asNode()
                 root.appendNode('name', project.name)
                 root.appendNode('description', project.description)
                 root.appendNode('url', "https:/gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
@@ -250,9 +244,8 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
 
-    testCompile('org.spockframework:spock-core:1.0-groovy-2.4'){
-        exclude group: 'org.codehaus.groovy'
-    }
+    testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
+    testCompile gradleTestKit()
 
     testCompile 'commons-io:commons-io:2.2'
 }

@@ -84,7 +84,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -115,7 +115,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultSetLocal.task(':setLocalFilter').outcome == SUCCESS
 
         when:
-        def resultAfterSetLocal = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -133,7 +133,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultReset.task(':resetFilter').outcome == SUCCESS
 
         when:
-        def resultAfterReset = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -151,7 +151,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultUpdate.task(':updateFilter').outcome == SUCCESS
 
         when:
-        def resultAfterUpdate = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -216,7 +216,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -247,7 +247,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultSetLocal.task(':setLocalFilter').outcome == SUCCESS
 
         when:
-        def resultAfterSetLocal = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -265,7 +265,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultReset.task(':resetFilter').outcome == SUCCESS
 
         when:
-        def resultAfterReset = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -283,7 +283,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         resultUpdate.task(':updateFilter').outcome == SUCCESS
 
         when:
-        def resultAfterUpdate = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -349,7 +349,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -417,7 +417,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -485,7 +485,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -552,7 +552,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -623,7 +623,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        def result = getPreparedGradleRunner()
+        getPreparedGradleRunner()
                 .withArguments('copyResult', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
@@ -1705,7 +1705,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def result = getPreparedGradleRunner()
-                .withArguments('publish', '-i')
+                .withArguments('publish', '-i', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
         File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
@@ -1713,6 +1713,104 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         then:
         result.task(':publish').outcome == SUCCESS
         ivyFile.exists()
+        // runtime dependencies are not longer supported, see https://blog.gradle.org/incremental-compiler-avoidance
+        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" conf="compile-&gt;default" rev="1.4"/>')
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'test publishing with ivy and java-library plugin - #gradleVersion'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+                id 'java-library'
+                id 'ivy-publish'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    ivy('filter',  'com.intershop:filter:1.0.0') {}
+                }
+            }
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    ivy {
+                        // change to point to your repo, e.g. http://my.org/repo
+                        url "\$buildDir/repo"
+                        layout('pattern') {
+                            ivy "${ivyPattern}"
+                            artifact "${artifactPattern}"
+                        }
+                    }
+                }
+            }
+                        
+            dependencies {
+                api 'org.apache.logging.log4j:log4j-core'
+                api 'commons-io:commons-io'
+                implementation 'commons-codec:commons-codec'
+            }
+
+            ${writeIvyReadRepo(testProjectDir)}
+
+            repositories {
+                jcenter()
+            }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File javaFile = file('src/main/java/com/intershop/log4jExample.java', testProjectDir)
+        javaFile << """package com.intershop;
+
+            import org.apache.logging.log4j.LogManager;
+            import org.apache.logging.log4j.Logger;
+            import org.apache.commons.io.FileUtils;
+            import java.util.List;
+            import java.io.File;
+            import java.io.IOException;
+            
+            public class log4jExample{
+            
+               /* Get actual class name to be printed on */
+               static Logger log = LogManager.getLogger(log4jExample.class.getName());
+               
+               public static void main(String[] args) throws IOException {
+                  log.debug("Hello this is a debug message");
+                  log.info("Hello this is an info message");
+                  
+                  File file = new File("/commons/io/project.properties");
+                  List lines = FileUtils.readLines(file, "UTF-8");
+               }
+            }
+        """.stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('publish', '-i', '-s')
+                .withGradleVersion(gradleVersion)
+                .build()
+        File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
+
+        then:
+        result.task(':publish').outcome == SUCCESS
+        ivyFile.exists()
+        // runtime dependencies are not longer supported, see https://blog.gradle.org/incremental-compiler-avoidance
         ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" conf="runtime-&gt;default" rev="1.4"/>')
 
         where:
@@ -1800,7 +1898,6 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 .withArguments('publish', '-s')
                 .withGradleVersion(gradleVersion)
                 .build()
-        File ivyFile = new File(testProjectDir, 'build/repo/com.intershop/testProject/1.0.0/ivys/ivy-1.0.0.xml')
 
         then:
         result.task(':publish').outcome == SUCCESS
@@ -2271,7 +2368,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     def 'test udpate with ivy Dependency and store in GIT repository'() {
         setup:
         buildFile.delete()
-        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
+        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'].toString(), 'master')
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2351,7 +2448,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     def 'test udpate with ivy Dependency and store in SVN repository'() {
         setup:
         buildFile.delete()
-        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
+        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2432,7 +2529,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     def 'test udpate with ivy Dependency and store in GIT repository and different configDir'() {
         setup:
         buildFile.delete()
-        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'], 'master')
+        ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'].toString(), 'master')
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2522,7 +2619,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     def 'test udpate with ivy Dependency and store in SVN repository and different configDir'() {
         setup:
         buildFile.delete()
-        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'])
+        ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2580,7 +2677,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         when:
         def resultStore = getPreparedGradleRunner()
-                .withArguments('store', 'update', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['svnuser']}", "-PscmUserPasswd=${System.properties['svnpasswd']}")
+                .withArguments('store', 'update', '-d', '-s', '-PscmCommit=true', "-PscmUserName=${System.properties['svnuser']}", "-PscmUserPasswd=${System.properties['svnpasswd']}")
                 .withGradleVersion(gradleVersion)
                 .build()
         File storeFileFilter4 = new File(testProjectDir, 'filter/.ivyFilter4.version')

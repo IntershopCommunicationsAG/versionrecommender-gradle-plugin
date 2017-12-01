@@ -17,6 +17,7 @@ package com.intershop.gradle.versionrecommender.recommendation;
 
 import com.intershop.gradle.versionrecommender.tasks.*;
 import groovy.lang.Closure;
+import groovy.transform.CompileStatic;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.Project;
@@ -29,6 +30,7 @@ import org.gradle.util.ConfigureUtil;
  * The main method 'getVersion' resolves the version from the list depending
  * on the module string.
  */
+@CompileStatic
 public class RecommendationProviderContainer extends DefaultNamedDomainObjectList<RecommendationProvider> {
 
     private Project project;

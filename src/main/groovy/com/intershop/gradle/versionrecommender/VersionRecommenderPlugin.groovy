@@ -18,6 +18,9 @@ package com.intershop.gradle.versionrecommender
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.extension.PublicationXmlGenerator
 import com.intershop.gradle.versionrecommender.util.NoVersionException
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -51,6 +54,7 @@ import org.gradle.api.specs.Spec
  *
  * This plugin applies the functionality always to the root project!
  */
+@CompileStatic
 class VersionRecommenderPlugin implements Plugin<Project> {
 
     private VersionRecommenderExtension extension
@@ -105,6 +109,7 @@ class VersionRecommenderPlugin implements Plugin<Project> {
      *
      * @param project The target project
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void applyIvyVersionRecommendation(Project project) {
         project.plugins.withType(IvyPublishPlugin) {
             project.publishing {
@@ -154,6 +159,7 @@ class VersionRecommenderPlugin implements Plugin<Project> {
      *
      * @param project The target project
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void applyMvnVersionRecommendation(Project project) {
         project.plugins.withType(MavenPublishPlugin) {
             project.publishing {

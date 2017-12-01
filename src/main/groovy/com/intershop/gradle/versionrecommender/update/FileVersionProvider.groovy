@@ -17,10 +17,17 @@ package com.intershop.gradle.versionrecommender.update
 
 import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * This class provides methods to collect all available version in file based repositories.
  */
+@CompileStatic
 class FileVersionProvider {
 
     /**
@@ -34,12 +41,7 @@ class FileVersionProvider {
     public static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
         File metadataFile = new File(repo, "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml")
         if(metadataFile.exists()) {
-            GPathResult modelMetaData = new XmlSlurper().parse(metadataFile)
-            List<String> list = []
-            modelMetaData.versioning.versions.version.each{
-                list.add(it.toString())
-            }
-            return list
+            return MavenMetadataHelper.getVersionList(metadataFile)
         } else {
             return null
         }

@@ -15,9 +15,11 @@
  */
 package com.intershop.gradle.versionrecommender.update
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.NodeChild
-import groovy.util.slurpersupport.NodeChildren
 
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
@@ -29,6 +31,7 @@ import java.security.SecureRandom
  * This class provides methods to collect all available version in remote based repositories.
  * Only http and https is supported.
  */
+@CompileStatic
 @Slf4j
 class HTTPVersionProvider {
 
@@ -48,20 +51,19 @@ class HTTPVersionProvider {
         List<String> versions = []
         String url = "${repo}${(repo.endsWith("/") ? '' : '/')}${group.replace('.', '/')}/${artifactid}/maven-metadata.xml"
         try {
-            def conn = getUrlConnection(url)
+            HttpURLConnection conn = getUrlConnection(url)
             setAuthorization(conn, username, password)
             conn.setRequestProperty("Content-Type", "application/xml")
 
-            if (conn.responseCode == 200) {
-                def metadata = new XmlSlurper().parseText(conn.content.text)
-                if (metadata) {
-                    try {
-                        NodeChildren nc = metadata.versioning.versions.version
-                        return nc.collect {it.toString()}
-                    } catch (Exception e) {
-                        log.error("Exception occurred while trying to fetch versions. The fetched XML is [$metadata]".toString(), e)
-                        return []
+            if(conn.getResponseCode() == 200) {
+                try {
+                    String metaString = conn.getContent().toString()
+                    if (metaString) {
+                        versions = MavenMetadataHelper.getVersionList(conn.getContent())
                     }
+                } catch (Exception e) {
+                    log.error("Exception occurred while trying to fetch versions. {}", e)
+                    return []
                 }
             } else {
                 log.info('{}:{} not found in {} - http return code was {}', group, artifactid, repo, conn.responseCode)
@@ -84,7 +86,8 @@ class HTTPVersionProvider {
      * @param password      Password of repository credentials (Default is an empty string.)
      * @return              a list of available versions
      */
-    public static List<String> getVersionsFromIvyListing(String repo, String pattern, String org, String name, String username = '', String password = '') {
+     @TypeChecked(TypeCheckingMode.SKIP)
+     static List<String> getVersionsFromIvyListing(String repo, String pattern, String org, String name, String username = '', String password = '') {
         int i = pattern.indexOf('[revision]')
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         List<String> versions = []
@@ -136,7 +139,7 @@ class HTTPVersionProvider {
      *
      * @param url  URL of the download artifact
      */
-    private static URLConnection getUrlConnection(String url) throws IOException {
+    private static HttpURLConnection getUrlConnection(String url) throws IOException {
 
         URL urlInternal = url.toURL()
 
@@ -153,10 +156,10 @@ class HTTPVersionProvider {
 
         if(port && hostname) {
             log.info('Proxy host is used: {}://{}:{}', scheme, hostname, port)
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(hostname, port))
-            return urlInternal.openConnection(proxy)
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(hostname, Integer.parseInt(port)))
+            return (HttpURLConnection) urlInternal.openConnection(proxy)
         } else {
-            return urlInternal.openConnection()
+            return (HttpURLConnection) urlInternal.openConnection()
         }
     }
 }

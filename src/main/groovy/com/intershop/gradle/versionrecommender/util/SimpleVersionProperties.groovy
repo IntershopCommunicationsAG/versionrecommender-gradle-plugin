@@ -15,6 +15,10 @@
  */
 package com.intershop.gradle.versionrecommender.util
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+
 /**
  * Override Java standard properties.
  * <ul>
@@ -23,6 +27,7 @@ package com.intershop.gradle.versionrecommender.util
  * </ul>
  *
  */
+@CompileStatic
 class SimpleVersionProperties extends Properties {
 
     private static final long serialVersionUID = 1L
@@ -30,7 +35,7 @@ class SimpleVersionProperties extends Properties {
     /**
      * These are the hexadecimal digits.
      */
-    private static final char[] hexDigit = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ]
+    private static final char[] hexDigit = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ] as char[]
 
     /**
      * The equal sign character.
@@ -229,6 +234,7 @@ class SimpleVersionProperties extends Properties {
      *
      * @return The converted string.
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private static String loadConvert(String aString) {
         // Initialization.
         int length = aString.length()
@@ -502,6 +508,7 @@ class SimpleVersionProperties extends Properties {
      *
      * @return The converted string.
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private static String storeConvert(String aString) {
         // Initialization.
         int length = aString.length()

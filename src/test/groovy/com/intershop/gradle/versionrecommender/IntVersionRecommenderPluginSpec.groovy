@@ -2449,6 +2449,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         setup:
         buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())
+        buildFile.delete()
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2620,6 +2621,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         setup:
         buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())
+        buildFile.delete()
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'

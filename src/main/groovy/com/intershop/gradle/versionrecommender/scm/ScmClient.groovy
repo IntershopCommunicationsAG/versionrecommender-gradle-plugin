@@ -15,8 +15,10 @@
  */
 package com.intershop.gradle.versionrecommender.scm
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
+@CompileStatic
 class ScmClient implements IScmClient {
 
     // scm user name / token (git,svn)
@@ -91,9 +93,9 @@ class ScmClient implements IScmClient {
         } else if(System.getenv(envVar)) {
             project.logger.debug('Specified from system environment property {}.', envVar)
             return System.getenv(envVar).toString().trim()
-        } else if(project.hasProperty(projectVar) && project."${projectVar}") {
+        } else if(project.hasProperty(projectVar) && project.property(projectVar)) {
             project.logger.debug('Specified from project property {}.', projectVar)
-            return project."${projectVar}".toString().trim()
+            return project.property(projectVar).toString().trim()
         }
         return defaultValue
     }

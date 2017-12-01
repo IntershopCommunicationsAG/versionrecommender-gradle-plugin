@@ -27,11 +27,6 @@ import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.Transport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
-//import org.eclipse.jgit.transport.CredentialsProvider
-//import org.eclipse.jgit.transport.SshTransport
-//import org.eclipse.jgit.transport.Transport
-//import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-
 @Slf4j
 @CompileStatic
 class GitClient implements IScmClient {
@@ -127,7 +122,7 @@ class GitClient implements IScmClient {
             log.debug('ssh connector is used with key {}.', keyfile.absolutePath)
             SshConnector sshConnector = new SshConnector(keyfile, passphrase)
             cmd.setTransportConfigCallback(new TransportConfigCallback() {
-                public void configure(Transport transport) {
+                void configure(Transport transport) {
                     SshTransport sshTransport = (SshTransport) transport
                     sshTransport.setSshSessionFactory(sshConnector)
                 }

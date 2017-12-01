@@ -17,11 +17,16 @@ package com.intershop.gradle.versionrecommender.extension
 
 import com.intershop.gradle.versionrecommender.recommendation.RecommendationProviderContainer
 import com.intershop.gradle.versionrecommender.util.ModuleNotationParser
+import com.sun.org.apache.xerces.internal.dom.DocumentImpl
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.publish.Publication
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.maven.MavenPublication
 
@@ -63,6 +68,7 @@ import org.gradle.api.publish.maven.MavenPublication
  * </pre>
  * </code>
  */
+@CompileStatic
 class PublicationXmlGenerator {
 
     final static String EXTENSIONNAME = 'versionManagement'
@@ -93,10 +99,11 @@ class PublicationXmlGenerator {
         if(projectsRet instanceof Project) {
             subprojects = [(Project) projectsRet]
         } else if(Iterable.class.isAssignableFrom(projectsRet.class)) {
-            subprojects = projectsRet
+            subprojects = (Iterable<Project>)projectsRet
         }
 
-        generateDependencyXml(projectClosure.delegate.delegate, { subprojects.collect { ModuleNotationParser.parse(it) } }, project.versionRecommendation.provider)
+        generateDependencyXmlBase((Publication)((Closure)projectClosure.delegate).delegate,
+                { (List<ModuleVersionIdentifier>)subprojects.collect { Project p -> ModuleNotationParser.parse(p) } })
     }
 
     /**
@@ -114,10 +121,10 @@ class PublicationXmlGenerator {
         if(configurationsRet instanceof Configuration) {
             configurations = [(Configuration) configurationsRet]
         }else if(Iterable.class.isAssignableFrom(configurationsRet.class)) {
-            configurations = configurationsRet
+            configurations = (Iterable<Configuration>)configurationsRet
         }
-
-        generateDependencyXml(configurationsClosure.delegate.delegate, { configurations.collect { getManagedDependencies(it) }.flatten() }, project.versionRecommendation.provider)
+        generateDependencyXmlBase((Publication)((Closure)configurationsClosure.delegate).delegate,
+                { (List<ModuleVersionIdentifier>)configurations.collect { Configuration config -> getManagedDependencies(config) }.flatten() })
     }
 
     /**
@@ -135,9 +142,32 @@ class PublicationXmlGenerator {
         if(dependenciesRet instanceof String) {
             dependencies = [(String) dependenciesRet]
         } else if(Iterable.class.isAssignableFrom(dependenciesRet.class)) {
-            dependencies = dependenciesRet
+            dependencies = (Iterable<String>)dependenciesRet
         }
-        generateDependencyXml(dependenciesClosure.delegate.delegate, { dependencies.collect { ModuleNotationParser.parse(it) } }, project.versionRecommendation.provider)
+        generateDependencyXmlBase((Publication)((Closure)dependenciesClosure.delegate).delegate,
+                { (List<ModuleVersionIdentifier>)dependencies.collect {String dep ->  ModuleNotationParser.parse(dep) } })
+    }
+
+    /**
+     * This is a helper method to add always the version recommendation exception.
+     *
+     * @param pub   Publication - Maven or Ivy
+     * @param deps  Dependency closure
+     */
+    private void generateDependencyXmlBase(Publication pub, Closure<List<ModuleVersionIdentifier>> deps) {
+        Object ext = project.getExtensions().findByName(VersionRecommenderExtension.EXTENSIONNAME)
+        if(ext) {
+            if (pub instanceof IvyPublication) {
+                generateDependencyXml((IvyPublication) pub, deps, ((VersionRecommenderExtension) ext).provider)
+            } else if (pub instanceof MavenPublication) {
+                generateDependencyXml((MavenPublication) pub, deps, ((VersionRecommenderExtension) ext).provider)
+            }
+            else {
+                throw new GradleException("This is not a Publication ${pub}!")
+            }
+        } else {
+            throw new GradleException("Extension + ${VersionRecommenderExtension.EXTENSIONNAME} is missing!")
+        }
     }
 
     /**
@@ -147,25 +177,32 @@ class PublicationXmlGenerator {
      * @param deps  Dependencies
      * @param rpc   RecommendationProviderContainer
      */
-    protected static void generateDependencyXml(IvyPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
-        pub.descriptor.withXml { XmlProvider xml ->
-            Node root = xml.asNode()
+    protected static void generateDependencyXml(IvyPublication pub, Closure<List<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
+        pub.descriptor.withXml(
+            new Action<XmlProvider>() {
+                @Override
+                void execute(XmlProvider xmlProvider) {
+                    Node root = xmlProvider.asNode()
+                    Object findDep = root.children().find { it instanceof Node && ((Node)it).name() == 'dependencies' }
 
-            root.dependencies[0].@defaultconfmapping = '*->default'
+                    Node dependencies = findDep ? (Node)findDep : root.appendNode('dependencies')
+                    dependencies.attributes().put('defaultconfmapping', '*->default')
 
-            deps.call().each { ModuleVersionIdentifier mvid ->
-                Map dependencyAttributes = [org: mvid.group, name: mvid.name]
-                if(mvid.getVersion()){
-                    dependencyAttributes['rev'] = mvid.getVersion()
-                } else {
-                    String version = rpc.getVersion(mvid.group, mvid.name)
-                    if(version)
-                        dependencyAttributes['rev'] = version
+                    deps.call().each { ModuleVersionIdentifier mvid ->
+                        Map dependencyAttributes = [org: mvid.group, name: mvid.name]
+                        if(mvid.getVersion()){
+                            dependencyAttributes['rev'] = mvid.getVersion()
+                        } else {
+                            String version = rpc.getVersion(mvid.group, mvid.name)
+                            if(version)
+                                dependencyAttributes['rev'] = version
+                        }
+                        dependencyAttributes['conf'] = 'default'
+                        dependencies.appendNode('dependency', dependencyAttributes)
+                    }
                 }
-                dependencyAttributes['conf'] = 'default'
-                new Node(root.dependencies[0], 'dependency', dependencyAttributes)
             }
-        }
+        )
     }
 
     /**
@@ -175,33 +212,35 @@ class PublicationXmlGenerator {
      * @param deps  Dependencies
      * @param rpc   RecommendationProviderContainer
      */
-    protected static void generateDependencyXml(MavenPublication pub, Closure<Iterable<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
-        pub.pom.withXml { XmlProvider xml ->
-            Node root = xml.asNode()
-            def dependencyManagement = root.getByName("dependencyManagement")
+    protected static void generateDependencyXml(MavenPublication pub, Closure<List<ModuleVersionIdentifier>> deps, RecommendationProviderContainer rpc) {
+        pub.pom.withXml(
+            new Action<XmlProvider>() {
+                @Override
+                void execute(XmlProvider xmlProvider) {
+                    Node root = xmlProvider.asNode()
+                    Object findDepMgt = root.children().find { it instanceof Node && ((Node)it).name() == 'dependencyManagement' }
+                    // when merging two or more sources of dependencies, we want to only create one dependencyManagement section
+                    Node dependencyManagement = findDepMgt ? (Node)findDepMgt : root.appendNode('dependencyManagement')
 
-            // when merging two or more sources of dependencies, we want to only create one dependencyManagement section
-            Node dependencies
 
-            if(dependencyManagement.isEmpty()) {
-                dependencies = root.appendNode("dependencyManagement").appendNode("dependencies")
-            } else {
-                dependencies = dependencyManagement[0].getByName("dependencies")[0]
-            }
+                    Object findDep = dependencyManagement.children().find { it instanceof Node && ((Node)it).name() == 'dependencies' }
+                    Node dependencies = findDep ? (Node)findDep : dependencyManagement.appendNode("dependencies")
 
-            deps.call().each { ModuleVersionIdentifier mvid ->
-                Node dep = dependencies.appendNode("dependency")
-                dep.appendNode("groupId").value = mvid.group
-                dep.appendNode("artifactId").value = mvid.name
-                if(mvid.version) {
-                    dep.appendNode("version").value = mvid.version
-                } else {
-                    String version = rpc.getVersion(mvid.group, mvid.name)
-                    if(version)
-                        dep.appendNode("version").value = version
+                    deps.call().each { ModuleVersionIdentifier mvid ->
+                        Node dep = dependencies.appendNode("dependency")
+                        dep.appendNode("groupId").value = mvid.group
+                        dep.appendNode("artifactId").value = mvid.name
+                        if(mvid.version) {
+                            dep.appendNode("version").value = mvid.version
+                        } else {
+                            String version = rpc.getVersion(mvid.group, mvid.name)
+                            if(version)
+                                dep.appendNode("version").value = version
+                        }
+                    }
                 }
             }
-        }
+        )
     }
 
     /**

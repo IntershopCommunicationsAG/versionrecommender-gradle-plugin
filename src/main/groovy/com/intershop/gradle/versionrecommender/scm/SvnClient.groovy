@@ -68,7 +68,7 @@ class SvnClient implements IScmClient {
     private void addMissingFiles(List<File> fileList) throws SVNException{
         List<File> missingFiles = []
 
-        final SVNWCContext context = new SVNWCContext(svnOpFactory.getOptions(), svnOpFactory.getEventHandler())
+        new SVNWCContext(svnOpFactory.getOptions(), svnOpFactory.getEventHandler())
 
         SvnGetStatus getStatus = svnOpFactory.createGetStatus()
         getStatus.setSingleTarget(SvnTarget.fromFile(workingCopy))

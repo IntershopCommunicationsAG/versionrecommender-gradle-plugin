@@ -73,8 +73,9 @@ class ScmClient implements IScmClient {
 
     String commit(List<File> fileList, String commitmessage) {
         if(internalClient) {
-            internalClient.commit(fileList, commitmessage)
+            return internalClient.commit(fileList, commitmessage)
         }
+        return ''
     }
 
     /**

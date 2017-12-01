@@ -108,6 +108,7 @@ class UpdateConfigurationItem implements Comparable, Named {
         } else if(patternForNextVersion) {
             return patternForNextVersion
         }
+        return ''
     }
 
     /**

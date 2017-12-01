@@ -111,13 +111,13 @@ class VersionUpdater {
             if(ivyPattern) {
                 ivyHttpRepList.any { ArtifactRepository repo ->
                     versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, name,
-                            ((MavenArtifactRepository)repo).credentials.username, ((MavenArtifactRepository)repo).credentials.password)
+                            ((IvyArtifactRepository)repo).credentials.username, ((IvyArtifactRepository)repo).credentials.password)
                     if (versionList)
                         return true
                 }
                 if (!versionList) {
                     ivyFileRepList.any { ArtifactRepository repo ->
-                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(((MavenArtifactRepository)repo).url), ivyPattern, group, name)
+                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(((IvyArtifactRepository)repo).url), ivyPattern, group, name)
                         if (versionList)
                             return true
                     }

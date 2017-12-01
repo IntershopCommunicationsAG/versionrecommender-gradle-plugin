@@ -30,7 +30,7 @@ class MavenMetadataHelper {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance()
         DocumentBuilder builder = dbFactory.newDocumentBuilder()
 
-        Document meta = metadata instanceof File ? builder.parse((File)metadata) : builder.parse((InputStream) metadata)
+        Document meta = metadata instanceof File ? builder.parse((File) metadata) : builder.parse((InputStream) metadata)
 
 
         meta.getDocumentElement().normalize()
@@ -38,21 +38,16 @@ class MavenMetadataHelper {
         meta.getDocumentElement().normalize()
 
         NodeList versioning = meta.getElementsByTagName('versioning')
-        NodeList versions = versioning.length > 0 ? ((Element)versioning.item(0)).getElementsByTagName('versions'): null
-        NodeList version = versions.length > 0 ? ((Element)versions.item(0)).getElementsByTagName('version'): null
+        NodeList versions = versioning.length > 0 ? ((Element) versioning.item(0)).getElementsByTagName('versions') : null
+        NodeList version = versions.length > 0 ? ((Element) versions.item(0)).getElementsByTagName('version') : null
 
         List<String> list = []
 
-        if(version && version.length > 0) {
+        if (version && version.length > 0) {
             for (int temp = 0; temp < version.getLength(); temp++) {
                 list.add(version.item(temp).getTextContent())
             }
         }
         return list
-    }
-
-
-    private static List<String> getVersionListFrom(Document meta) {
-
     }
 }

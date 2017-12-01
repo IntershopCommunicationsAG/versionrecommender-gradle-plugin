@@ -43,10 +43,10 @@ class VersionUpdater {
     private Project project
 
     // repository lists for maven and ivy repos, file and remote based
-    private List<MavenArtifactRepository> mvnHttpRepList
-    private List<MavenArtifactRepository> mvnFileRepList
-    private List<IvyArtifactRepository> ivyHttpRepList
-    private List<IvyArtifactRepository> ivyFileRepList
+    private List<ArtifactRepository> mvnHttpRepList
+    private List<ArtifactRepository> mvnFileRepList
+    private List<ArtifactRepository> ivyHttpRepList
+    private List<ArtifactRepository> ivyFileRepList
 
     /**
      * Ivy pattern for Ivy repository access
@@ -70,7 +70,6 @@ class VersionUpdater {
     /**
      * Initialize repository lists for the first call of the class, after evaluation of the project.
      */
-    @CompileDynamic
     private void initLists() {
         if(mvnHttpRepList == null || mvnFileRepList == null) {
             List<ArtifactRepository> mvnRepList = project.getRepositories().findAll { it instanceof MavenArtifactRepository }
@@ -79,8 +78,8 @@ class VersionUpdater {
         }
         if(ivyHttpRepList == null || ivyFileRepList == null) {
             List<ArtifactRepository> ivyRepList = project.getRepositories().findAll { it instanceof IvyArtifactRepository }
-            ivyHttpRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url?.scheme.startsWith('http') }
-            ivyFileRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url?.scheme.startsWith('file') }
+            ivyHttpRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url.scheme.startsWith('http') }
+            ivyFileRepList = ivyRepList.findAll { ((IvyArtifactRepository) it).url.scheme.startsWith('file') }
         }
     }
 
@@ -102,21 +101,23 @@ class VersionUpdater {
         List<String> versionList = []
         initLists()
 
-        mvnHttpRepList.any { MavenArtifactRepository repo ->
-            versionList = HTTPVersionProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, name, repo.credentials.username, repo.credentials.password)
+        mvnHttpRepList.any { ArtifactRepository repo ->
+            versionList = HTTPVersionProvider.getVersionFromMavenMetadata( ((MavenArtifactRepository)repo).getUrl().toString(), group, name,
+                    ((MavenArtifactRepository)repo).credentials.username, ((MavenArtifactRepository)repo).credentials.password)
             if(versionList)
                 return true
         }
         if(! versionList) {
             if(ivyPattern) {
-                ivyHttpRepList.any { IvyArtifactRepository repo ->
-                    versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, name, repo.credentials.username, repo.credentials.password)
+                ivyHttpRepList.any { ArtifactRepository repo ->
+                    versionList = HTTPVersionProvider.getVersionsFromIvyListing( ((IvyArtifactRepository)repo).getUrl().toString(), ivyPattern, group, name,
+                            ((MavenArtifactRepository)repo).credentials.username, ((MavenArtifactRepository)repo).credentials.password)
                     if (versionList)
                         return true
                 }
                 if (!versionList) {
-                    ivyFileRepList.any { IvyArtifactRepository repo ->
-                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(repo.url), ivyPattern, group, name)
+                    ivyFileRepList.any { ArtifactRepository repo ->
+                        versionList = FileVersionProvider.getVersionsFromIvyListing(new File(((MavenArtifactRepository)repo).url), ivyPattern, group, name)
                         if (versionList)
                             return true
                     }
@@ -124,8 +125,8 @@ class VersionUpdater {
             }
 
             if(! versionList) {
-                mvnFileRepList.any { MavenArtifactRepository repo ->
-                    versionList = FileVersionProvider.getVersionFromMavenMetadata(new File(repo.url), group, name)
+                mvnFileRepList.any { ArtifactRepository repo ->
+                    versionList = FileVersionProvider.getVersionFromMavenMetadata(new File(((MavenArtifactRepository)repo).url), group, name)
                     if(versionList)
                         return true
                 }
@@ -411,7 +412,7 @@ class VersionUpdater {
             List<Version> filteredList = list.findAll{ it =~ /${filter}/ }.each {String vs ->
                 def vsm = (vs =~ /${filter}/)
                 try {
-                    versionMap.put(VersionParser.parseVersion(vsm[0][1], type), vs)
+                    versionMap.put(VersionParser.parseVersion(vsm[0][1].toString(), type), vs)
                 }catch (Exception ex) {
                     log.debug('It was not possible to parse version {}', vs)
                 }

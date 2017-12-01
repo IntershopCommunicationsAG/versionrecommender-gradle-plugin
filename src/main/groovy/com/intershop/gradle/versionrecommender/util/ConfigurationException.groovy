@@ -28,21 +28,21 @@ class ConfigurationException extends RuntimeException {
     /**
      * {@inheritDoc}
      */
-    public ConfigurationException(String message, Throwable cause) {
-        super(message, cause);
+    ConfigurationException(String message, Throwable cause) {
+        super(message, cause)
     }
 
     /**
      * {@inheritDoc}
      */
-    public ConfigurationException(String message) {
-        super(message);
+    ConfigurationException(String message) {
+        super(message)
     }
 
     /**
      * {@inheritDoc}
      */
-    public ConfigurationException(Throwable cause) {
-        super(cause);
+    ConfigurationException(Throwable cause) {
+        super(cause)
     }
 }

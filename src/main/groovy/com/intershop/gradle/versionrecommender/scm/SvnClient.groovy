@@ -68,7 +68,7 @@ class SvnClient implements IScmClient {
     private void addMissingFiles(List<File> fileList) throws SVNException{
         List<File> missingFiles = []
 
-        final SVNWCContext context = new SVNWCContext(svnOpFactory.getOptions(), svnOpFactory.getEventHandler());
+        final SVNWCContext context = new SVNWCContext(svnOpFactory.getOptions(), svnOpFactory.getEventHandler())
 
         SvnGetStatus getStatus = svnOpFactory.createGetStatus()
         getStatus.setSingleTarget(SvnTarget.fromFile(workingCopy))
@@ -77,7 +77,7 @@ class SvnClient implements IScmClient {
         getStatus.setReportAll(true)
 
         getStatus.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
-            public void receive(SvnTarget target, SvnStatus status) throws SVNException {
+            void receive(SvnTarget target, SvnStatus status) throws SVNException {
                 if(! status.versioned && fileList.findAll { it.absolutePath.startsWith(status.path.absolutePath) }.size() > 0) {
                     missingFiles.add(status.path)
                 }

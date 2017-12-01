@@ -47,7 +47,7 @@ class HTTPVersionProvider {
      * @param password      Password of repository credentials (Default is an empty string.)
      * @return              a list of available versions
      */
-    public static List<String> getVersionFromMavenMetadata(String repo, String group, String artifactid, String username = '', String password = '') {
+    static List<String> getVersionFromMavenMetadata(String repo, String group, String artifactid, String username = '', String password = '') {
         List<String> versions = []
         String url = "${repo}${(repo.endsWith("/") ? '' : '/')}${group.replace('.', '/')}/${artifactid}/maven-metadata.xml"
         try {

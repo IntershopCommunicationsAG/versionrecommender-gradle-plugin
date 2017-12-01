@@ -127,12 +127,12 @@ class UpdateConfigurationItem implements Comparable, Named {
      * @return
      */
     @Override
-    public boolean equals(Object other) {
+    boolean equals(Object other) {
         if (this == other) {
-            return true;
+            return true
         }
         if (!(other instanceof UpdateConfigurationItem)) {
-            return false;
+            return false
         }
         return compareTo((UpdateConfigurationItem) other) == 0
     }

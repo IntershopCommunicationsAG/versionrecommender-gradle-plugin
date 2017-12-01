@@ -93,9 +93,9 @@ class ScmUtil {
             svnOperationFactory.setAuthenticationManager(authenticationManager)
             SvnGetStatus statusCmd = svnOperationFactory.createGetStatus()
             statusCmd.setSingleTarget(SvnTarget.fromFile(target))
-            statusCmd.setDepth(SVNDepth.INFINITY);
+            statusCmd.setDepth(SVNDepth.INFINITY)
             statusCmd.setReceiver(new ISvnObjectReceiver<SvnStatus>() {
-                public void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
+                void receive(SvnTarget svnTarget, SvnStatus status) throws SVNException {
                     if(! ['build', 'gradle', '.gradle'].contains(status.path.name)) {
                         if(status.path.isDirectory() && status.path.listFiles().size() > 0) {
                             returnValue &= status.getNodeStatus() != SVNStatusType.STATUS_DELETED

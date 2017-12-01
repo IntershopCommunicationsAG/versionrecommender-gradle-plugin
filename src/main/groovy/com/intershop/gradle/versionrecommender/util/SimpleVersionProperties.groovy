@@ -180,6 +180,7 @@ class SimpleVersionProperties extends Properties {
                     int l
                     for(l = j; l < i; l++) {
                         char c1 = line.charAt(l)
+                        //noinspection GrEqualsBetweenInconvertibleTypes
                         if (c1 == '\\') {
                             l++
                             continue

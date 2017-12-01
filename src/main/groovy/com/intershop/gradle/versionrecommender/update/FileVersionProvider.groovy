@@ -38,7 +38,7 @@ class FileVersionProvider {
      * @param artifactid    Artifact ID of the module
      * @return              a list of available versions
      */
-    public static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
+    static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
         File metadataFile = new File(repo, "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml")
         if(metadataFile.exists()) {
             return MavenMetadataHelper.getVersionList(metadataFile)
@@ -57,7 +57,7 @@ class FileVersionProvider {
      * @return          a list of available versions
      */
     @CompileStatic
-    public static List<String> getVersionsFromIvyListing(File repo, String pattern, String org, String name) {
+    static List<String> getVersionsFromIvyListing(File repo, String pattern, String org, String name) {
         int i = pattern.indexOf('[revision]')
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         File versionDir = new File(repo, path)

@@ -197,7 +197,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
      */
     @Override
     File getVersionFile() {
-        return new File(getConfigDir(), getFileName('version'));
+        return new File(getConfigDir(), getFileName('version'))
     }
 
     /**

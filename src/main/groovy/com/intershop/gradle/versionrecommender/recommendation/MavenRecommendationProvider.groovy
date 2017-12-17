@@ -16,6 +16,9 @@
 package com.intershop.gradle.versionrecommender.recommendation
 
 import com.intershop.gradle.versionrecommender.util.FileInputType
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -41,6 +44,7 @@ import java.nio.file.Path
 /**
  * This class implements the access to an Maven BOM file.
  */
+@CompileStatic
 @Slf4j
 class MavenRecommendationProvider extends FileBasedRecommendationProvider {
 
@@ -106,15 +110,18 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         modelBuilder.setModelInterpolator(new ProjectPropertiesModelInterpolator(project))
         ModelBuildingResult result = modelBuilder.build(request)
 
-        result.getEffectiveModel().getDependencyManagement()?.getDependencies().each {Dependency d ->
-            if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+        if(result.getEffectiveModel().getDependencyManagement() && result.getEffectiveModel().getDependencyManagement().getDependencies()) {
+            result.getEffectiveModel().getDependencyManagement().getDependencies().each { Dependency d ->
+                if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+                }
             }
         }
-
-        result.getEffectiveModel()?.getDependencies().each {Dependency d ->
-            if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+        if(result.getEffectiveModel().getDependencies()) {
+            result.getEffectiveModel().getDependencies().each { Dependency d ->
+                if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+                }
             }
         }
         if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
@@ -180,6 +187,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         }
 
         @Override
+        @TypeChecked(TypeCheckingMode.SKIP)
         ModelSource resolveModel(String groupId, String artifactId, String version) throws UnresolvableModelException {
 
             ModelSource sms = null

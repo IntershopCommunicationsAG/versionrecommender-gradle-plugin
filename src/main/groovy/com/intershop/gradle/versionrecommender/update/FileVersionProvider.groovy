@@ -17,10 +17,17 @@ package com.intershop.gradle.versionrecommender.update
 
 import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * This class provides methods to collect all available version in file based repositories.
  */
+@CompileStatic
 class FileVersionProvider {
 
     /**
@@ -31,15 +38,10 @@ class FileVersionProvider {
      * @param artifactid    Artifact ID of the module
      * @return              a list of available versions
      */
-    public static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
+    static List<String> getVersionFromMavenMetadata(File repo, String group, String artifactid) {
         File metadataFile = new File(repo, "/${group.replace('.', '/')}/${artifactid}/maven-metadata.xml")
         if(metadataFile.exists()) {
-            GPathResult modelMetaData = new XmlSlurper().parse(metadataFile)
-            List<String> list = []
-            modelMetaData.versioning.versions.version.each{
-                list.add(it.toString())
-            }
-            return list
+            return MavenMetadataHelper.getVersionList(metadataFile)
         } else {
             return null
         }
@@ -55,7 +57,7 @@ class FileVersionProvider {
      * @return          a list of available versions
      */
     @CompileStatic
-    public static List<String> getVersionsFromIvyListing(File repo, String pattern, String org, String name) {
+    static List<String> getVersionsFromIvyListing(File repo, String pattern, String org, String name) {
         int i = pattern.indexOf('[revision]')
         String path = pattern.substring(0, i - 1).replaceAll('\\[organisation]', org.replaceAll('/','.')).replaceAll('\\[module]', name)
         File versionDir = new File(repo, path)

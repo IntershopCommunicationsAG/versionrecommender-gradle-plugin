@@ -47,7 +47,7 @@ interface IRecommendationProvider extends Named {
      *
      * @throws IOException
      */
-    void setVersion() throws java.io.IOException
+    void setVersion() throws IOException
 
     /**
      * Stores changed version information to
@@ -58,7 +58,7 @@ interface IRecommendationProvider extends Named {
      * @return File with version information
      * @throws IOException
      */
-    File store(File outputFile) throws java.io.IOException
+    File store(File outputFile) throws IOException
 
     /**
      * Initialize the list of a map with

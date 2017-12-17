@@ -197,7 +197,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
      */
     @Override
     File getVersionFile() {
-        return new File(getConfigDir(), getFileName('version'));
+        return new File(getConfigDir(), getFileName('version'))
     }
 
     /**
@@ -359,7 +359,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
      *
      * @return a version string, if no version was found null.
      */
-    private String getVersionFromConfig() {
+     protected String getVersionFromConfig() {
         String rVersion = getVersionFromProperty()
 
         if(! rVersion) {

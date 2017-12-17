@@ -29,21 +29,21 @@ class ScmCommitException extends RuntimeException {
     /**
      * {@inheritDoc}
      */
-    public ScmCommitException(String message, Throwable cause) {
-        super(message, cause);
+    ScmCommitException(String message, Throwable cause) {
+        super(message, cause)
     }
 
     /**
      * {@inheritDoc}
      */
-    public ScmCommitException(String message) {
-        super(message);
+    ScmCommitException(String message) {
+        super(message)
     }
 
     /**
      * {@inheritDoc}
      */
-    public ScmCommitException(Throwable cause) {
-        super(cause);
+    ScmCommitException(Throwable cause) {
+        super(cause)
     }
 }

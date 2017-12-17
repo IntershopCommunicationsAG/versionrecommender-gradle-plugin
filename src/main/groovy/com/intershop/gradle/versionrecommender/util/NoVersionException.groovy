@@ -28,21 +28,21 @@ class NoVersionException extends RuntimeException {
     /**
      * {@inheritDoc}
      */
-    public NoVersionException(String message, Throwable cause) {
-        super(message, cause);
+    NoVersionException(String message, Throwable cause) {
+        super(message, cause)
     }
 
     /**
      * {@inheritDoc}
      */
-    public NoVersionException(String message) {
-        super(message);
+    NoVersionException(String message) {
+        super(message)
     }
 
     /**
      * {@inheritDoc}
      */
-    public NoVersionException(Throwable cause) {
-        super(cause);
+    NoVersionException(Throwable cause) {
+        super(cause)
     }
 }

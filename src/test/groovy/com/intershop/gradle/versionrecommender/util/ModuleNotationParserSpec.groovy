@@ -41,7 +41,7 @@ class ModuleNotationParserSpec extends Specification {
 
     def 'test module notation parser with incorrect values'() {
         when:
-        ModuleVersionIdentifier mvi = ModuleNotationParser.parse(input)
+        ModuleNotationParser.parse(input)
 
         then:
         thrown IllegalDependencyNotation

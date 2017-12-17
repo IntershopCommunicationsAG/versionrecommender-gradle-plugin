@@ -16,12 +16,23 @@
 package com.intershop.gradle.versionrecommender.recommendation
 
 import com.intershop.gradle.versionrecommender.util.FileInputType
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import groovy.util.slurpersupport.GPathResult
+import groovy.util.slurpersupport.NodeChildren
 import org.gradle.api.Project
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+import org.w3c.dom.Node
+
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * This class implements the access to an Ivy descriptor.
  */
+@CompileStatic
 @Slf4j
 class IvyRecommendationProvider extends FileBasedRecommendationProvider {
 
@@ -69,20 +80,32 @@ class IvyRecommendationProvider extends FileBasedRecommendationProvider {
         if(stream) {
             log.info('Prepare version list from {} of {}.', getShortTypeName(), getName())
 
-            def ivyconf = new XmlSlurper().parse(stream)
-            ivyconf.dependencies.dependency.each {
-                String descr = "${it.@org.text()}:${it.@name.text()}".toString()
-                String version = "${it.@rev.text()}"
-                versions.put(descr, version)
-                if (transitive) {
-                    calculateDependencies(descr, version)
-                }
-            }
-            if(inputType == FileInputType.DEPENDENCYMAP) {
-                versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
-            }
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance()
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder()
+            Document ivy = dBuilder.parse(stream)
+            ivy.getDocumentElement().normalize()
 
-            log.info('Prepare version list from {} of {} - finished.', getShortTypeName(), getName())
+            NodeList depsNL = ivy.getElementsByTagName('dependencies')
+            NodeList depNL = depsNL.length > 0 ? ((Element)depsNL.item(0)).getElementsByTagName('dependency'): null
+            if(depNL && depNL.length > 0) {
+                for (int temp = 0; temp < depNL.getLength(); temp++) {
+                    Element dep = (Element) depNL.item(temp)
+
+                    String descr = "${dep.getAttribute('org')}:${dep.getAttribute('name')}".toString()
+                    String version = dep.getAttribute('rev')
+                    versions.put(descr, version)
+                    if (transitive) {
+                        calculateDependencies(descr, version)
+                    }
+                }
+                if (inputType == FileInputType.DEPENDENCYMAP) {
+                    versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
+                }
+
+                log.info('Prepare version list from {} of {} - finished.', getShortTypeName(), getName())
+            } else {
+                log.info('Ivy file for {} does not contain dependencies.', getShortTypeName())
+            }
         } else {
             project.logger.info('It is not possible to identify versions for {}. Please check your configuration.', getName())
         }

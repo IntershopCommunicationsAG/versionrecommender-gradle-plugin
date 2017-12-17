@@ -18,6 +18,10 @@ package com.intershop.gradle.versionrecommender
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.extension.PublicationXmlGenerator
 import com.intershop.gradle.versionrecommender.util.NoVersionException
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
@@ -50,6 +54,7 @@ import org.gradle.api.specs.Spec
  *
  * This plugin applies the functionality always to the root project!
  */
+@CompileStatic
 class VersionRecommenderPlugin implements Plugin<Project> {
 
     private VersionRecommenderExtension extension
@@ -104,11 +109,12 @@ class VersionRecommenderPlugin implements Plugin<Project> {
      *
      * @param project The target project
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void applyIvyVersionRecommendation(Project project) {
         project.plugins.withType(IvyPublishPlugin) {
             project.publishing {
                 publications.withType(IvyPublication) {
-                    IvyPublication publication = delegate
+                    IvyPublication publication = (IvyPublication)delegate
 
                     descriptor.withXml { XmlProvider xml ->
                         def rootNode = xml.asNode()
@@ -117,26 +123,28 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                         dependenciesWithoutRevAttribute.each { dependencyNode ->
                             def configurationName = (dependencyNode.@conf).split('->')[0]
 
-                            def configuration = project.configurations.findByName(configurationName)
+                            Set<ResolvedDependency> resolvedDependencies = [] as Set<ResolvedDependency>
+                            ResolvedDependency resolvedDependency = null
 
-                            if (!configuration) {
-                                project.logger.warn("Failed to provide 'rev' attribute for dependency '{}:{}' in publication '{}' as there is no  project configuration of the name '{}'",
-                                        dependencyNode.@org, dependencyNode.@name, publication.name, configurationName)
-                                return
+                            project.configurations.any {Configuration config ->
+                                if(config.isCanBeResolved()) {
+                                    resolvedDependencies = config.resolvedConfiguration.getFirstLevelModuleDependencies({ Dependency dep ->
+                                        dep.name == dependencyNode.@name && dep.group == dependencyNode.@org
+                                    } as Spec<Dependency>)
+                                    if (resolvedDependencies.size() > 0) {
+                                        resolvedDependency = (resolvedDependencies as List)[0]
+                                        dependencyNode.@rev = resolvedDependency.module.id.version
+                                        return true
+                                    } else {
+                                        return
+                                    }
+                                }
                             }
 
-                            def resolvedDependencies = configuration.resolvedConfiguration.getFirstLevelModuleDependencies ({ Dependency resolvedDependency ->
-                                resolvedDependency.name == dependencyNode.@name && resolvedDependency.group == dependencyNode.@org
-                            } as Spec<Dependency>)
-
-                            if (resolvedDependencies.size() == 0) {
+                            if (! resolvedDependency) {
                                 project.logger.warn("Failed to provide 'rev' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configuration '{}'",
                                         dependencyNode.@org, dependencyNode.@name, publication.name, configurationName)
-                                return
                             }
-
-                            ResolvedDependency resolvedDependency = (resolvedDependencies as List)[0]
-                            dependencyNode.@rev = resolvedDependency.module.id.version
                         }
                     }
                 }
@@ -151,12 +159,13 @@ class VersionRecommenderPlugin implements Plugin<Project> {
      *
      * @param project The target project
      */
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void applyMvnVersionRecommendation(Project project) {
         project.plugins.withType(MavenPublishPlugin) {
             project.publishing {
                 publications {
                     withType(MavenPublication) {
-                        MavenPublication publication = delegate
+                        MavenPublication publication = (MavenPublication)delegate
 
                         pom.withXml { XmlProvider xml ->
                             def rootNode = xml.asNode()
@@ -214,21 +223,26 @@ class VersionRecommenderPlugin implements Plugin<Project> {
         }
         project.getConfigurations().all { Configuration conf ->
             if(! extension.getExcludeProjectsbyName().contains(project.getName())) {
-                conf.getResolutionStrategy().eachDependency { DependencyResolveDetails details ->
-                    if (!details.requested.version || extension.forceRecommenderVersion) {
+                conf.getResolutionStrategy().eachDependency(
+                        new Action<DependencyResolveDetails>() {
+                            @Override
+                            void execute(DependencyResolveDetails details) {
+                                if (!details.requested.version || extension.forceRecommenderVersion) {
 
-                        String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
+                                    String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
 
-                        if (details.requested.version && !(rv))
-                            rv = details.requested.version
+                                    if (details.requested.version && !(rv))
+                                        rv = details.requested.version
 
-                        if (rv) {
-                            details.useVersion(rv)
-                        } else {
-                            throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
+                                    if (rv) {
+                                        details.useVersion(rv)
+                                    } else {
+                                        throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
+                )
             } else {
                 project.logger.warn('Project "{}" is not handled by this version recommender plugin.', project.getName())
             }

@@ -16,9 +16,12 @@
 
 package com.intershop.gradle.versionrecommender.scm
 
+import groovy.transform.CompileStatic
+
 /**
  * Client Interface for SCM
  */
+@CompileStatic
 interface IScmClient {
 
     String commit(List<File> fileList, String commitmessage)

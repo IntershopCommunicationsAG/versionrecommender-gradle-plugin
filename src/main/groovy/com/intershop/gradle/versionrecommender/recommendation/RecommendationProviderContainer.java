@@ -17,6 +17,7 @@ package com.intershop.gradle.versionrecommender.recommendation;
 
 import com.intershop.gradle.versionrecommender.tasks.*;
 import groovy.lang.Closure;
+import groovy.transform.CompileStatic;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.Project;
@@ -29,18 +30,15 @@ import org.gradle.util.ConfigureUtil;
  * The main method 'getVersion' resolves the version from the list depending
  * on the module string.
  */
+@CompileStatic
 public class RecommendationProviderContainer extends DefaultNamedDomainObjectList<RecommendationProvider> {
 
-    private Project project;
+    private final Project project;
 
     /**
      * Action helper method for initialization.
      */
-    private final Action<? super RecommendationProvider> addLastAction = new Action<RecommendationProvider>() {
-        public void execute(RecommendationProvider r) {
-            RecommendationProviderContainer.super.add(r);
-        }
-    };
+    private final Action<? super RecommendationProvider> addLastAction = (Action<RecommendationProvider>) RecommendationProviderContainer.super::add;
 
     /**
      * Contstructor of this container class
@@ -56,6 +54,7 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
      * Helper class for this container
      */
     private static class RecommendationProviderNamer implements Namer<RecommendationProvider> {
+        @Override
         public String determineName(RecommendationProvider r) {
             return r.getName();
         }

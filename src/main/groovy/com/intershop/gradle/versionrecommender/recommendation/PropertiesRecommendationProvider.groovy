@@ -253,12 +253,12 @@ class PropertiesRecommendationProvider extends FileBasedRecommendationProvider {
             svp.load(new InputStreamReader(propsStream))
             svp.propertyNames().each { String k ->
                 if(k.contains('*')) {
-                    globs.put(Pattern.compile(k.trim().replaceAll("\\*", ".*?")), svp.getProperty(k).trim())
+                    globs.put(Pattern.compile(k.trim().replaceAll("\\*", ".*?")), svp.getProperty(k).toString().trim())
                 } else {
-                    versions.put(k.trim(), svp.getProperty(k).trim())
+                    versions.put(k.trim(), svp.getProperty(k).toString().trim())
                 }
                 if (transitive && !k.contains('*')) {
-                    calculateDependencies(k.trim(), svp.getProperty(k).trim())
+                    calculateDependencies(k.trim(), svp.getProperty(k).toString().trim())
                 }
             }
         }

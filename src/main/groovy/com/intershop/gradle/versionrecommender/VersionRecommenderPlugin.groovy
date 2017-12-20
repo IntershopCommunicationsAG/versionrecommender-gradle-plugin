@@ -18,22 +18,37 @@ package com.intershop.gradle.versionrecommender
 import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.extension.PublicationXmlGenerator
 import com.intershop.gradle.versionrecommender.util.NoVersionException
+import com.netflix.nebula.interop.ConfigurationsKt
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import kotlin.Unit
+import kotlin.jvm.functions.Function1
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.DependencyResolveDetails
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.plugins.IvyPublishPlugin
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskDependency
+
+import javax.annotation.Nullable
+import java.lang.reflect.Method
 
 /**
  * This plugin applies functionality for version handling in large projects.
@@ -85,13 +100,13 @@ class VersionRecommenderPlugin implements Plugin<Project> {
 
 
         // add version recommendation to to root project.
-        applyRecommendation(project)
+        applyRecommendationOld(project)
         applyIvyVersionRecommendation(project)
         applyMvnVersionRecommendation(project)
 
         // add version recommendation to to sub projects.
         project.getSubprojects().each {
-            applyRecommendation(it)
+            applyRecommendationOld(it)
             applyIvyVersionRecommendation(it)
             applyMvnVersionRecommendation(it)
         }
@@ -217,36 +232,92 @@ class VersionRecommenderPlugin implements Plugin<Project> {
      *
      * @param project The target project
      */
-    private void applyRecommendation(Project project) {
+    private void applyRecommendationOld(Project project) {
         project.afterEvaluate {
             extension.provider.initializeVersions()
         }
-        project.getConfigurations().all { Configuration conf ->
-            if(! extension.getExcludeProjectsbyName().contains(project.getName())) {
-                conf.getResolutionStrategy().eachDependency(
-                        new Action<DependencyResolveDetails>() {
-                            @Override
-                            void execute(DependencyResolveDetails details) {
-                                if (!details.requested.version || extension.forceRecommenderVersion) {
+        project.getConfigurations().all(new Action<Configuration>() {
+            @Override
+            void execute(final Configuration conf) {
+                if (!extension.getExcludeProjectsbyName().contains(project.getName()) &&
+                        conf.getState() == Configuration.State.UNRESOLVED) {
 
-                                    String rv = extension.provider.getVersion(details.requested.group, details.requested.name)
+                    ConfigurationsKt.onResolve(conf, new Function1<ResolvableDependencies, Unit>() {
+                        @Override
+                        public Unit invoke(ResolvableDependencies resolvableDependencies) {
+                            ArrayList projectDependencies = new ArrayList<String>()
 
-                                    if (details.requested.version && !(rv))
-                                        rv = details.requested.version
-
-                                    if (rv) {
-                                        details.useVersion(rv)
-                                    } else {
-                                        throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
-                                    }
-                                }
+                            for (Dependency dependency : resolvableDependencies.getDependencies()) {
+                                collectProjectDependencies(dependency, new ArrayList<ProjectDependency>(), projectDependencies)
                             }
+
+                            conf.getResolutionStrategy().eachDependency(
+                                new Action<DependencyResolveDetails>() {
+                                    @Override
+                                    void execute(DependencyResolveDetails details) {
+                                        ModuleVersionSelector requested = details.getTarget()
+
+                                        if(! projectDependencies.contains("${requested.group}:${requested.name}".toString())) {
+
+                                            if (!requested.version || extension.forceRecommenderVersion) {
+                                                String rv = extension.provider.getVersion(requested.group, requested.name)
+                                                if (requested.version && !(rv))
+                                                    rv = requested.version
+
+                                                if (rv) {
+                                                    details.useVersion(rv)
+                                                } else {
+                                                    println "not found ........ "
+                                                    throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
+                                                }
+                                            }
+                                        }
+                                    }
+                                })
+                            return Unit.INSTANCE
                         }
-                )
-            } else {
-                project.logger.warn('Project "{}" is not handled by this version recommender plugin.', project.getName())
+                    })
+
+                }
+            }
+        })
+    }
+
+    /**
+     * Try to figure out all project dependencies.
+     * @param dependency
+     * @param visited
+     * @param projectDependencies
+     */
+    private void collectProjectDependencies(Dependency dependency, List<ProjectDependency> visited, List<String> projectDependencies) {
+        if (dependency instanceof ProjectDependency) {
+            ProjectDependency projectDependency = (ProjectDependency) dependency
+
+            if (!visited.contains(projectDependency)) {
+                visited.add(projectDependency)
+                projectDependencies.add("${projectDependency.group}:${projectDependency.name}".toString())
+
+                Configuration configuration
+                try {
+                    ProjectDependency.class.getMethod("getTargetConfiguration")
+
+                    String targetConfiguration = projectDependency.getTargetConfiguration() == null ?
+                            Dependency.DEFAULT_CONFIGURATION : projectDependency.getTargetConfiguration()
+                    configuration = projectDependency.getDependencyProject().getConfigurations().getByName(targetConfiguration)
+                } catch (NoSuchMethodException ignore) {
+                    try {
+                        Method method = ProjectDependency.class.getMethod("getProjectConfiguration");
+                        configuration = (Configuration) method.invoke(dependency);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unable to retrieve configuration for project dependency", e);
+                    }
+                }
+
+                DependencySet dependencies = configuration.getAllDependencies();
+                for (Dependency dep : dependencies) {
+                    collectProjectDependencies(dep, visited, projectDependencies);
+                }
             }
         }
     }
-
 }

@@ -2278,6 +2278,147 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    def 'test multiproject with properties'() {
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.versionrecommender'
+        }
+            
+        group = 'com.intershop'
+        version = '1.0.0'
+        
+        versionRecommendation {
+            provider {
+                properties('thirdparty', file('version.properties')) {}
+            }
+        
+            // all versions are used from providers
+            forceRecommenderVersion = true
+        }
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File gradleProps = file('gradle.properties')
+        gradleProps << """
+        # build configuration
+        org.gradle.parallel = true
+        org.gradle.workers.max = 2
+        org.gradle.configureondemand = false
+        """.stripIndent()
+
+        File versionProps = file('version.properties')
+        versionProps << """
+        ch.qos.logback:logback-classic=1.1.8
+        com.github.spullara.mustache.java:compiler=0.9.4
+        com.google.guava:guava=18.0
+        com.google.inject.extensions:guice-assistedinject=4.1.0
+        com.google.inject.extensions:guice-multibindings=4.1.0
+        com.google.inject:guice=4.1.0
+        """.stripIndent()
+
+        String buildProj1 = """
+        apply plugin: 'java'
+        
+        dependencies {
+            compile 'ch.qos.logback:logback-classic:1.1.8'
+            compile 'com.github.spullara.mustache.java:compiler:0.9.4'
+            compile 'com.google.guava:guava:18.0'
+        }
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent()
+
+        String buildProj2 = """
+        apply plugin: 'java'
+        
+        dependencies {
+            compile 'com.google.inject.extensions:guice-assistedinject:4.1.0'
+            compile 'com.google.inject.extensions:guice-multibindings:4.1.0'
+            compile 'com.google.inject:guice:4.1.0'
+        }
+        
+        repositories {
+            jcenter()
+        }
+        """.stripIndent()
+
+        String buildProj3= """
+        apply plugin: 'java'
+        
+        dependencies {
+            compile project(':subproject1')
+            compile project(':subproject2')
+            compile 'com.google.inject:guice:4.1.0'
+        }
+        
+        repositories {
+            jcenter()
+        }        
+        """.stripIndent()
+
+        String buildProj4= """
+        apply plugin: 'java'
+        
+        dependencies {
+            compile project(':subproject1')
+            compile project(':subproject3')
+            compile 'com.google.inject:guice:4.1.0'
+        }
+        repositories {
+            jcenter()
+        }        
+        """.stripIndent()
+
+        String buildProj5= """
+        apply plugin: 'java'
+        
+        dependencies {
+            compile project(':subproject2')
+            compile project(':subproject4')
+            compile 'com.google.inject:guice:4.1.0'
+        }
+        repositories {
+            jcenter()
+        }        
+        """.stripIndent()
+
+        File subproj1 = createSubProject('subproject1', settingsfile, buildProj1)
+        File subproj2 = createSubProject('subproject2', settingsfile, buildProj2)
+        File subproj3 = createSubProject('subproject3', settingsfile, buildProj3)
+        File subproj4 = createSubProject('subproject4', settingsfile, buildProj4)
+        File subproj5 = createSubProject('subproject5', settingsfile, buildProj5)
+
+        writeJavaTestClass('com.test.subproj1', subproj1)
+        writeJavaTestClass('com.test.subproj2', subproj2)
+        writeJavaTestClass('com.test.subproj3', subproj3)
+        writeJavaTestClass('com.test.subproj4', subproj4)
+        writeJavaTestClass('com.test.subproj5', subproj5)
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('compileJava', '-s')
+                //.withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result.task(':subproject5:compileJava').outcome == SUCCESS
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     def 'test multiproject with large ivy file - #gradleVersion'(gradleVersion) {
 
         copyResources('largeIvy/ivy-LARGE.xml', 'ivy-LARGE.xml')

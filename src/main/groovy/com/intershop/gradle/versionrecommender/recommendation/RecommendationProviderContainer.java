@@ -85,7 +85,7 @@ public class RecommendationProviderContainer extends DefaultNamedDomainObjectLis
             localTask.setProvider(provider);
 
             // extend version of the provider with SNAPSHOT
-            SetLocalVersion snapshotTask = project.getTasks().create(provider.getTaskName("setSnapshot"), SetLocalVersion.class);
+            SetSnapshotVersion snapshotTask = project.getTasks().create(provider.getTaskName("setSnapshot"), SetSnapshotVersion.class);
             snapshotTask.setProvider(provider);
 
             // reset all temporary version configuration ot the provider

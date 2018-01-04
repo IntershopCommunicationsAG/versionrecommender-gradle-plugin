@@ -267,7 +267,6 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                                                 if (rv) {
                                                     details.useVersion(rv)
                                                 } else {
-                                                    println "not found ........ "
                                                     throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
                                                 }
                                             }

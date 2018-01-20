@@ -17,7 +17,6 @@ package com.intershop.gradle.versionrecommender.extension
 
 import com.intershop.gradle.versionrecommender.recommendation.RecommendationProviderContainer
 import com.intershop.gradle.versionrecommender.util.ModuleNotationParser
-import com.sun.org.apache.xerces.internal.dom.DocumentImpl
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException

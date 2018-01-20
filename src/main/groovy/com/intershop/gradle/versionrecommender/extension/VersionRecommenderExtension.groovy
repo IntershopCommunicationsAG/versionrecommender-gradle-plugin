@@ -33,7 +33,7 @@ class VersionRecommenderExtension {
 
     final static String EXTENSIONNAME = 'versionRecommendation'
 
-    private Project project
+    private final Project project
 
     /**
      * Holds the version recommendation.

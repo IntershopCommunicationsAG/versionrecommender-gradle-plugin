@@ -18,13 +18,10 @@ package com.intershop.gradle.versionrecommender.recommendation
 import com.intershop.gradle.versionrecommender.util.FileInputType
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.NodeChildren
 import org.gradle.api.Project
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
-import org.w3c.dom.Node
 
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory

@@ -16,13 +16,6 @@
 package com.intershop.gradle.versionrecommender.update
 
 import groovy.transform.CompileStatic
-import groovy.util.slurpersupport.GPathResult
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.w3c.dom.NodeList
-
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * This class provides methods to collect all available version in file based repositories.

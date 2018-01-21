@@ -1,6 +1,5 @@
 package com.intershop.gradle.versionrecommender.recommendation
 
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.artifacts.ModuleVersionSelector
 

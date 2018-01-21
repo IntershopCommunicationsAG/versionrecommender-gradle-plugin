@@ -15,8 +15,8 @@
  */
 package com.intershop.gradle.versionrecommender
 
-import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.extension.PublicationXmlGenerator
+import com.intershop.gradle.versionrecommender.extension.VersionRecommenderExtension
 import com.intershop.gradle.versionrecommender.util.NoVersionException
 import com.netflix.nebula.interop.ConfigurationsKt
 import groovy.transform.CompileStatic
@@ -28,26 +28,13 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.DependencyResolveDetails
-import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.*
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.plugins.IvyPublishPlugin
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.TaskDependency
 
-import javax.annotation.Nullable
 import java.lang.reflect.Method
 
 /**
@@ -267,7 +254,6 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                                                 if (rv) {
                                                     details.useVersion(rv)
                                                 } else {
-                                                    println "not found ........ "
                                                     throw new NoVersionException("Version for '${details.requested.group}:${details.requested.name}' not found! Please check your dependency configuration and the version recommender version.")
                                                 }
                                             }

@@ -1,5 +1,5 @@
 = Version Recommender Plugin
-:latestRevision: 2.1.0
+:latestRevision: 2.3.0
 :toc:
 :icons: font
 

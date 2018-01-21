@@ -12,7 +12,7 @@ plugins {
     id 'maven-publish'
 
     // intershop version plugin
-    id 'com.intershop.gradle.scmversion' version '3.2.0'
+    id 'com.intershop.gradle.scmversion' version '3.4.0'
 
     // plugin for documentation
     id 'org.asciidoctor.convert' version '1.5.3'
@@ -33,6 +33,15 @@ scm {
 group 'com.intershop.gradle.versionrecommender'
 description 'Gradle Version Recommendation Plugin'
 version = scm.version.version
+
+gradlePlugin {
+    plugins {
+        versionrecommenderPlugin {
+            id = 'com.intershop.gradle.versionrecommender'
+            implementationClass = 'com.intershop.gradle.versionrecommender.VersionRecommenderPlugin'
+        }
+    }
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -219,8 +228,8 @@ pluginBundle {
     tags = ['intershop', 'gradle', 'plugin', 'version', 'dependencies', 'versionrecommendation']
 
     plugins {
-        gradleVersionRecommender {
-            id = 'com.intershop.gradle.versionrecommender'
+        versionrecommenderPlugin {
+            id = gradlePlugin.plugins.versionrecommenderPlugin.id
             displayName = project.description
         }
     }

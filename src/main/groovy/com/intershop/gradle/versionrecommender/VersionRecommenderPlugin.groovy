@@ -185,18 +185,19 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                                 def configurationName = dependencyNode.scope.text()
                                 def configuration = project.configurations.findByName(configurationName)
 
-                                if (!configuration) {
-                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no  project configuration of the name '{}'",
-                                            dependencyNode.groupId.text(), dependencyNode.artifactId.text(), publication.name, configurationName)
-                                    return
+                                def resolvedDependencies = null
+
+                                for(Configuration config: project.getConfigurations()) {
+                                    resolvedDependencies = configuration.resolvedConfiguration.getFirstLevelModuleDependencies({ Dependency resolvedDependency ->
+                                        resolvedDependency.name == dependencyNode.artifactId.text() && resolvedDependency.group == dependencyNode.groupId.text()
+                                    } as Spec<Dependency>)
+                                    if(! resolvedDependencies.isEmpty()) {
+                                        break
+                                    }
                                 }
 
-                                def resolvedDependencies = configuration.resolvedConfiguration.getFirstLevelModuleDependencies({ Dependency resolvedDependency ->
-                                    resolvedDependency.name == dependencyNode.artifactId.text() && resolvedDependency.group == dependencyNode.groupId.text()
-                                } as Spec<Dependency>)
-
-                                if (resolvedDependencies.size() == 0) {
-                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configuration '{}'",
+                                if (resolvedDependencies.isEmpty()) {
+                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configurations.",
                                             dependencyNode.artifactId.text(), dependencyNode.artifactId.text(), publication.name, configurationName)
                                     return
                                 }

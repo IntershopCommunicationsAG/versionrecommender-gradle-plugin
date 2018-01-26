@@ -1714,7 +1714,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         result.task(':publish').outcome == SUCCESS
         ivyFile.exists()
         // runtime dependencies are not longer supported, see https://blog.gradle.org/incremental-compiler-avoidance
-        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" rev="1.4" conf="compile-&gt;default"/>')
+        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec"') && ivyFile.text.contains('rev="1.4"')
 
         where:
         gradleVersion << supportedGradleVersions
@@ -1811,7 +1811,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         result.task(':publish').outcome == SUCCESS
         ivyFile.exists()
         // runtime dependencies are not longer supported, see https://blog.gradle.org/incremental-compiler-avoidance
-        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec" rev="1.4" conf="runtime-&gt;default"/>')
+        ivyFile.text.contains('<dependency org="commons-codec" name="commons-codec"') && ivyFile.text.contains('rev="1.4"')
 
         where:
         gradleVersion << supportedGradleVersions

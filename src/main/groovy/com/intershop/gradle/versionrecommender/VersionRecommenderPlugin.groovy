@@ -119,33 +119,17 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                     IvyPublication publication = (IvyPublication)delegate
 
                     descriptor.withXml { XmlProvider xml ->
+
                         def rootNode = xml.asNode()
                         def dependenciesWithoutRevAttribute = rootNode.dependencies.dependency.findAll { !it.@rev }
 
                         dependenciesWithoutRevAttribute.each { dependencyNode ->
-                            def configurationName = (dependencyNode.@conf).split('->')[0]
-
-                            Set<ResolvedDependency> resolvedDependencies = [] as Set<ResolvedDependency>
-                            ResolvedDependency resolvedDependency = null
-
-                            project.configurations.any {Configuration config ->
-                                if(config.isCanBeResolved()) {
-                                    resolvedDependencies = config.resolvedConfiguration.getFirstLevelModuleDependencies({ Dependency dep ->
-                                        dep.name == dependencyNode.@name && dep.group == dependencyNode.@org
-                                    } as Spec<Dependency>)
-                                    if (resolvedDependencies.size() > 0) {
-                                        resolvedDependency = (resolvedDependencies as List)[0]
-                                        dependencyNode.@rev = resolvedDependency.module.id.version
-                                        return true
-                                    } else {
-                                        return
-                                    }
-                                }
-                            }
-
-                            if (! resolvedDependency) {
-                                project.logger.warn("Failed to provide 'rev' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configuration '{}'",
-                                        dependencyNode.@org, dependencyNode.@name, publication.name, configurationName)
+                            String version = extension.getProvider().getVersion(dependencyNode.@org, dependencyNode.@name)
+                            if(version) {
+                                dependencyNode.@rev = version
+                            } else {
+                                project.logger.warn("Failed to provide 'rev' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project.",
+                                        dependencyNode.@org, dependencyNode.@name, publication.name)
                             }
                         }
                     }
@@ -182,27 +166,17 @@ class VersionRecommenderPlugin implements Plugin<Project> {
                             dependenciesWithoutVersion.addAll(dependenciesWithoutVersionFromMgmt)
 
                             dependenciesWithoutVersion.each { dependencyNode ->
-                                def configurationName = dependencyNode.scope.text()
-                                def configuration = project.configurations.findByName(configurationName)
 
-                                if (!configuration) {
-                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no  project configuration of the name '{}'",
-                                            dependencyNode.groupId.text(), dependencyNode.artifactId.text(), publication.name, configurationName)
+                                String version = extension.getProvider().getVersion(dependencyNode.groupId.text(), dependencyNode.artifactId.text())
+
+
+                                if (! version) {
+                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configurations.",
+                                            dependencyNode.artifactId.text(), dependencyNode.artifactId.text(), publication.name)
                                     return
                                 }
 
-                                def resolvedDependencies = configuration.resolvedConfiguration.getFirstLevelModuleDependencies({ Dependency resolvedDependency ->
-                                    resolvedDependency.name == dependencyNode.artifactId.text() && resolvedDependency.group == dependencyNode.groupId.text()
-                                } as Spec<Dependency>)
-
-                                if (resolvedDependencies.size() == 0) {
-                                    project.logger.warn("Failed to provide 'version' attribute for dependency '{}:{}' in publication '{}' as there is no dependency of that name in resolved project configuration '{}'",
-                                            dependencyNode.artifactId.text(), dependencyNode.artifactId.text(), publication.name, configurationName)
-                                    return
-                                }
-
-                                ResolvedDependency resolvedDependency = (resolvedDependencies as List)[0]
-                                dependencyNode.appendNode((new Node(null, 'version'))).setValue(resolvedDependency.module.id.version)
+                                dependencyNode.appendNode((new Node(null, 'version'))).setValue(version)
                             }
                         }
                     }

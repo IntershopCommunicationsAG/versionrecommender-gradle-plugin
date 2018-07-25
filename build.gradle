@@ -12,16 +12,16 @@ plugins {
     id 'maven-publish'
 
     // intershop version plugin
-    id 'com.intershop.gradle.scmversion' version '3.4.0'
+    id 'com.intershop.gradle.scmversion' version '3.6.0'
 
     // plugin for documentation
-    id 'org.asciidoctor.convert' version '1.5.3'
+    id 'org.asciidoctor.convert' version '1.5.8.1'
 
     // plugin for publishing to Gradle Portal
-    id 'com.gradle.plugin-publish' version '0.9.9'
+    id 'com.gradle.plugin-publish' version '0.9.10'
 
     // plugin for publishing to jcenter
-    id 'com.jfrog.bintray' version '1.8.0'
+    id 'com.jfrog.bintray' version '1.8.4'
 }
 
 scm {
@@ -73,7 +73,7 @@ test {
     jvmArgs '-XX:MaxPermSize=96m'
 
     // Gradle versions for test
-    systemProperty 'intershop.gradle.versions', '4.4,4.5'
+    systemProperty 'intershop.gradle.versions', '4.4,4.9'
 }
 
 task copyAsciiDoc {
@@ -238,23 +238,23 @@ pluginBundle {
 dependencies {
     compile 'org.apache.maven:maven-model-builder:3.3.9'
     compile 'commons-codec:commons-codec:1.6'
-    compile 'org.apache.httpcomponents:httpclient:4.4.1'
-    compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'com.intershop.gradle.version:extended-version:1.3.0'
+    compile 'org.apache.httpcomponents:httpclient:4.5.5'
+    compile 'org.slf4j:slf4j-api:1.7.16'
+    compile 'com.intershop.gradle.version:extended-version:2.0.1'
     compile 'net.sourceforge.nekohtml:nekohtml:1.9.22'
-    compile 'com.trilead:trilead-ssh2:1.0.0-build220'
-    runtime 'net.java.dev.jna:jna:3.2.7'
+    compile 'com.trilead:trilead-ssh2:1.0.0-build221'
+    runtime 'net.java.dev.jna:jna:4.1.0'
     compile 'com.netflix.nebula:nebula-gradle-interop:0.5.0'
 
     //svn
     // replace svnkit's JNA 4.x with 3.2.7, which is used by Gradle itself
-    compile('org.tmatesoft.svnkit:svnkit:1.8.15') {
+    compile('org.tmatesoft.svnkit:svnkit:1.9.3') {
         exclude group: 'net.java.dev.jna'
         exclude group: 'com.trilead', module: 'trilead-ssh2'
     }
 
     //jgit
-    compile('org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r') {
+    compile('org.eclipse.jgit:org.eclipse.jgit:5.0.1.201806211838-r') {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }

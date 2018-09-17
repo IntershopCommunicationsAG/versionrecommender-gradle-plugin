@@ -25,6 +25,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.IllegalDependencyNotation
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedArtifact
 
 /**
@@ -290,10 +291,14 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
             // create a temporary configuration to resolve the file
             Configuration conf = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dMap))
             conf.setDescription("Calculation of dependency '${dMap.get('group')}:${dMap.get('name')}'")
-            ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
-            log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
+            try {
+                ResolvedArtifact artifactId = conf.getResolvedConfiguration().getResolvedArtifacts().iterator().next()
+                log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
 
-            return artifactId?.getFile()
+                return artifactId?.getFile()
+            } catch(ResolveException re) {
+                log.error('It was not possible to resolve - {}:{}:{}@{} -', dMap.get('group'), dMap.get('name'), dMap.get('version'), dMap.get('ext'))
+            }
         }
         return null
     }

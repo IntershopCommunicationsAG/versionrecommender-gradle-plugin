@@ -259,7 +259,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
 
-    testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
+    testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.2.0'
     testCompile gradleTestKit()
 
     testCompile 'commons-io:commons-io:2.2'

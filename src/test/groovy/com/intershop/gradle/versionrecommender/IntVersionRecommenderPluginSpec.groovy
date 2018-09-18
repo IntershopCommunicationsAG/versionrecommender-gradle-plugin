@@ -17,6 +17,7 @@ package com.intershop.gradle.versionrecommender
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
+import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.versionrecommender.scm.ScmUtil
 import spock.lang.Requires
 import spock.lang.Unroll
@@ -71,7 +72,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             }
 
             ${writeIvyRepo(testProjectDir)}
-            
+
             repositories {
                 jcenter()
             }
@@ -158,6 +159,62 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
 
         then:
         (new File(testProjectDir, 'result/ivy-1.0.1.xml')).exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    def 'test simple configuration with maven - #gradleVersion'(gradleVersion) {
+        given:
+        buildFile << """
+            plugins {
+                id 'com.intershop.gradle.versionrecommender'
+            }
+            
+            group = 'com.intershop'
+            version = '1.0.0'
+            
+            versionRecommendation {
+                provider {
+                    pom('filter', 'com.intershop:filter:2.0.0') {}
+                }
+            }
+            
+            configurations {
+                create('testConfig')
+            }
+        
+            dependencies {
+                testConfig 'com.intershop:component1@pom'
+            }
+            
+            task copyResult(type: Copy) {
+                into new File(projectDir, 'result')
+                from configurations.testConfig
+            }
+
+            ${writePomRepo(testProjectDir)}
+            
+
+        """.stripIndent()
+
+        File settingsfile = file('settings.gradle')
+        settingsfile << """
+            // define root proejct name
+            rootProject.name = 'testProject'
+        """.stripIndent()
+
+        File pomFile = file('.pomFilter.version')
+        pomFile << """3.0.0""".stripIndent()
+
+        when:
+        def result = getPreparedGradleRunner()
+                .withArguments('copyResult')
+                .withGradleVersion(gradleVersion)
+                .buildAndFail()
+
+        then:
+        result.output.contains('It was not possible to resolve - com.intershop:filter:3.0.0@pom -')
 
         where:
         gradleVersion << supportedGradleVersions
@@ -3141,6 +3198,29 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                         artifact "${artifactPattern}"
                         artifact "${ivyPattern}"
                     }
+                }
+            }""".stripIndent()
+
+        return repostr
+    }
+
+    private String writePomRepo(File dir) {
+        File repoDir = new File(dir, 'repo')
+
+        new TestMavenRepoBuilder().repository {
+            project(groupId: 'com.intershop', artifactId:'filter', version: '2.0.0') {
+                dependency groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0'
+                dependency groupId: 'com.intershop', artifactId: 'component2', version: '2.0.0'
+            }
+            project(groupId: 'com.intershop', artifactId: 'component1', version: '1.0.0')
+            project(groupId: 'com.intershop', artifactId: 'component2', version: '2.0.0')
+        }.writeTo(repoDir)
+
+        String repostr = """
+            repositories {
+                maven {
+                    name 'mvnLocal'
+                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
                 }
             }""".stripIndent()
 

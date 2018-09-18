@@ -108,24 +108,28 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
         DefaultModelBuilder modelBuilder = new DefaultModelBuilderFactory().newInstance()
 
         modelBuilder.setModelInterpolator(new ProjectPropertiesModelInterpolator(project))
-        ModelBuildingResult result = modelBuilder.build(request)
+        try {
+            ModelBuildingResult result = modelBuilder.build(request)
 
-        if(result.getEffectiveModel().getDependencyManagement() && result.getEffectiveModel().getDependencyManagement().getDependencies()) {
-            result.getEffectiveModel().getDependencyManagement().getDependencies().each { Dependency d ->
-                if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+            if (result.getEffectiveModel().getDependencyManagement() && result.getEffectiveModel().getDependencyManagement().getDependencies()) {
+                result.getEffectiveModel().getDependencyManagement().getDependencies().each { Dependency d ->
+                    if (override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                        versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+                    }
                 }
             }
-        }
-        if(result.getEffectiveModel().getDependencies()) {
-            result.getEffectiveModel().getDependencies().each { Dependency d ->
-                if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
-                    versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+            if (result.getEffectiveModel().getDependencies()) {
+                result.getEffectiveModel().getDependencies().each { Dependency d ->
+                    if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
+                        versions.put("${d.getGroupId()}:${d.getArtifactId()}".toString(), d.getVersion())
+                    }
                 }
             }
-        }
-        if(inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
-            versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
+            if (inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
+                versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
+            }
+        } catch(NullPointerException npe) {
+            log.error('It is not possible to resolve the filter {} of {}.', getShortTypeName(), getName())
         }
     }
 

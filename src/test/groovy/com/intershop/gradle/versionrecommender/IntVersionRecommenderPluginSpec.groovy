@@ -164,7 +164,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'test simple configuration with maven'() {
+    def 'test simple configuration with maven - #gradleVersion'(gradleVersion) {
         given:
         buildFile << """
             plugins {

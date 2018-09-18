@@ -214,7 +214,10 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
                 .buildAndFail()
 
         then:
-        result.output.contains("It was not possible to resolve - com.intershop:filter:3.0.0@pom -")
+        result.output.contains('It was not possible to resolve - com.intershop:filter:3.0.0@pom -')
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     def 'test simple configuration with ivy and dependency to filter - #gradleVersion'(gradleVersion) {

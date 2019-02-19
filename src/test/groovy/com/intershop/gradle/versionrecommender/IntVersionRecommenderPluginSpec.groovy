@@ -15,7 +15,7 @@
  */
 package com.intershop.gradle.versionrecommender
 
-import com.intershop.gradle.test.AbstractIntegrationSpec
+import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.versionrecommender.scm.ScmUtil
@@ -26,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Unroll
-class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
+class IntVersionRecommenderPluginSpec extends AbstractIntegrationGroovySpec {
 
     final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
     final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'

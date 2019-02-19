@@ -42,8 +42,8 @@ class GitClient implements IScmClient {
     private final String username
     private final String password
 
-    private final File keyfile
-    private final String passphrase
+    private final File keyfile = null
+    private final String passphrase = null
 
     GitClient(File workingDir, String username = '', String password = '') {
         this.workingCopy = workingDir

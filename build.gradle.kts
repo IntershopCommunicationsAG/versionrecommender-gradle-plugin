@@ -292,7 +292,7 @@ dependencies {
     implementation("commons-codec:commons-codec:1.6")
     implementation("org.apache.httpcomponents:httpclient:4.5.5")
     implementation("org.slf4j:slf4j-api:1.7.16")
-    implementation("com.intershop.gradle.version:extended-version:2.0.1")
+    implementation("com.intershop.gradle.version:extended-version:3.0.1")
     implementation("net.sourceforge.nekohtml:nekohtml:1.9.22")
     implementation("com.trilead:trilead-ssh2:1.0.0-build221")
     implementation("com.netflix.nebula:nebula-gradle-interop:0.5.0")

@@ -15,7 +15,7 @@
  */
 package com.intershop.gradle.versionrecommender
 
-import com.intershop.gradle.test.AbstractIntegrationSpec
+import com.intershop.gradle.test.AbstractIntegrationGroovySpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.versionrecommender.scm.ScmUtil
@@ -26,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Unroll
-class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
+class IntVersionRecommenderPluginSpec extends AbstractIntegrationGroovySpec {
 
     final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
     final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
@@ -1536,8 +1536,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         ${repo}
         """
 
-        createSubProject('project1a', settingsfile, subBuildFile1)
-        createSubProject('project2b', settingsfile, subBuildFile2)
+        createSubProject('project1a', subBuildFile1)
+        createSubProject('project2b', subBuildFile2)
 
         when:
         def result = getPreparedGradleRunner()
@@ -1661,8 +1661,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         ${repo}
         """
 
-        createSubProject('project1a', settingsfile, subBuildFile1)
-        createSubProject('project2b', settingsfile, subBuildFile2)
+        createSubProject('project1a', subBuildFile1)
+        createSubProject('project2b', subBuildFile2)
 
         when:
         def result = getPreparedGradleRunner()
@@ -2028,8 +2028,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             rootProject.name = 'testProject'
         """.stripIndent()
 
-        File proj1Dir = createSubProject('project1a', settingsfile, '')
-        File proj2Dir = createSubProject('project2b', settingsfile, '')
+        File proj1Dir = createSubProject('project1a', '')
+        File proj2Dir = createSubProject('project2b', '')
 
         writeJavaTestClass('com.intershop.project1', proj1Dir)
         writeJavaTestClass('com.intershop.project2', proj2Dir)
@@ -2114,8 +2114,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             rootProject.name = 'testProject'
         """.stripIndent()
 
-        File proj1Dir = createSubProject('project1a', settingsfile, '')
-        File proj2Dir = createSubProject('project2b', settingsfile, '')
+        File proj1Dir = createSubProject('project1a', '')
+        File proj2Dir = createSubProject('project2b', '')
 
         writeJavaTestClass('com.intershop.project1', proj1Dir)
         writeJavaTestClass('com.intershop.project2', proj2Dir)
@@ -2209,8 +2209,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             rootProject.name = 'testProject'
         """.stripIndent()
 
-        File proj1Dir = createSubProject('project1a', settingsfile, '')
-        File proj2Dir = createSubProject('project2b', settingsfile, '')
+        File proj1Dir = createSubProject('project1a', '')
+        File proj2Dir = createSubProject('project2b', '')
 
         writeJavaTestClass('com.intershop.project1', proj1Dir)
         writeJavaTestClass('com.intershop.project2', proj2Dir)
@@ -2301,8 +2301,8 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
             rootProject.name = 'testProject'
         """.stripIndent()
 
-        File proj1Dir = createSubProject('project1a', settingsfile, '')
-        File proj2Dir = createSubProject('project2b', settingsfile, '')
+        File proj1Dir = createSubProject('project1a', '')
+        File proj2Dir = createSubProject('project2b', '')
 
         writeJavaTestClass('com.intershop.project1', proj1Dir)
         writeJavaTestClass('com.intershop.project2', proj2Dir)
@@ -2451,11 +2451,11 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         }        
         """.stripIndent()
 
-        File subproj1 = createSubProject('subproject1', settingsfile, buildProj1)
-        File subproj2 = createSubProject('subproject2', settingsfile, buildProj2)
-        File subproj3 = createSubProject('subproject3', settingsfile, buildProj3)
-        File subproj4 = createSubProject('subproject4', settingsfile, buildProj4)
-        File subproj5 = createSubProject('subproject5', settingsfile, buildProj5)
+        File subproj1 = createSubProject('subproject1', buildProj1)
+        File subproj2 = createSubProject('subproject2', buildProj2)
+        File subproj3 = createSubProject('subproject3', buildProj3)
+        File subproj4 = createSubProject('subproject4', buildProj4)
+        File subproj5 = createSubProject('subproject5', buildProj5)
 
         writeJavaTestClass('com.test.subproj1', subproj1)
         writeJavaTestClass('com.test.subproj2', subproj2)
@@ -2544,7 +2544,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         (1..10).each {
-            writeJavaTestClass("com.intershop.project${it}", createSubProject("project${it}", settingsfile, ''))
+            writeJavaTestClass("com.intershop.project${it}", createSubProject("project${it}", ''))
         }
 
         when:
@@ -2563,10 +2563,14 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     @Requires({ System.properties['giturl'] &&
             System.properties['gituser'] &&
             System.properties['gitpasswd'] })
-    def 'test udpate with ivy Dependency and store in GIT repository'() {
+    def 'test udpate with ivy Dependency and store in GIT repository - #gradleVersion'(gradleVersion) {
         setup:
         buildFile.delete()
+        settingsFile.delete()
         ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'].toString(), 'master')
+        settingsFile << """
+            rootProject.name = "testProject"
+        """.stripIndent()
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2643,7 +2647,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     @Requires({ System.properties['svnurl'] &&
             System.properties['svnuser'] &&
             System.properties['svnpasswd'] })
-    def 'test udpate with ivy Dependency and store in SVN repository'() {
+    def 'test udpate with ivy Dependency and store in SVN repository - #gradleVersion'(gradleVersion) {
         setup:
         buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())
@@ -2725,10 +2729,14 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     @Requires({ System.properties['giturl'] &&
             System.properties['gituser'] &&
             System.properties['gitpasswd'] })
-    def 'test udpate with ivy Dependency and store in GIT repository and different configDir'() {
+    def 'test udpate with ivy Dependency and store in GIT repository and different configDir - #gradleVersion'(gradleVersion) {
         setup:
         buildFile.delete()
+        settingsFile.delete()
         ScmUtil.gitCheckOut(testProjectDir, System.properties['giturl'].toString(), 'master')
+        settingsFile << """
+            rootProject.name = "testProject"
+        """.stripIndent()
         buildFile << """
             plugins {
                 id 'com.intershop.gradle.versionrecommender'
@@ -2815,7 +2823,7 @@ class IntVersionRecommenderPluginSpec extends AbstractIntegrationSpec {
     @Requires({ System.properties['svnurl'] &&
             System.properties['svnuser'] &&
             System.properties['svnpasswd'] })
-    def 'test udpate with ivy Dependency and store in SVN repository and different configDir'() {
+    def 'test udpate with ivy Dependency and store in SVN repository and different configDir - #gradleVersion'(gradleVersion) {
         setup:
         buildFile.delete()
         ScmUtil.svnCheckOut(testProjectDir, System.properties['svnurl'].toString())

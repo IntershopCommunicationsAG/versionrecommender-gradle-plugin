@@ -52,7 +52,7 @@ class SimpleVersionProperties extends Properties {
     SimpleVersionProperties(File propertiesFile) throws IOException {
         try {
             load(new FileReader(propertiesFile))
-        }catch (Exception ex) {  }
+        }catch (Exception ignored) {  }
     }
 
     /**

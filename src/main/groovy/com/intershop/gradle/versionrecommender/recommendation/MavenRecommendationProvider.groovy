@@ -128,7 +128,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
             if (inputType == FileInputType.DEPENDENCYMAP && inputDependency.get('version')) {
                 versions.put("${inputDependency.get('group')}:${inputDependency.get('name')}".toString(), super.getVersionFromConfig())
             }
-        } catch(NullPointerException npe) {
+        } catch(NullPointerException ignored) {
             log.error('It is not possible to resolve the filter {} of {}.', getShortTypeName(), getName())
         }
     }

@@ -115,13 +115,13 @@ class PropertiesProviderSpec extends Specification {
         when:
         PropertiesRecommendationProvider provider = new PropertiesRecommendationProvider('test', project, new File('empty.properties'))
         provider.setVersionMap(['org.hibernate:hibernate-validator':'5.3.0.Final',
-                                 'org.tmatesoft.svnkit:svnkit':'1.8.14'])
+                                 'org.tmatesoft.svnkit:svnkit':'1.7.8'])
         provider.setTransitive(true)
         provider.initializeVersion()
 
         then:
         provider.getVersion('javax.validation','validation-api') == '1.1.0.Final'
-        provider.getVersion('org.tmatesoft.svnkit','svnkit') == '1.8.14'
+        provider.getVersion('org.tmatesoft.svnkit','svnkit') == '1.7.8'
     }
 
     def 'Properties provider from file with LOCAL extension'() {

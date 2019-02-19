@@ -368,8 +368,6 @@ class VersionUpdater {
      */
     @CompileDynamic
     protected static List<String> filterVersion(List<String> list, String version, String searchExtPattern, UpdatePos pos = UpdatePos.HOTFIX, String versionExtPattern = searchExtPattern) {
-        int digits = 0
-
         def versionExtension = (version =~ /${versionExtPattern}/)
 
         if(! versionExtension.count) {
@@ -378,7 +376,7 @@ class VersionUpdater {
         String semVersion = (version - versionExtension[0])
 
         def m = (semVersion =~ /\d+/)
-        digits = m.count
+        int digits = m.count
 
         if(digits) {
             VersionType type = digits != 4 ? VersionType.threeDigits : VersionType.fourDigits
@@ -409,7 +407,7 @@ class VersionUpdater {
 
             Map<Version, String> versionMap = [:]
 
-            List<Version> filteredList = list.findAll{ it =~ /${filter}/ }.each {String vs ->
+            list.findAll{ it =~ /${filter}/ }.each {String vs ->
                 def vsm = (vs =~ /${filter}/)
                 try {
                     versionMap.put(VersionParser.parseVersion(vsm[0][1].toString(), type), vs)

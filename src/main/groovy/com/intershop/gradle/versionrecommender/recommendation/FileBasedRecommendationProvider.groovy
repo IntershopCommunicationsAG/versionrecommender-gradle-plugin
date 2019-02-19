@@ -296,7 +296,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
                 log.info('Selected recommendation source {}, you requested {}', artifactId?.getId(), dMap)
 
                 return artifactId?.getFile()
-            } catch(ResolveException re) {
+            } catch(ResolveException ignored) {
                 log.error('It was not possible to resolve - {}:{}:{}@{} -', dMap.get('group'), dMap.get('name'), dMap.get('version'), dMap.get('ext'))
             }
         }
@@ -406,7 +406,7 @@ abstract class FileBasedRecommendationProvider extends RecommendationProvider {
                 log.info('Version file {} will be removed for {}.', adaptedVersionFile.absolutePath, getName())
                 adaptedVersionFile.delete()
                 log.info('Version file {} was removed for {}.', adaptedVersionFile.absolutePath, getName())
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
                 throw new GradleException("It was not possible to remove file ${adaptedVersionFile.absolutePath} for ${getName()}")
             }
         }

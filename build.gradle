@@ -136,6 +136,12 @@ task sourceJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
+artifacts {
+    archives jar
+    archives sourceJar
+    archives groovydocJar
+}
+
 publishing {
     publications {
         intershopMvn(MavenPublication) {

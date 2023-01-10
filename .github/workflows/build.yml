@@ -63,6 +63,6 @@ jobs:
           ISHKEY: ${{ secrets.ISHKEY }}
           JAVA_OPTS: "-Xmx1024M -XX:ReservedCodeCacheSize=512M"
           GRADLE_OPTS: "-Dorg.gradle.daemon=true"
-        run: ./gradlew test build :publishIntershopMvnPublicationToMavenRepository -s --scan
+        run: ./gradlew test build :publishIntershopMvnPublicationToMavenRepository -s
       - name: Post Build
         run: rm -f $HOME/.gradle/gradle.properties && rm -f $HOME/.docker/config.json

@@ -13,19 +13,19 @@ plugins {
     id 'com.intershop.gradle.test' version '2.2.0'
 
     // plugin for documentation
-    id 'org.asciidoctor.convert' version '1.5.3'
+    id 'org.asciidoctor.convert' version '2.3.0'
 
     // publish plugin
     id 'maven-publish'
 
+    // artifact signing - necessary on Maven Central
+    id 'signing'
+
     // intershop version plugin
-    id 'com.intershop.gradle.scmversion' version '2.3.4'
+    id 'com.intershop.gradle.scmversion' version '2.7.4'
 
     // plugin for publishing to Gradle Portal
-    id 'com.gradle.plugin-publish' version '0.9.7'
-
-    // plugin for publishing to jcenter
-    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.gradle.plugin-publish' version '0.20.0'
 }
 
 scm {
@@ -40,8 +40,8 @@ version = scm.version.version
 
 // plugins should work with JDK 1.7 aslong
 // older INTERSHOP version use this version of JDK
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // set correct project status
 if (project.version.endsWith('-SNAPSHOT')) {
@@ -149,75 +149,89 @@ publishing {
                 classifier "javadoc"
             }
 
-            artifact(new File(buildDir, 'asciidoc/html5/README.html')) {
-                classifier 'reference'
-            }
-
-            artifact(new File(buildDir, 'asciidoc/docbook/README.xml')) {
-                classifier = 'docbook'
-            }
-
             pom.withXml {
-                def Node root = asNode();
+                def root = asNode();
                 root.appendNode('name', project.name)
                 root.appendNode('description', project.description)
                 root.appendNode('url', "https:/gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
 
-                def scm = root.appendNode('scm')
-                scm.appendNode('url', "https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}")
-                scm.appendNode('connection', "scm:git:https://gitlab.intershop.de/IntershopGradlePlugins/${project.name}.git")
+                def organisation = root.appendNode( 'organization' )
+                organisation.appendNode("name", "Intershop Communications AG")
+                organisation.appendNode("url", "http://intershop.com")
 
-                def org = root.appendNode('organization')
-                org.appendNode('name', 'Intershop Communications')
-                org.appendNode('url', 'http://intershop.com')
+                def scm = root.appendNode( 'scm' )
+                scm.appendNode( 'url', "https://github.com/IntershopCommunicationsAG/${project.name}")
+                scm.appendNode( 'connection', "git@github.com:IntershopCommunicationsAG/${project.name}.git")
+                scm.appendNode( 'developerConnection', "git@github.com:IntershopCommunicationsAG/${project.name}.git")
 
-                def license = root.appendNode('licenses').appendNode('license');
-                license.appendNode('name', 'Apache License, Version 2.0')
-                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0')
-                license.appendNode('distribution', 'repo')
+                def license = root.appendNode( 'licenses' ).appendNode( 'license' )
+                license.appendNode( 'name', 'Apache License, Version 2.0' )
+                license.appendNode( 'url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode( 'distribution', 'repo' )
+
+                def developer = root.appendNode('developers').appendNode( 'developer' )
+                developer.appendNode( 'id', 'm-raab' )
+                developer.appendNode( 'name', 'M. Raab' )
+                developer.appendNode( 'email', 'mraab@intershop.de' )
+
+                def pomFile = file("${project.buildDir}/generated-pom.xml")
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc)\.(jar)\.asc$/
+                    def ref_matcher = it.file =~ /\.html\.asc$/
+                    def doc_matcher = it.file =~ /\.xml\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                        extension = "jar.asc"
+                    } else {
+                        if(ref_matcher.find()) {
+                            classifier = 'reference'
+                            extension = 'html.asc'
+                        }
+                        else if(doc_matcher.find()) {
+                            classifier = 'docbook'
+                            extension = 'xml.asc'
+                        } else {
+                            classifier = null
+                            extension = 'jar.asc'
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = uri(version.toString().endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl)
+            credentials {
+                username = sonatypeUsername
+                password = sonatypePassword
             }
         }
     }
 }
 
-publish.dependsOn asciidoctor
-
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    pkg {
-        repo = 'maven'
-        name = project.name
-        userOrg = 'intershopcommunicationsag'
-
-        licenses = ['Apache-2.0']
-        vcsUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
-
-        desc = project.description
-        websiteUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
-        issueTrackerUrl = "https://github.com/IntershopCommunicationsAG/${project.name}/issues"
-
-        labels = ['intershop', 'gradle', 'plugin', 'version', 'dependencies', 'versionrecommendation']
-        publicDownloadNumbers = true
-
-        version {
-            name = project.version
-            desc = "${project.description} ${project.version}"
-            released  = new Date()
-            vcsTag = project.version
-        }
-
-        publications = ['intershopMvn']
-    }
+signing {
+    sign configurations.archives
 }
-
-bintrayUpload.dependsOn asciidoctor
 
 pluginBundle {
     website = "https://github.com/IntershopCommunicationsAG/${project.name}"
     vcsUrl = "https://github.com/IntershopCommunicationsAG/${project.name}"
     description = project.description
-    tags = ['intershop', 'gradle', 'plugin', 'version', 'dependencies', 'versionrecommendation']
+    tags = ['intershop', 'version', 'dependencies', 'versionrecommendation']
 
     plugins {
         gradleVersionRecommender {
@@ -232,14 +246,14 @@ dependencies {
     compile 'commons-codec:commons-codec:1.6'
     compile 'org.apache.httpcomponents:httpclient:4.4.1'
     compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'com.intershop.gradle.version:extended-version:1.3.0'
+    compile 'com.intershop.gradle.version:extended-version:3.1.0'
     compile 'net.sourceforge.nekohtml:nekohtml:1.9.22'
     compile 'com.trilead:trilead-ssh2:1.0.0-build220'
     runtime 'net.java.dev.jna:jna:3.2.7'
 
     //svn
     // replace svnkit's JNA 4.x with 3.2.7, which is used by Gradle itself
-    compile('org.tmatesoft.svnkit:svnkit:1.8.15') {
+    compile('org.tmatesoft.svnkit:svnkit:1.8.14') {
         exclude group: 'net.java.dev.jna'
         exclude group: 'com.trilead', module: 'trilead-ssh2'
     }
@@ -258,6 +272,17 @@ dependencies {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
+model {
+    tasks.generatePomFileForIntershopMvnPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+    tasks.publishIntershopMvnPublicationToMavenLocal {
+        dependsOn project.tasks.signArchives
+    }
+    tasks.publishIntershopMvnPublicationToMavenRepository {
+        dependsOn project.tasks.signArchives
+    }
+}

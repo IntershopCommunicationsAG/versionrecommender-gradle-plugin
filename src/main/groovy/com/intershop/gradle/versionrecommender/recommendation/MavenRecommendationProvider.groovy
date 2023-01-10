@@ -118,6 +118,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
                     }
                 }
             }
+
             if (result.getEffectiveModel().getDependencies()) {
                 result.getEffectiveModel().getDependencies().each { Dependency d ->
                     if (this.override || !versions.containsKey("${d.getGroupId()}:${d.getArtifactId()}".toString())) {
@@ -209,7 +210,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
                         return true
                     } catch (IOException ioex) {
                         sms = null
-                        log.warn('It was not possible to resolve URL {} ({})', url, ioex.getMessage())
+                        log.debug('It was not possible to resolve URL {} ({})', url, ioex.getMessage())
                     }
                 }
             } catch (MalformedURLException malurlex) {

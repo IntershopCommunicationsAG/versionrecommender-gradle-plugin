@@ -207,6 +207,7 @@ class MavenRecommendationProvider extends FileBasedRecommendationProvider {
 
                     try {
                         sms = new StreamModelSource(url.openStream())
+                        log.debug('The artifact was resolved with URL {}', url)
                         return true
                     } catch (IOException ioex) {
                         sms = null

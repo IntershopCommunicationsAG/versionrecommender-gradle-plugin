@@ -55,8 +55,8 @@ jobs:
           GITUSER: ${{ secrets.GITUSER }}
           GITPASSWD: ${{ secrets.GITPASSWD }}
         run: |
-          echo "systemProp.GITURL=$GITURL\nsystemProp.GITUSER=$GITUSER\nsystemProp.GITPASSWD=$GITPASSWD\nsystemProp.SVNURL=$SVNURL\nsystemProp.SVNUSER=$SVNUSER\nsystemProp.SVNPASSWD=$SVNPASSWD" > $HOME/.gradle/gradle.properties
-          echo "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET\nsigning.keyId=$SIGNINGKEYID\nsigning.password=$SIGNINGPASSWORD\nsigning.secretKeyRingFile=$HOME/.gradle/secrets.gpg\nsonatypeUsername=$SONATYPEUSER\nsonatypePassword=$SONATYPEPASSWORD" >> $HOME/.gradle/gradle.properties
+          echo -e "systemProp.GITURL=$GITURL\nsystemProp.GITUSER=$GITUSER\nsystemProp.GITPASSWD=$GITPASSWD\nsystemProp.SVNURL=$SVNURL\nsystemProp.SVNUSER=$SVNUSER\nsystemProp.SVNPASSWD=$SVNPASSWD" > $HOME/.gradle/gradle.properties
+          echo -e "gradle.publish.key=$APIKEY\ngradle.publish.secret=$APISECRET\nsigning.keyId=$SIGNINGKEYID\nsigning.password=$SIGNINGPASSWORD\nsigning.secretKeyRingFile=$HOME/.gradle/secrets.gpg\nsonatypeUsername=$SONATYPEUSER\nsonatypePassword=$SONATYPEPASSWORD" >> $HOME/.gradle/gradle.properties
       - name: Build and test with Gradle
         env:
           ISHUSERNAME: ${{ secrets.ISHUSERNAME }}
